@@ -315,25 +315,42 @@ function export_as_pdf($output)
 function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $output = "")
 {
     require_once(paniers_dir . "/vendor/autoload.php");
+
+    $mail = new PHPMailer(true);
+    try {
+        //Server settings
+        $mail->SMTPDebug = SMTP::DEBUG_SERVER;       
+        $mail->isSMTP();                             
+        $mail->Host       = 'contact@panierseden.fr';
+        $mail->SMTPAuth   = true;                    
+        $mail->Username   = 'contact@panierseden.fr';
+        $mail->Password   = 'lop1ZEFT4rik.jolt';       
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;         //Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
+        $mail->Port       = 465;                                 //TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
+
+        
+        //Recipients
+        $mail->setFrom('contact@panierseden.fr', 'Paniers d\'EDEN');
+        $mail->addAddress('foucher.benoit@neuf.fr');
+        $mail->addReplyTo($user->user_email);
+        $user = wp_get_current_user();
+        if($mail_cc != "") {
+           $mail->addCC($mail_cc);
+        }
+
+        //Attachments
+//        $mail->addAttachment('/var/tmp/file.tar.gz');         //Add attachments
+//        $mail->addAttachment('/tmp/image.jpg', 'new.jpg');    //Optional name
     
-    // Create the Transport
-    $transport = (new Swift_SmtpTransport('smtp.example.org', 25))
-      ->setUsername('contact@panierseden.fr')
-      ->setPassword('lop1ZEFT4rik.jolt')
-    ;
+        //Content
+        $mail->isHTML(false);                                  //Set email format to HTML
+        $mail->Subject = $mail_subject;
+        $mail->Body    = $message;
     
-    // Create the Mailer using your created Transport
-    $mailer = new Swift_Mailer($transport);
-    
-    // Create a message
-    $message = (new Swift_Message($mail_subject))
-      ->setFrom(['contact@panierseden.fr' => 'Paniers d\'EDEN'])
-      ->setTo(['foucher.benoit@neuf.fr'])
-      ->setBody($mail_message)
-      ;
-    
-    // Send the message
-    $result = $mailer->send($message);
+        $mail->send();
+    } catch (Exception $e) {
+        echo "Echec de l'envoie: {$mail->ErrorInfo}";
+    }
 }
 
 function send_export_email2($mail_to,$mail_cc,$mail_subject, $mail_message, $output = "")

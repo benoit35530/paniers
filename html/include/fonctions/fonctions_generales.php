@@ -316,11 +316,12 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
 {
     global $email_gestionnaires;
     // $mail_subject = utf8_decode(stripslashes($mail_subject));
+    $mail_to = "foucher.benoit@neuf.fr";
     $mail_subject = '=?UTF-8?Q?'.quoted_printable_encode($mail_subject).'?=';
     // $mail_message = utf8_decode(stripslashes($mail_message));
     $mail_boundary = md5(uniqid(time()));
     $mail_headers = "MIME-Version: 1.0\r\n";
-    $mail_headers .= "Content-type: multipart/mixed; boundary=\"$mail_boundary\"\r\n";
+    $mail_headers .= "Content-Type: multipart/mixed; boundary=\"$mail_boundary\"\r\n";
     $user = wp_get_current_user();
     // $mail_headers .= "From: " . $user->display_name . " <". $user->user_email . ">\r\n";
     $mail_headers .= "From: Paniers d'EDEN <contact@panierseden.fr>\r\n";
@@ -329,12 +330,11 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
     }
     if($mail_cc != "") {
         $mail_headers .= "Cc: $mail_cc\r\n";
-    }
+    }  
 
     $mail_body = "--$mail_boundary\r\n";
-    //$mail_body .= "Content-type: text/plain; charset=iso-8859-1\r\n";
-    $mail_body .= "Content-type: text/plain; charset=\"UTF-8\"\r\n";
-    $mail_body .= "Content-transfer-encoding: 8bit\r\n\r\n";
+    $mail_body .= "Content-Type: text/plain; charset=\"UTF-8\"\r\n";
+    $mail_body .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
     $mail_body .= $mail_message . "\r\n\r\n";
     $mail_body .= "--$mail_boundary\r\n";
 
@@ -353,10 +353,10 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
         // // $mail_body .= "Content-Disposition: attachment; filename=export.xls\r\n\r\n";
         // // $mail_body .= chunk_split(base64_encode($excel_output))  . " \r\n";
 
-        // $mail_body .= "--$mail_boundary\r\n";
+        // $mail_body .= "--$mail_boundary\r\n";   
 
-        $mail_body .= "Content-type: application/pdf; name=export.pdf\r\n";
-        $mail_body .= "Content-transfer-encoding: base64\r\n";
+        $mail_body .= "Content-Type: application/pdf; name=export.pdf\r\n";
+        $mail_body .= "Content-Transfer-Encoding: base64\r\n";
         $mail_body .= "Content-Disposition: attachment; filename=export.pdf\r\n\r\n";
         $mail_body .= chunk_split(base64_encode(export_as_pdf($output)))  . "\r\n\r\n";
 

@@ -322,9 +322,9 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
     $mail = new PHPMailer(true);
     try {
         //Server settings
-        $mail->SMTPDebug = SMTP::DEBUG_SERVER;       
+        //$mail->SMTPDebug = SMTP::DEBUG_SERVER;       
         $mail->isSMTP();                             
-        $mail->Host       = 'contact@panierseden.fr';
+        $mail->Host       = 'mail.panierseden.fr';
         $mail->SMTPAuth   = true;                    
         $mail->Username   = 'contact@panierseden.fr';
         $mail->Password   = 'lop1ZEFT4rik.jolt';       
@@ -341,19 +341,25 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
            $mail->addCC($mail_cc);
         }
 
-        //Attachments
-//        $mail->addAttachment('/var/tmp/file.tar.gz');         //Add attachments
-//        $mail->addAttachment('/tmp/image.jpg', 'new.jpg');    //Optional name
+        if ($output != "") {
+            $mail->addStringAttachment(
+                base64_encode(export_as_pdf($output)), 
+                "export.pdf", 
+                $encoding = $mail->ENCODING_BASE64, 
+                'application/pdf');
+        }
+
     
-        //Content
-        $mail->isHTML(false);                                  //Set email format to HTML
+        $mail->isHTML(false);
         $mail->Subject = $mail_subject;
         $mail->Body    = $mail_message;
     
         $mail->send();
     } catch (Exception $e) {
         echo "Echec de l'envoi: {$mail->ErrorInfo}";
+        return false;
     }
+    return true;
 }
 
 function send_export_email2($mail_to,$mail_cc,$mail_subject, $mail_message, $output = "")

@@ -2,6 +2,9 @@
 //
 // Fonctions générales
 //
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
 
 function listeannee($valeur,$champ) {
     $tab_annee = array("2006","2007","2008","2009","2010","2011");
@@ -314,7 +317,7 @@ function export_as_pdf($output)
 
 function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $output = "")
 {
-    require_once(paniers_dir . "/vendor/autoload.php");
+    require_once(paniers_dir . "/../vendor/autoload.php");
 
     $mail = new PHPMailer(true);
     try {
@@ -332,8 +335,8 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
         //Recipients
         $mail->setFrom('contact@panierseden.fr', 'Paniers d\'EDEN');
         $mail->addAddress('foucher.benoit@neuf.fr');
-        $mail->addReplyTo($user->user_email);
         $user = wp_get_current_user();
+        $mail->addReplyTo($user->user_email);
         if($mail_cc != "") {
            $mail->addCC($mail_cc);
         }
@@ -345,11 +348,11 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
         //Content
         $mail->isHTML(false);                                  //Set email format to HTML
         $mail->Subject = $mail_subject;
-        $mail->Body    = $message;
+        $mail->Body    = $mail_message;
     
         $mail->send();
     } catch (Exception $e) {
-        echo "Echec de l'envoie: {$mail->ErrorInfo}";
+        echo "Echec de l'envoi: {$mail->ErrorInfo}";
     }
 }
 

@@ -1,0 +1,4 @@
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/c1290081c/public_html/wp-content/plugins/paniers
+    - /bin/cp -Ruv . $DEPLOYPATH

@@ -413,30 +413,14 @@ function controler_date_fin_commande() {
         $name = get_bloginfo("name");
 
         $mail_subject = utf8_decode(stripslashes(message_courrier("relancesujet", $vars)));
-        $mail_headers = "MIME-Version: 1.0\r\n";
-        $mail_headers .= "Content-type: multipart/mixed; boundary=\"$mail_boundary\"\r\n";
-        $mail_headers .= "From: $name <" . $email_gestionnaires . ">\r\n";
-
         if(!isset($g_email_relance) || $g_email_relance == "") {
             $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select nom,prenom,email from $base_clients where etat='Actif'");
             while(list($nom,$prenom,$email) = mysqli_fetch_row($rep)) {
                 $user_vars = array_merge(array("%EMAIL%" => $email, "%PRENOM%" => $prenom, "%NOM%" => $nom), $vars);
-                $mail_boundary = md5(uniqid(time()));
-                $mail_body = "--$mail_boundary\r\n";
-                $mail_body .= "Content-type: text/plain; charset=iso-8859-1\r\n";
-                $mail_body .= "Content-transfer-encoding: 8bit\r\n\r\n";
-                $mail_body .= utf8_decode(stripslashes(message_courrier("relancemessage", $user_vars))) . "\r\n\r\n";
-                $mail_body .= "--$mail_boundary\r\n";
-                mail($email, $mail_subject, $mail_body, $mail_headers);
+                send_email($email, "", $mail_subject, utf8_decode(stripslashes(message_courrier("relancemessage", $user_vars))));
             }
         } else {
-            $mail_boundary = md5(uniqid(time()));
-            $mail_body = "--$mail_boundary\r\n";
-            $mail_body .= "Content-type: text/plain; charset=iso-8859-1\r\n";
-            $mail_body .= "Content-transfer-encoding: 8bit\r\n\r\n";
-            $mail_body .= utf8_decode(stripslashes(message_courrier("relancemessage", $vars))) . "\r\n\r\n";
-            $mail_body .= "--$mail_boundary\r\n";
-            mail($g_email_relance, $mail_subject, $mail_body, $mail_headers);
+            send_email($g_email_relance, "", $mail_subject, utf8_decode(stripslashes(message_courrier("relancemessage", $vars))));
         }
     } else {
         ecrire_log_admin("Controle date fin de commande: pas de commandes");

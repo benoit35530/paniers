@@ -315,6 +315,42 @@ function export_as_pdf($output)
     return $pdf->Output("sample.pdf", "S");
 }
 
+function send_email($mail_to,$mail_cc,$mail_subject, $mail_message)
+{
+    require_once(paniers_dir . "/../vendor/autoload.php");
+
+    $mail = new PHPMailer(true);
+    try {
+        //Server settings
+        //$mail->SMTPDebug = SMTP::DEBUG_SERVER;       
+        $mail->isSMTP();                             
+        $mail->Host       = 'mail.panierseden.fr';
+        $mail->SMTPAuth   = true;                    
+        $mail->Username   = 'contact@panierseden.fr';
+        $mail->Password   = 'lop1ZEFT4rik.jolt';       
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;         //Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
+        $mail->Port       = 465;                                 //TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
+        
+        //Recipients
+        $mail->setFrom('contact@panierseden.fr', 'Paniers d\'EDEN');
+        $mail->addAddress($mail_to);
+        if($mail_cc != "") {
+           $mail->addCC($mail_cc);
+        }
+
+        $mail->isHTML(false);
+        $mail->Subject = $mail_subject;
+        $mail->Body    = $mail_message;
+    
+        $mail->send();
+    } catch (Exception $e) {
+        echo "Echec de l'envoi: {$mail->ErrorInfo}";
+        return false;
+    }
+    return true;
+}
+
+
 function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $output = "")
 {
     require_once(paniers_dir . "/../vendor/autoload.php");

@@ -1,0 +1,26 @@
+
+
+#paniers_updateprofile p {
+    clear:both;
+}
+
+#paniers_updateprofile p label {
+    width:30%;
+    float:left;
+    clear:left;
+    padding-right:15px;
+}
+
+#paniers_updateprofile input[type=text], #paniers_updateprofile input[type=password], #paniers_updateprofile select, #paniers_updateprofile textarea {
+    width:60%;
+    margin-bottom:5px;  
+}
+
+#paniers_updateprofile input[type="checkbox"], #paniers_updateprofile input[type="radio"] {
+    vertical-align:middle;
+    margin:5px;
+}
+
+
+
+ 

@@ -334,7 +334,7 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
         
         //Recipients
         $mail->setFrom('contact@panierseden.fr', 'Paniers d\'EDEN');
-        $mail->addAddress('foucher.benoit@neuf.fr');
+        $mail->addAddress($mail_to);
         $user = wp_get_current_user();
         $mail->addReplyTo($user->user_email);
         if($mail_cc != "") {
@@ -342,19 +342,15 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
         }
 
         if ($output != "") {
-            $mail->addStringAttachment(
-                base64_encode(export_as_pdf($output)), 
-                "export.pdf", 
-                $encoding = $mail->ENCODING_BASE64, 
-                'application/pdf');
+            $mail->addStringAttachment(export_as_pdf($output), "export.pdf", $encoding = "base64", "application/pdf");
         }
 
-    
         $mail->isHTML(false);
         $mail->Subject = $mail_subject;
         $mail->Body    = $mail_message;
     
         $mail->send();
+
     } catch (Exception $e) {
         echo "Echec de l'envoi: {$mail->ErrorInfo}";
         return false;

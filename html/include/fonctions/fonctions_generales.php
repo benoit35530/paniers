@@ -314,6 +314,30 @@ function export_as_pdf($output)
 
 function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $output = "")
 {
+    require_once(paniers_dir . "/vendor/autoload.php");
+    
+    // Create the Transport
+    $transport = (new Swift_SmtpTransport('smtp.example.org', 25))
+      ->setUsername('contact@panierseden.fr')
+      ->setPassword('lop1ZEFT4rik.jolt')
+    ;
+    
+    // Create the Mailer using your created Transport
+    $mailer = new Swift_Mailer($transport);
+    
+    // Create a message
+    $message = (new Swift_Message($mail_subject))
+      ->setFrom(['contact@panierseden.fr' => 'Paniers d\'EDEN'])
+      ->setTo(['foucher.benoit@neuf.fr'])
+      ->setBody($mail_message)
+      ;
+    
+    // Send the message
+    $result = $mailer->send($message);
+}
+
+function send_export_email2($mail_to,$mail_cc,$mail_subject, $mail_message, $output = "")
+{
     global $email_gestionnaires;
     // $mail_subject = utf8_decode(stripslashes($mail_subject));
     $mail_to = "foucher.benoit@neuf.fr";

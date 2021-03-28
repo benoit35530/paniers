@@ -926,24 +926,24 @@ function paniers_plugin_options() {
       <tr valign="top">
         <th scope="row"><label for="smtpserver"><?php _e('Serveur SMTP') ?> </label></th>
         <td><input name="paniers_smtpserver" type="text" id="smtpserver"
-          value="<?php echo $paniers_data['paniers_smtpserver']; ?>" class="regular-text"
-        /> <span class="paniers_smtpserver"><?php _e("Serveur SMTP.") ?>
+          value="<?php echo $paniers_data['smtpserver']; ?>" class="regular-text"
+        /> <span class="smtpserver"><?php _e("Serveur SMTP.") ?>
         </span>
         </td>
       </tr>
       <tr valign="top">
         <th scope="row"><label for="smtpuser"><?php _e('Utilisateur SMTP') ?> </label></th>
         <td><input name="paniers_smtpuser" type="text" id="smtpuser"
-          value="<?php echo $paniers_data['paniers_smtpuser']; ?>" class="regular-text"
-        /> <span class="paniers_smtpuser"><?php _e("Utilisateur SMTP.") ?>
+          value="<?php echo $paniers_data['smtpuser']; ?>" class="regular-text"
+        /> <span class="smtpuser"><?php _e("Utilisateur SMTP.") ?>
         </span>
         </td>
       </tr>
       <tr valign="top">
         <th scope="row"><label for="smtppassword"><?php _e('Serveur SMTP') ?> </label></th>
         <td><input name="paniers_smtppassword" type="password" id="smtppassword"
-          value="<?php echo $paniers_data['paniers_smtppassword']; ?>" class="password"
-        /> <span class="paniers_smtppassword"><?php _e("Mot de passe SMTP.") ?>
+          value="<?php echo $paniers_data['smtppassword']; ?>" class="password"
+        /> <span class="smtppassword"><?php _e("Mot de passe SMTP.") ?>
         </span>
         </td>
       </tr>

@@ -361,10 +361,10 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
         //Server settings
         //$mail->SMTPDebug = SMTP::DEBUG_SERVER;       
         $mail->isSMTP();                             
-        $mail->Host       = $paniers_data["paniers_smtpserver"];
+        $mail->Host       = $paniers_data["smtpserver"];
         $mail->SMTPAuth   = true;                    
-        $mail->Username   = $paniers_data["paniers_smtpuser"];
-        $mail->Password   = $paniers_data["paniers_smtppassword"];     
+        $mail->Username   = $paniers_data["smtpuser"];
+        $mail->Password   = $paniers_data["smtppassword"];     
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;         //Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
         $mail->Port       = 465;                                 //TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
         

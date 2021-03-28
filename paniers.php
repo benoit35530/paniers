@@ -935,7 +935,7 @@ function paniers_plugin_options() {
         <th scope="row"><label for="smtpuser"><?php _e('Utilisateur SMTP') ?> </label></th>
         <td><input name="paniers_smtpuser" type="text" id="smtpuser"
           value="<?php echo $paniers_data['paniers_smtpuser']; ?>" class="regular-text"
-        /> <span class="paniers_smtpuser"><?php _e("UtilisateurTP.") ?>
+        /> <span class="paniers_smtpuser"><?php _e("Utilisateur SMTP.") ?>
         </span>
         </td>
       </tr>

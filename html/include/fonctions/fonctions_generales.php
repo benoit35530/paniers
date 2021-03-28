@@ -382,8 +382,8 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
         }
 
         $mail->isHTML(false);
-        $mail->Subject = $mail_subject;
-        $mail->Body    = $mail_message;
+        $mail->Subject = utf8_decode(stripslashes($mail_subject));
+        $mail->Body    = utf8_decode(stripslashes($mail_message));
     
         $mail->send();
 

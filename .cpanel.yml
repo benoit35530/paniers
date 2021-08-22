@@ -1,0 +1,6 @@
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/foucptms/public_html/wordpresspaniers/wp-content/plugins/paniers
+    - /bin/cp -Ruv html $DEPLOYPATH/
+    - /bin/cp -Ruv vendor $DEPLOYPATH/
+    - /bin/cp -uv paniers.* $DEPLOYPATH/

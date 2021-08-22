@@ -40,7 +40,7 @@ function gerer_liste_avoirs($actifsOnly=True) {
     global $base_avoirs,$base_clients,$base_producteurs,$base_bons_cde;
     $condition =( $actifsOnly ? "idboncommande = 0" : "1");
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_avoirs.id,$base_clients.nom,$base_clients.prenom,$base_clients.codeclient," . 
-                       "idboncommande,idproducteur,montant,description" . 
+                       "$base_avoirs.datemodif,idboncommande,idproducteur,montant,description" . 
                        ($actifsOnly ? " " : ",$base_bons_cde.idboncde ") .
                        "from $base_avoirs " . 
                        ($actifsOnly ? "" :
@@ -63,10 +63,11 @@ function gerer_liste_avoirs($actifsOnly=True) {
             $chaine .= html_colonne("","","center","","","","","Action","","thliste");
         }
         $chaine .= html_fin_ligne();
-        while (list($id,$nom,$prenom,$codeclient,$idboncommande,$idproducteur,$montant,$description, $idboncde) = 
+        while (list($id,$nom,$prenom,$codeclient,$datemodif,$idboncommande,$idproducteur,$montant,$description, $idboncde) = 
                mysqli_fetch_row($rep))
         {
             $chaine .= html_debut_ligne("","","","top");
+            $chaine .= html_colonne("","","left","","","","",dateexterne($datemodif),"","tdliste");
             $chaine .= html_colonne("","","left","","","","","$nom $prenom ($codeclient)","","tdliste");
             if($idproducteur > 0) {
                 $chaine .= html_colonne("","","left","","","","",retrouver_producteur($idproducteur),"","tdliste");

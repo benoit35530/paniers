@@ -48,7 +48,7 @@ case "ajoutlivraison":
     $champs["lgmax"] = array("","","","","");
     $champs["taille"] = array("","40","40","60","");
     $champs["nomvar"] = array("","idproducteur","iddatelivraison","description","");
-    $champs["valeur"] = array("",afficher_liste_producteurs("iddatelivraison"),afficher_liste_dates("iddatelivraison",0,True), ""," Valider ");
+    $champs["valeur"] = array("",afficher_liste_producteurs("idproducteur"),afficher_liste_dates("iddatelivraison"), ""," Valider ");
     $champs["aide"] = array("","","Choisissez le producteur et date de la livraison annulée. Des avoirs seront ajoutés pour chaque client ayant commandé.", "", "");
     echo saisir_enregistrement($champs,"?action=confajoutlivraison","formavoirlivraison",60,20,5,5,true);
     break;
@@ -227,19 +227,11 @@ case "listerregle":
     break;
 
 case "listerencours":
+
 default:
     echo afficher_titre("Avoirs en cours");
     echo gerer_liste_avoirs(True);
     echo "<br><br><br>";
-
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_periodes where etat != 'Close' order by datedebut desc");
-    while(list($idperiode) = mysqli_fetch_row($rep))
-    {
-        if($idperiode > 0) {
-            echo afficher_titre("Avoirs période : " . retrouver_periode($idperiode));
-            echo gerer_liste_avoirs_periode($idperiode);
-        }
-    }
     break;
 
 endswitch;

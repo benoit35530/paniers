@@ -45,8 +45,8 @@ case "ajoutlivraison":
     echo afficher_titre("Ajouter un avoir livraison annulée");
     $champs["libelle"] = array("Choisissez le producteur et la période","*Producteur","*Période", "Description", "");
     $champs["type"] = array("","libre","libre","textarea","submit");
-    $champs["lgmax"] = array("","","","","","");
-    $champs["taille"] = array("","40","40","10","60","");
+    $champs["lgmax"] = array("","","","","");
+    $champs["taille"] = array("","40","40","60","");
     $champs["nomvar"] = array("","idproducteur","idperiode","description","");
     $champs["valeur"] = array("",afficher_list_periodes("idperiode", 0, True),
                                  afficher_liste_producteurs("idproducteur"),""," Valider ");
@@ -60,7 +60,6 @@ case "confajoutlivraison":
     $message = "";
     if(!isset($idproducteur) || $idproducteur == "" || $idproducteur == 0) $message .= "producteur manquant, ";
     if(!isset($idperiode) || $idperiode == "" || $idperiode == 0) $message .= "période manquante, ";
-    if(!isset($montant)) $message .= "montant manquant, ";
     if($message != "")
     {
         echo afficher_message_erreur("Impossible d'ajouter cet avoir : " . $message);

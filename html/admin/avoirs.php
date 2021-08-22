@@ -50,7 +50,7 @@ case "ajoutlivraison":
     $champs["nomvar"] = array("","idproducteur","idperiode","description","");
     $champs["valeur"] = array("",afficher_liste_producteurs("idproducteur"),afficher_liste_periodes("idperiode",0,True), ""," Valider ");
     $champs["aide"] = array("","","Choisissez le producteur et période de la livraison annulée. Des avoirs seront ajoutés pour chaque client ayant commandé.", "", "");
-    echo saisir_enregistrement($champs,"?action=confajout","formavoirlivraison",60,20,5,5,true);
+    echo saisir_enregistrement($champs,"?action=confajoutlivraison","formavoirlivraison",60,20,5,5,true);
     break;
     
 case "confajoutlivraison":
@@ -67,14 +67,12 @@ case "confajoutlivraison":
     {
         $description = addslashes($description);
 
-        $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_commandes.idclient,idproduit,$base_commandes.iddatelivraison,quantite,prix," .
-            "$base_clients.nom,$base_clients.prenom,$base_clients.codeclient " .
+        $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_commandes.idclient,idproduit,$base_commandes.iddatelivraison,quantite,prix " .
             "from $base_commandes " .
             "inner join $base_bons_cde on $base_bons_cde.id = $base_commandes.idboncommande " .
             "inner join $base_clients on $base_clients.id = $base_commandes.idclient " .
-            "where $base_commandes.idperiode='$idperiode' and ".
-            "$base_commandes.idproducteur='$idproducteur' and $base_bons_cde.iddepot='$iddepot' " .
-            "order by $base_clients.nom,$base_clients.prenom");
+            "where $base_commandes.idperiode='$idperiode' and $base_commandes.idproducteur='$idproducteur'");
+
         while(list($idclient,$idproduit,$iddatelivraison,$quantity,$prix,$nom,$prenom,$codeclient) = mysqli_fetch_row($rep0))
         {
             $params = retrouver_parametres_produit($idproduit);
@@ -84,8 +82,7 @@ case "confajoutlivraison":
         }
 
         foreach($commandes as $idclient => $montant) {
-            echo $idclient . " " . $montant;
-            // $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_avoirs (id,idclient,idproducteur,montant,description,datemodif) values ('','$idclient','$idproducteur','$montant','$description',now())");
+            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_avoirs (id,idclient,idproducteur,montant,description,datemodif) values ('','$idclient','$idproducteur','$montant','$description',now())");
             echo afficher_message_info("L'avoir n° $last_id est ajoutée");
         }
     }

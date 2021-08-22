@@ -15,20 +15,12 @@ echo html_fin_form();
 echo html_debut_form("?action=ajoutlivraison",false,"formajouterlivraison");
 echo html_colonne("","","left","","","","",html_bouton_submit("Ajouter un avoir livraison annulée"));
 echo html_fin_form();
-echo html_debut_form("?action=filtrer",false,"formfiltrer");
-echo html_colonne("34%","","center","","","","",
-                  afficher_liste_periodes("idperiode",retrouver_periode_courante(),false) . 
-                  html_bouton_submit("Lister les avoirs par période"));
+echo html_debut_form("?action=listerencours",false,"formlister");
+echo html_colonne("33%","","right","","","","",html_bouton_submit("Lister les avoirs encours"));
 echo html_fin_form();
-if($action == "listerregle") {
-    echo html_debut_form("?action=listerencours",false,"formlister");
-    echo html_colonne("33%","","right","","","","",html_bouton_submit("Lister les avoirs encours"));
-    echo html_fin_form();
-} else {
-    echo html_debut_form("?action=listerregle",false,"formlister");
-    echo html_colonne("33%","","right","","","","",html_bouton_submit("Lister les avoirs réglés"));
-    echo html_fin_form();
-}
+echo html_debut_form("?action=listerregle",false,"formlister");
+echo html_colonne("33%","","right","","","","",html_bouton_submit("Lister les avoirs réglés"));
+echo html_fin_form();
 echo html_fin_ligne();
 echo html_fin_tableau();
 ?>

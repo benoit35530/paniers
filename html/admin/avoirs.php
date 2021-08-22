@@ -48,9 +48,8 @@ case "ajoutlivraison":
     $champs["lgmax"] = array("","","","","");
     $champs["taille"] = array("","40","40","60","");
     $champs["nomvar"] = array("","idproducteur","idperiode","description","");
-    $champs["valeur"] = array("",afficher_list_periodes("idperiode", 0, True),
-                                 afficher_liste_producteurs("idproducteur"),""," Valider ");
-    $champs["aide"] = array("","","Choisissez le producteur et période de la livraison annulée. Des avoirs seront ajoutés pour chaque client ayant commandé.", "", "","");
+    $champs["valeur"] = array("",afficher_liste_producteurs("idproducteur"),afficher_liste_periodes("idperiode",0,True), ""," Valider ");
+    $champs["aide"] = array("","","Choisissez le producteur et période de la livraison annulée. Des avoirs seront ajoutés pour chaque client ayant commandé.", "", "");
     echo saisir_enregistrement($champs,"?action=confajout","formavoirlivraison",60,20,5,5,true);
     break;
     

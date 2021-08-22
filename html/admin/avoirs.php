@@ -43,13 +43,13 @@ case "confajout":
 
 case "ajoutlivraison":
     echo afficher_titre("Ajouter un avoir livraison annulée");
-    $champs["libelle"] = array("Choisissez le producteur et la période","*Producteur","*Période", "Description", "");
+    $champs["libelle"] = array("Choisissez le producteur et la date","*Producteur","*Date", "Description", "");
     $champs["type"] = array("","libre","libre","textarea","submit");
     $champs["lgmax"] = array("","","","","");
     $champs["taille"] = array("","40","40","60","");
-    $champs["nomvar"] = array("","idproducteur","idperiode","description","");
-    $champs["valeur"] = array("",afficher_liste_producteurs("idproducteur"),afficher_liste_periodes("idperiode",0,True), ""," Valider ");
-    $champs["aide"] = array("","","Choisissez le producteur et période de la livraison annulée. Des avoirs seront ajoutés pour chaque client ayant commandé.", "", "");
+    $champs["nomvar"] = array("","idproducteur","iddatelivraison","description","");
+    $champs["valeur"] = array("",afficher_liste_producteurs("iddatelivraison"),afficher_liste_dates("iddatelivraison",0,True), ""," Valider ");
+    $champs["aide"] = array("","","Choisissez le producteur et date de la livraison annulée. Des avoirs seront ajoutés pour chaque client ayant commandé.", "", "");
     echo saisir_enregistrement($champs,"?action=confajoutlivraison","formavoirlivraison",60,20,5,5,true);
     break;
     
@@ -58,7 +58,7 @@ case "confajoutlivraison":
     echo afficher_titre("Ajout d'un avoir pour annulation de livraison");
     $message = "";
     if(!isset($idproducteur) || $idproducteur == "" || $idproducteur == 0) $message .= "producteur manquant, ";
-    if(!isset($idperiode) || $idperiode == "" || $idperiode == 0) $message .= "période manquante, ";
+    if(!isset($iddatelivraison) || $iddatelivraison == "" || $iddatelivraison == 0) $message .= "date manquante, ";
     if($message != "")
     {
         echo afficher_message_erreur("Impossible d'ajouter cet avoir : " . $message);
@@ -67,13 +67,13 @@ case "confajoutlivraison":
     {
         $description = addslashes($description);
 
-        $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_commandes.idclient,idproduit,$base_commandes.iddatelivraison,quantite,prix " .
+        $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_commandes.idclient,idproduit,quantite,prix " .
             "from $base_commandes " .
             "inner join $base_bons_cde on $base_bons_cde.id = $base_commandes.idboncommande " .
             "inner join $base_clients on $base_clients.id = $base_commandes.idclient " .
-            "where $base_commandes.idperiode='$idperiode' and $base_commandes.idproducteur='$idproducteur'");
+            "where $base_commandes.iddatelivraison='$iddatelivraison' and $base_commandes.idproducteur='$idproducteur'");
 
-        while(list($idclient,$idproduit,$iddatelivraison,$quantity,$prix,$nom,$prenom,$codeclient) = mysqli_fetch_row($rep0))
+        while(list($idclient,$idproduit,$quantity,$prix) = mysqli_fetch_row($rep0))
         {
             $params = retrouver_parametres_produit($idproduit);
             if (!isset($commandes[$idclient]))
@@ -81,10 +81,14 @@ case "confajoutlivraison":
             $commandes[$idclient] += $quantity * $prix;
         }
 
+        if (!isset($description) || $description == "") {
+            $description = "Livraison du " . retrouver_date($iddatelivraison) . " annulée";
+        }
+ 
         foreach($commandes as $idclient => $montant) {
             $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_avoirs (id,idclient,idproducteur,montant,description,datemodif) values ('','$idclient','$idproducteur','$montant','$description',now())");
-            echo afficher_message_info("L'avoir n° $last_id est ajoutée");
         }
+        echo afficher_message_info("Les avoirs pour l'annulation de la livraison ont étés ajoutés");
     }
     echo gerer_liste_avoirs(retrouver_periode_derniere());
     break;

@@ -10,7 +10,10 @@ if(!utilisateurIsAdmin()) {
 echo html_debut_tableau("100%","0","2","0");
 echo html_debut_ligne("","","","","","","");
 echo html_debut_form("?action=ajout",false,"formajouter");
-echo html_colonne("","","left","","","","",html_bouton_submit("Ajouter un avoir"));
+echo html_colonne("","","left","","","","",html_bouton_submit("Ajouter un avoir client"));
+echo html_fin_form();
+echo html_debut_form("?action=ajoutlivraison",false,"formajouterlivraison");
+echo html_colonne("","","left","","","","",html_bouton_submit("Ajouter un avoir livraison annulée"));
 echo html_fin_form();
 echo html_debut_form("?action=filtrer",false,"formfiltrer");
 echo html_colonne("34%","","center","","","","",

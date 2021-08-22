@@ -217,7 +217,7 @@ prisecommande,Prise de commandes,18:30,19:30,1,1;";
 
 function paniers_rewriteURL()
 {
-    add_rewrite_rule('paniers/(.*)$','/wp-content/plugins/paniers/html/$1','top');
+    add_rewrite_rule('paniers/(.*)$',$paniers_dir . '/$1','top');
 }
 
 function paniers_uninstall()

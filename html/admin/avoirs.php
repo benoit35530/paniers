@@ -8,7 +8,7 @@ require_once("../include/admin/admin_menu_avoirs.php");
 switch($action):
 
 case "ajout":
-    echo afficher_titre("Ajouter un avoir");
+    echo afficher_titre("Ajouter un avoir client");
     $champs["libelle"] = array("Choisissez le client","*Client","Producteur","Montant", "Description", "");
     $champs["type"] = array("","libre","libre","text","textarea","submit");
     $champs["lgmax"] = array("","","","","","");
@@ -17,14 +17,49 @@ case "ajout":
     $champs["valeur"] = array("",afficher_liste_clients("idclient",0,True,True),
                               afficher_liste_producteurs("idproducteur",0,True), "0.0",""," Valider ");
     $champs["aide"] = array("","","Choisissez le producteur sur lequel sera déduit l'avoir. Ne choisissez pas de producteur pour affecter l'avoir sur le compte des paniers.", "", "","");
-    echo saisir_enregistrement($champs,"?action=confajout","formcde",60,20,5,5,true);
+    echo saisir_enregistrement($champs,"?action=confajout","formavoirclient",60,20,5,5,true);
     break;
-
+    
 case "confajout":
 
-    echo afficher_titre("Ajout d'un avoir");
+    echo afficher_titre("Ajout d'un avoir client");
     $message = "";
     if(!isset($idclient) || $idclient == "" || $idclient == 0) $message .= "client manquant, ";
+    if(!isset($montant)) $message .= "montant manquant, ";
+    if($message != "")
+    {
+        echo afficher_message_erreur("Impossible d'ajouter cet avoir : " . $message);
+    }
+    else
+    {
+        $description = addslashes($description);
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_avoirs (id,idclient,idproducteur,montant,description,datemodif) values ('','$idclient','$idproducteur','$montant','$description',now())");
+        $last_id = ((is_null($___mysqli_res = mysqli_insert_id($GLOBALS["___mysqli_ston"]))) ? false : $___mysqli_res);
+        echo afficher_message_info("L'avoir n° $last_id est ajoutée");
+        ecrire_log_admin("Avoir n° $last_id ajouté");
+    }
+    echo gerer_liste_avoirs(retrouver_periode_derniere());
+    break;
+
+case "ajoutlivraison":
+    echo afficher_titre("Ajouter un avoir livraison annulée");
+    $champs["libelle"] = array("Choisissez le producteur et la période","*Producteur","*Période", "Description", "");
+    $champs["type"] = array("","libre","libre","textarea","submit");
+    $champs["lgmax"] = array("","","","","","");
+    $champs["taille"] = array("","40","40","10","60","");
+    $champs["nomvar"] = array("","idproducteur","idperiode","description","");
+    $champs["valeur"] = array("",afficher_list_periodes("idperiode", 0, True),
+                                 afficher_liste_producteurs("idproducteur"),""," Valider ");
+    $champs["aide"] = array("","","Choisissez le producteur et période de la livraison annulée. Des avoirs seront ajoutés pour chaque client ayant commandé.", "", "","");
+    echo saisir_enregistrement($champs,"?action=confajout","formavoirlivraison",60,20,5,5,true);
+    break;
+    
+case "confajoutlivraison":
+
+    echo afficher_titre("Ajout d'un avoir pour annulation de livraison");
+    $message = "";
+    if(!isset($idproducteur) || $idproducteur == "" || $idproducteur == 0) $message .= "producteur manquant, ";
+    if(!isset($idperiode) || $idperiode == "" || $idperiode == 0) $message .= "période manquante, ";
     if(!isset($montant)) $message .= "montant manquant, ";
     if($message != "")
     {

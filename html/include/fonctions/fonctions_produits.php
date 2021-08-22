@@ -40,8 +40,7 @@ function gerer_liste_produits() {
     if(obtenir_producteur_utilisateur() > 0) {
         $filter_producteur = "id='" . obtenir_producteur_utilisateur() . "'";
     } else {
-//        $filter_producteur = "1";
-        $filter_producteur = "etat=Actif";
+        $filter_producteur = "etat='Actif'";
     }
     
     $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits from $base_producteurs where $filter_producteur order by nom");

@@ -66,10 +66,28 @@ case "confajoutlivraison":
     else
     {
         $description = addslashes($description);
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_avoirs (id,idclient,idproducteur,montant,description,datemodif) values ('','$idclient','$idproducteur','$montant','$description',now())");
-        $last_id = ((is_null($___mysqli_res = mysqli_insert_id($GLOBALS["___mysqli_ston"]))) ? false : $___mysqli_res);
-        echo afficher_message_info("L'avoir n° $last_id est ajoutée");
-        ecrire_log_admin("Avoir n° $last_id ajouté");
+
+        $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_commandes.idclient,idproduit,$base_commandes.iddatelivraison,quantite,prix," .
+            "$base_clients.nom,$base_clients.prenom,$base_clients.codeclient " .
+            "from $base_commandes " .
+            "inner join $base_bons_cde on $base_bons_cde.id = $base_commandes.idboncommande " .
+            "inner join $base_clients on $base_clients.id = $base_commandes.idclient " .
+            "where $base_commandes.idperiode='$idperiode' and ".
+            "$base_commandes.idproducteur='$idproducteur' and $base_bons_cde.iddepot='$iddepot' " .
+            "order by $base_clients.nom,$base_clients.prenom");
+        while(list($idclient,$idproduit,$iddatelivraison,$quantity,$prix,$nom,$prenom,$codeclient) = mysqli_fetch_row($rep0))
+        {
+            $params = retrouver_parametres_produit($idproduit);
+            if (!isset($commandes[$idclient]))
+                $commandes[$idclient] = 0.0;
+            $commandes[$idclient] += $quantity * $prix;
+        }
+
+        foreach($commandes as $idclient => $montant) {
+            echo $idclient . " " . $montant;
+            // $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_avoirs (id,idclient,idproducteur,montant,description,datemodif) values ('','$idclient','$idproducteur','$montant','$description',now())");
+            echo afficher_message_info("L'avoir n° $last_id est ajoutée");
+        }
     }
     echo gerer_liste_avoirs(retrouver_periode_derniere());
     break;

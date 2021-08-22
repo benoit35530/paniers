@@ -53,6 +53,7 @@ function gerer_liste_avoirs($actifsOnly=True) {
     {
         $chaine .= html_debut_tableau("70%","0","2","0");
         $chaine .= html_debut_ligne("","","","top");
+        $chaine .= html_colonne("","","left","","","","","Date","","thliste");
         $chaine .= html_colonne("","","center","","","","","Client","","thliste");
         $chaine .= html_colonne("","","center","","","","","Producteur","","thliste");
         $chaine .= html_colonne("","","center","","","","","Montant","","thliste");
@@ -67,7 +68,7 @@ function gerer_liste_avoirs($actifsOnly=True) {
                mysqli_fetch_row($rep))
         {
             $chaine .= html_debut_ligne("","","","top");
-            $chaine .= html_colonne("","","left","","","","",dateexterne($datemodif),"","tdliste");
+            $chaine .= html_colonne("","","left","","","","",$datemodif,"","tdliste");
             $chaine .= html_colonne("","","left","","","","","$nom $prenom ($codeclient)","","tdliste");
             if($idproducteur > 0) {
                 $chaine .= html_colonne("","","left","","","","",retrouver_producteur($idproducteur),"","tdliste");

@@ -46,7 +46,7 @@ function gerer_liste_avoirs($actifsOnly=True) {
                        ($actifsOnly ? "" :
                         "inner join $base_bons_cde on $base_avoirs.idboncommande = $base_bons_cde.id " ).
                        "inner join $base_clients on $base_avoirs.idclient = $base_clients.id " .
-                       "where $condition order by $base_clients.nom, $base_clients.prenom desc");
+                       "where $condition order by $base_avoirs.datemodif desc");
 
     $chaine = "";
     if(mysqli_num_rows($rep) != 0)

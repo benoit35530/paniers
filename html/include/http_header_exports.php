@@ -10,11 +10,14 @@ if (isset($export) && $export == "excel")
 }
 elseif (isset($export) && $export == "pdf")
 {
-    header("Content-type: application/pdf");
-    header("Content-Disposition: attachment; filename=export_" . $action . "_" . gmdate("md") . ".pdf");
-    header("Expires: 0");
-    header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-    header("Pragma: public");
+    ob_clean();
+    flush();
+    header("Content-Type: application/pdf");
+    header("Content-Disposition: inline; filename=export_" . $action . "_" . gmdate("md") . ".pdf");
+    header("Content-Transfer-Encoding: binary");
+    header("Accept-Ranges: bytes");
+    header('Expires: 0');
+    header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
 }
 else
 {

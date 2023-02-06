@@ -12,9 +12,12 @@ if(!isset($export) || ($export != "excel" && $export != "impression" && $export 
     require_once("../include/fonctions_include_admin.php");
     require_once("../include/admin/admin_menu_exports.php");
 }
-else {
+else if ($export != "pdf") {
     require_once("../include/fonctions_include_exports.php");
     require_once("../include/admin/admin_header_exports.php");
+}
+else {
+    require_once("../include/fonctions_include_exports.php");
 }
 
 if($export == "email") {
@@ -376,7 +379,7 @@ else {
 if (!isset($export) || ($export != "excel" && $export != "impression" && $export != "pdf")) {
     require_once("../include/admin/admin_footer.php");
 }
-else {
+else if ($export != "pdf") {
     require_once("../include/admin/admin_footer_exports.php");
 }
 ?>

@@ -54,7 +54,7 @@ else
     if ($idperiode == 0 || !periode_active($idperiode)) {
         echo afficher_message_erreur($message_commande_nondisponible);
     } else {
-        echo afficher_formulaire_bon_commande_nouveau_client(retrouver_periode_courante(),
+        echo afficher_formulaire_bon_commande_nouveau_client($idperiode,
                                                              $qteproduit,
                                                              $nom, 
                                                              $prenom,

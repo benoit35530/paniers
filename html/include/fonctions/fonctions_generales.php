@@ -324,18 +324,11 @@ function export_as_pdf($output)
     $pdf->UseCSS();
     $pdf->UseTableHeader();
     $pdf->AddPage();
-    $out = '';
+    $out = file_get_contents(paniers_dir . "/include/admin/admin_header_exports.php");
+    $out .= iconv("UTF-8",  "ISO-8859-1", $output);
+    $out .= file_get_contents(paniers_dir . "/include/admin/admin_footer_exports.php");
     $pdf->WriteHTML($out);
-
-    $file = "export.pdf";
-    header("Content-Type: application/octet-stream");
-    header("Content-Disposition: attachment; filename=" . urlencode($file));   
-    header("Content-Type: application/octet-stream");
-    header("Content-Type: application/download");
-    header("Content-Description: File Transfer");
-    header("Content-Length: " . strlen($out));
-    echo $out;
-    flush();
+    return $pdf->Output("sample.pdf", "S");
 }
 
 function send_email($mail_to,$mail_cc,$mail_subject, $mail_message)

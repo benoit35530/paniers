@@ -299,7 +299,7 @@ function afficher_corps_page($PAGE_Titre="",$PAGE_Message="",$PAGE_Contenu="") {
 
 }
 
-function export_as_pdf($output)
+function export_as_pdf_email($output)
 {
     define('RELATIVE_PATH', paniers_dir . '/include/html2pdf/');
     define('FPDF_FONTPATH',paniers_dir . '/include/html2pdf/font/');
@@ -313,6 +313,29 @@ function export_as_pdf($output)
     $out .= file_get_contents(paniers_dir . "/include/admin/admin_footer_exports.php");
     $pdf->WriteHTML($out);
     return $pdf->Output("sample.pdf", "S");
+}
+
+function export_as_pdf($output)
+{
+    define('RELATIVE_PATH', paniers_dir . '/include/html2pdf/');
+    define('FPDF_FONTPATH',paniers_dir . '/include/html2pdf/font/');
+    require_once(RELATIVE_PATH . '/html2fpdf.php');
+    $pdf=new HTML2FPDF();
+    $pdf->UseCSS();
+    $pdf->UseTableHeader();
+    $pdf->AddPage();
+    $out = '';
+    $pdf->WriteHTML($out);
+
+    $file = "export.pdf";
+    header("Content-Type: application/octet-stream");
+    header("Content-Disposition: attachment; filename=" . urlencode($file));   
+    header("Content-Type: application/octet-stream");
+    header("Content-Type: application/download");
+    header("Content-Description: File Transfer");
+    header("Content-Length: " . strlen($out));
+    echo $out;
+    flush();
 }
 
 function send_email($mail_to,$mail_cc,$mail_subject, $mail_message)
@@ -379,7 +402,7 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
         }
 
         if ($output != "") {
-            $mail->addStringAttachment(export_as_pdf($output), "export.pdf", $encoding = "base64", "application/pdf");
+            $mail->addStringAttachment(export_as_pdf_email($output), "export.pdf", $encoding = "base64", "application/pdf");
         }
 
         $mail->isHTML(false);

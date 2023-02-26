@@ -336,8 +336,6 @@ function export_as_pdf($output)
 
 function send_email($mail_to,$mail_cc,$mail_subject, $mail_message)
 {
-    require_once(paniers_dir . "/../vendor/autoload.php");
-
     $mail = new PHPMailer(true);
     try {
         //Server settings
@@ -360,7 +358,6 @@ function send_email($mail_to,$mail_cc,$mail_subject, $mail_message)
         $mail->isHTML(false);
         $mail->Subject = $mail_subject;
         $mail->Body    = $mail_message;
-
         $mail->send();
     } catch (Exception $e) {
         echo "Echec de l'envoi: {$mail->ErrorInfo}";
@@ -372,7 +369,6 @@ function send_email($mail_to,$mail_cc,$mail_subject, $mail_message)
 
 function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $output = "")
 {
-    require_once(paniers_dir . "/../vendor/autoload.php");
     $paniers_data = get_option("paniers_data");
 
     $mail = new PHPMailer(true);
@@ -404,7 +400,6 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
         $mail->isHTML(false);
         $mail->Subject = utf8_decode(stripslashes($mail_subject));
         $mail->Body    = utf8_decode(stripslashes($mail_message));
-
         $mail->send();
 
     } catch (Exception $e) {

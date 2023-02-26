@@ -18,7 +18,6 @@ else if ($export != "pdf") {
 }
 else {
     require_once("../include/fonctions_include_exports.php");
-    // require_once("../include/admin/admin_header_exports.php");
 }
 
 if($export == "email") {

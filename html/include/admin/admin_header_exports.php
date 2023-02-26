@@ -11,7 +11,7 @@ body {
 	background-color: #FFFFFF;
 	color: #000000;
 	font-size: 10pt;
-	font-family: "Arial";
+	font-family:sans-serif;
 	margin: 5;
 }
 

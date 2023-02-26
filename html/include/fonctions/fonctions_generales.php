@@ -2,6 +2,12 @@
 //
 // Fonctions générales
 //
+require_once(paniers_dir . "/../vendor/autoload.php");
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+use Mpdf\Mpdf;
 
 function listeannee($valeur,$champ) {
     $tab_annee = array("2006","2007","2008","2009","2010","2011");
@@ -296,23 +302,119 @@ function afficher_corps_page($PAGE_Titre="",$PAGE_Message="",$PAGE_Contenu="") {
 
 }
 
-function export_as_pdf($output)
+function export_as_pdf_email($output)
 {
-    define('RELATIVE_PATH', paniers_dir . '/include/html2pdf/');
-    define('FPDF_FONTPATH',paniers_dir . '/include/html2pdf/font/');
-    require_once(RELATIVE_PATH . '/html2fpdf.php');
-    $pdf=new HTML2FPDF();
-    $pdf->UseCSS();
-    $pdf->UseTableHeader();
-    $pdf->AddPage();
     $out = file_get_contents(paniers_dir . "/include/admin/admin_header_exports.php");
-    $out .= iconv("UTF-8",  "ISO-8859-1", $output);
+    $out .= $output;
     $out .= file_get_contents(paniers_dir . "/include/admin/admin_footer_exports.php");
-    $pdf->WriteHTML($out);
-    return $pdf->Output("sample.pdf", "S");
+
+    try {
+        $mpdf = new Mpdf();
+        $mpdf->WriteHTML($out);
+        return $mpdf->Output("name.pdf", "S");
+    } catch (Exception $e) {
+        $formatter = new ExceptionFormatter($e);
+        echo $formatter->getHtmlMessage();
+    }
 }
 
+function export_as_pdf($output)
+{
+    $out = file_get_contents(paniers_dir . "/include/admin/admin_header_exports.php");
+    $out .= $output;
+    $out .= file_get_contents(paniers_dir . "/include/admin/admin_footer_exports.php");
+
+    try {
+        $mpdf = new Mpdf();
+        $mpdf->WriteHTML($out);
+        $mpdf->Output();
+    } catch (Exception $e) {
+        $formatter = new ExceptionFormatter($e);
+        echo $formatter->getHtmlMessage();
+    }
+}
+
+function send_email($mail_to,$mail_cc,$mail_subject, $mail_message)
+{
+    require_once(paniers_dir . "/../vendor/autoload.php");
+
+    $mail = new PHPMailer(true);
+    try {
+        //Server settings
+        //$mail->SMTPDebug = SMTP::DEBUG_SERVER;
+        $mail->isSMTP();
+        $mail->Host       = $paniers_data["smtpserver"];
+        $mail->SMTPAuth   = true;
+        $mail->Username   = $paniers_data["smtpuser"];
+        $mail->Password   = $paniers_data["smtppassword"];
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;         //Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
+        $mail->Port       = 465;                                 //TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
+
+        //Recipients
+        $mail->setFrom('contact@panierseden.fr', 'Paniers d\'EDEN');
+        $mail->addAddress($mail_to);
+        if($mail_cc != "") {
+           $mail->addCC($mail_cc);
+        }
+
+        $mail->isHTML(false);
+        $mail->Subject = $mail_subject;
+        $mail->Body    = $mail_message;
+
+        $mail->send();
+    } catch (Exception $e) {
+        echo "Echec de l'envoi: {$mail->ErrorInfo}";
+        return false;
+    }
+    return true;
+}
+
+
 function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $output = "")
+{
+    require_once(paniers_dir . "/../vendor/autoload.php");
+    $paniers_data = get_option("paniers_data");
+
+    $mail = new PHPMailer(true);
+    try {
+        //Server settings
+        //$mail->SMTPDebug = SMTP::DEBUG_SERVER;
+        $mail->isSMTP();
+        $mail->Host       = $paniers_data["smtpserver"];
+        $mail->SMTPAuth   = true;
+        $mail->Username   = $paniers_data["smtpuser"];
+        $mail->Password   = $paniers_data["smtppassword"];
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;         //Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
+        $mail->Port       = 465;                                 //TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
+
+
+        //Recipients
+        $mail->setFrom('contact@panierseden.fr', 'Paniers d\'EDEN');
+        $mail->addAddress($mail_to);
+        $user = wp_get_current_user();
+        $mail->addReplyTo($user->user_email);
+        if($mail_cc != "") {
+           $mail->addCC($mail_cc);
+        }
+
+        if ($output != "") {
+            $mail->addStringAttachment(export_as_pdf_email($output), "export.pdf", $encoding = "base64", "application/pdf");
+        }
+
+        $mail->isHTML(false);
+        $mail->Subject = utf8_decode(stripslashes($mail_subject));
+        $mail->Body    = utf8_decode(stripslashes($mail_message));
+
+        $mail->send();
+
+    } catch (Exception $e) {
+        echo "Echec de l'envoi: {$mail->ErrorInfo}";
+        return false;
+    }
+    return true;
+}
+
+function send_export_email2($mail_to,$mail_cc,$mail_subject, $mail_message, $output = "")
 {
     global $email_gestionnaires;
     // $mail_subject = utf8_decode(stripslashes($mail_subject));
@@ -330,7 +432,7 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
     }
     if($mail_cc != "") {
         $mail_headers .= "Cc: $mail_cc\r\n";
-    }  
+    }
 
     $mail_body = "--$mail_boundary\r\n";
     $mail_body .= "Content-Type: text/plain; charset=\"UTF-8\"\r\n";
@@ -353,7 +455,7 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
         // // $mail_body .= "Content-Disposition: attachment; filename=export.xls\r\n\r\n";
         // // $mail_body .= chunk_split(base64_encode($excel_output))  . " \r\n";
 
-        // $mail_body .= "--$mail_boundary\r\n";   
+        // $mail_body .= "--$mail_boundary\r\n";
 
         $mail_body .= "Content-Type: application/pdf; name=export.pdf\r\n";
         $mail_body .= "Content-Transfer-Encoding: base64\r\n";

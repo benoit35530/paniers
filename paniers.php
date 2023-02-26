@@ -192,6 +192,9 @@ function paniers_install()
         $paniers_data["permanences"] = "reception,Réception des produits,15:30,16:00,1;
 livraison,Livraison des produits,18:30,19:30,1,1;
 prisecommande,Prise de commandes,18:30,19:30,1,1;";
+        $paniers_data["smtpuser"] = "";
+        $paniers_data["smtppassword"] = "";
+        $paniers_data["smtpserver"] = "";
 
         foreach ($paniers_data as $key => $value) {
             if( substr($key, 0, 8) == 'paniers_') {
@@ -214,7 +217,7 @@ prisecommande,Prise de commandes,18:30,19:30,1,1;";
 
 function paniers_rewriteURL()
 {
-    add_rewrite_rule('paniers/(.*)$','/wp-content/plugins/paniers/html/$1','top');
+    add_rewrite_rule('paniers/(.*)$',$paniers_dir . '/$1','top');
 }
 
 function paniers_uninstall()
@@ -917,6 +920,30 @@ function paniers_plugin_options() {
         <td><input name="paniers_adressegestionnaires" type="text" id="adressegestionnaires"
           value="<?php echo $paniers_data['adressegestionnaires']; ?>" class="regular-text"
         /> <span class="adressegestionnaires"><?php _e("Adresse email des gestionnaires, utilisée pour l'envoie de courriers aux producteurs et dépôts.") ?>
+        </span>
+        </td>
+      </tr>
+      <tr valign="top">
+        <th scope="row"><label for="smtpserver"><?php _e('Serveur SMTP') ?> </label></th>
+        <td><input name="paniers_smtpserver" type="text" id="smtpserver"
+          value="<?php echo $paniers_data['smtpserver']; ?>" class="regular-text"
+        /> <span class="smtpserver"><?php _e("Serveur SMTP.") ?>
+        </span>
+        </td>
+      </tr>
+      <tr valign="top">
+        <th scope="row"><label for="smtpuser"><?php _e('Utilisateur SMTP') ?> </label></th>
+        <td><input name="paniers_smtpuser" type="text" id="smtpuser"
+          value="<?php echo $paniers_data['smtpuser']; ?>" class="regular-text"
+        /> <span class="smtpuser"><?php _e("Utilisateur SMTP.") ?>
+        </span>
+        </td>
+      </tr>
+      <tr valign="top">
+        <th scope="row"><label for="smtppassword"><?php _e('Serveur SMTP') ?> </label></th>
+        <td><input name="paniers_smtppassword" type="password" id="smtppassword"
+          value="<?php echo $paniers_data['smtppassword']; ?>" class="password"
+        /> <span class="smtppassword"><?php _e("Mot de passe SMTP.") ?>
         </span>
         </td>
       </tr>

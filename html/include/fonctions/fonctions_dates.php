@@ -198,9 +198,14 @@ function retrouver_dates_periode($idperiode, $idproducteur = 0) {
 }
 
 function afficher_liste_dates($nomvariable="iddatelivraison",$defaut=0) {
-    global $base_dates;
+    global $base_dates, $base_periodes;
     $texte = "<select size=\"1\" name=\"$nomvariable\">\n";
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,datelivraison from $base_dates where 1 order by datelivraison desc");
+
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_dates.id,datelivraison " . 
+        "from $base_dates " . 
+        "inner join $base_periodes on $base_periodes.id = $base_dates.idperiode " .
+        "where $base_periodes.etat != 'Close' order by datelivraison desc");
+
     while (list($id,$datelivraison) = mysqli_fetch_row($rep))
     {
         $texte .= "<option value=\"" . $id . "\"";

@@ -1188,14 +1188,19 @@ function recapitulatif_cheques_clients($idperiode,$iddepot) {
     $chaine .= html_debut_tableau("95%","");
     $chaine .= html_debut_ligne("","","","top");
     $chaine .= html_colonne("20%","","center","","","","","Client","","thliste");
-    $produits = retrouver_produits_producteurs();
-    foreach($produits as $id => $desc) {
-        if(isset($producteurs[$id])) {
-            $chaine .= html_colonne("$largeur","","center","","","","",$desc,"","thliste");
+
+    $rep1 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,produits, nom from $base_producteurs where 1");
+    while (list($idproducteur,$produit,$nom) = mysqli_fetch_row($rep1))
+    {
+        if(isset($producteurs[$idproducteur])) {
+            $chaine .= html_colonne("$largeur","","center","","","","", $produit . " (" . $nom . ")","","thliste");
         }
     }
+
     $chaine .= html_colonne("$largeur","","center","","","","","Total","","thliste");
     $chaine .= html_fin_ligne();
+
+    $produits = retrouver_produits_producteurs();
 
     $total_avoirs = 0.0;
     reset($tab_cheques);

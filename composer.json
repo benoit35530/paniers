@@ -1,5 +1,15 @@
 {
+    "name": "paniers/paniers",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Benoit Foucher",
+            "email": "benoitfc@gmail.com"
+        }
+    ],
     "require": {
-        "swiftmailer/swiftmailer": "^6.0"
+        "phpmailer/phpmailer": "^6.7",
+        "psr/log": "1.1.4",
+        "mpdf/mpdf": "^8.1"
     }
 }

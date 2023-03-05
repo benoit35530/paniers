@@ -36,13 +36,13 @@ function formulaire_produit($cde="ajout",$id=0,$description="",$prix=0.0,$idprod
 
 function gerer_liste_produits() {
     global $base_produits,$base_producteurs,$base_commandes,$base_periodes,$g_lib_somme_admin;
-    
+
     if(obtenir_producteur_utilisateur() > 0) {
         $filter_producteur = "id='" . obtenir_producteur_utilisateur() . "'";
     } else {
         $filter_producteur = "etat='Actif'";
     }
-    
+
     $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits from $base_producteurs where $filter_producteur order by nom");
     $chaine = "";
     while(list($idproducteur,$nom,$produits) = mysqli_fetch_row($rep0))
@@ -73,7 +73,7 @@ function gerer_liste_produits() {
                     $action .= " | " . html_lien("?action=suppr&id=$id","_top","Supprimer");
                 }
 
-                $rep3 = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_commandes.id from $base_commandes " . 
+                $rep3 = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_commandes.id from $base_commandes " .
                                     "inner join $base_periodes on $base_periodes.id=$base_commandes.idperiode ".
                                     "where idproduit='$id' and $base_periodes.etat != 'Close' limit 1");
                 $commande_active = mysqli_num_rows($rep3) != 0;
@@ -81,7 +81,7 @@ function gerer_liste_produits() {
                     $desactiver = true;
                     $idperiode = retrouver_periode_courante();
                     if($idperiode > 0) {
-                        $rep3 = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_commandes.id from $base_commandes " . 
+                        $rep3 = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_commandes.id from $base_commandes " .
                                             "inner join $base_periodes on $base_periodes.id=$base_commandes.idperiode ".
                                             "where idproduit='$id' and $base_periodes.etat != 'Close' limit 1");
                     }

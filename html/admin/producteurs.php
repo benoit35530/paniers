@@ -195,6 +195,11 @@ case "modifetat":
     }
     break;
 
+case 'filtrer':
+    echo afficher_titre("Gestion les producteurs");
+    echo gerer_liste_producteurs($filtre_etat);
+    break;
+
 default:
 
     echo afficher_titre("Gestion des producteurs");

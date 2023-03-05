@@ -22,9 +22,17 @@ function formulaire_producteur($cde="ajout",$id=0,$nom="",$email="",$telephone =
     return(saisir_enregistrement($champs,"?action=conf" . $cde . "&id=$id","formproducteur","70","20"));
 }
 
-function gerer_liste_producteurs() {
+function gerer_liste_producteurs($etat = "Actif") {
     global $base_producteurs,$base_produits;
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,email,telephone,ordrecheque,produits,datemodif,etat from $base_producteurs where 1 order by nom");
+
+    $filter = "";
+    if($etat == "-1") {
+        $filter = "1";
+    } else {
+        $filter = "etat='$etat'";
+    }
+
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,email,telephone,ordrecheque,produits,datemodif,etat from $base_producteurs where $filter order by nom");
     $chaine = "";
     if (mysqli_num_rows($rep) != 0)
     {
@@ -180,6 +188,23 @@ function retrouver_parametres_producteur($id) {
         return $param;
     }
     return $producteurs[$id];
+}
+
+function afficher_etats_producteurs($nomvariable, $defaut="Inactif", $addAll = False) {
+    global $tab_etats_producteurs;
+    reset($tab_etats_producteurs);
+    $texte = "<select size=\"1\" name=\"$nomvariable\">\n";
+    if(count($tab_etats_producteurs) > 1 && $addAll) {
+        $texte .= "<option value=\"-1\" " . (($defaut == "" || $defaut == "-1") ? "selected" : "") .">Tous</option>\n";
+    }
+    while(list($key,$val) = each($tab_etats_producteurs))
+    {
+        $texte .= "<option value=\"" . $key . "\"";
+        if ($key == $defaut) $texte .= " selected";
+        $texte .= ">" . $val . "</option>\n";
+    }
+    $texte .= "</select>\n";
+    return "$texte";
 }
 
 ?>

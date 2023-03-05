@@ -50,10 +50,10 @@ $base_depots            = $paniers_dbprefix . "paniers_depots";
 $liste_mois = array("Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre");
 
 // Liste des jours de la semaine
-$liste_jours = array("monday" => "Lundi", 
-                     "tuesday" => "Mardi", 
+$liste_jours = array("monday" => "Lundi",
+                     "tuesday" => "Mardi",
                      "wednesday" => "Mercredi",
-                     "thursday" => "Jeudi", 
+                     "thursday" => "Jeudi",
                      "friday" => "Vendredi",
                      "saturday" => "Samedi",
                      "sunday" => "Dimanche");
@@ -109,6 +109,10 @@ $tab_etats_clients = array("Actif"=>"Actif",
 $tab_etats_periodes = array("Preparation" => "En preparation",
                             "Active" => "Active",
                             "Close" => "Close");
+
+// Table des états producteurs
+$tab_etats_producteurs = array("Actif"=>"Actif", "Inactif"=>"Inactif");
+
 
 $tab_villes_clients = explode(";", $paniers_data["villes"]);
 

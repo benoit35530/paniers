@@ -197,6 +197,7 @@ function gerer_liste_periodes($filtre_etat = "-2") {
     {
         $chaine .= html_debut_tableau("90%","0","2","0");
         $chaine .= html_debut_ligne("","","","top");
+        $chaine .= html_colonne("","","center","","","","","Action","","thliste");
         $chaine .= html_colonne("","","center","","","","","Libellé","","thliste");
         $chaine .= html_colonne("","","center","","","","","Date de début","","thliste");
         $chaine .= html_colonne("","","center","","","","","Date de fin","","thliste");
@@ -204,19 +205,11 @@ function gerer_liste_periodes($filtre_etat = "-2") {
         $chaine .= html_colonne("","","center","","","","","Relance faite","","thliste");
         $chaine .= html_colonne("","","center","","","","","Etat","","thliste");
         $chaine .= html_colonne("","","center","","","","","Modifiée le","","thliste");
-        $chaine .= html_colonne("","","center","","","","","Action","","thliste");
         $chaine .= html_fin_ligne();
         while (list($id,$libelle,$datedebut,$datefin,$datecommande,$relancemail,$etat,$datemodif,$nbcdes) =
                mysqli_fetch_row($rep))
         {
             $chaine .= html_debut_ligne("","","","top");
-            $chaine .= html_colonne("","","left","","","","","$libelle","","tdliste");
-            $chaine .= html_colonne("","","center","","","","",dateexterne($datedebut),"","tdliste");
-            $chaine .= html_colonne("","","center","","","","",dateexterne($datefin),"","tdliste");
-            $chaine .= html_colonne("","","center","","","","",dateexterne($datecommande),"","tdliste");
-            $chaine .= html_colonne("","","center","","","","",$relancemail,"","tdliste");
-            $chaine .= html_colonne("","","center","","","","",$etat,"","tdliste");
-            $chaine .= html_colonne("","","center","","","","",dateheureexterne($datemodif),"","tdliste");
             $action = html_lien("?action=modif&id=$id","_top","Modifier");
             if($etat == "Preparation") {
                 $action .= " | " . html_lien("?action=activer&id=$id","_top","Activer");
@@ -228,6 +221,13 @@ function gerer_liste_periodes($filtre_etat = "-2") {
                 $action .= " | " . html_lien("?action=suppr&id=$id","_top","Supprimer");
             }
             $chaine .= html_colonne("","","center","","","","",$action,"","tdliste");
+            $chaine .= html_colonne("","","left","","","","","$libelle","","tdliste");
+            $chaine .= html_colonne("","","center","","","","",dateexterne($datedebut),"","tdliste");
+            $chaine .= html_colonne("","","center","","","","",dateexterne($datefin),"","tdliste");
+            $chaine .= html_colonne("","","center","","","","",dateexterne($datecommande),"","tdliste");
+            $chaine .= html_colonne("","","center","","","","",$relancemail,"","tdliste");
+            $chaine .= html_colonne("","","center","","","","",$etat,"","tdliste");
+            $chaine .= html_colonne("","","center","","","","",dateheureexterne($datemodif),"","tdliste");
             $chaine .= html_fin_ligne();
         }
         $chaine .= html_fin_tableau();

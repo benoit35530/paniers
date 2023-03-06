@@ -38,7 +38,7 @@ function formulaire_date($cde="ajout",$id=0,$datelivraison="",$idperiode=0) {
     }
 
     $champs["libelle"] = array(($cde == "ajout" ? "Ajout ": ($cde == "modif" ? "Modification " : ($cde == "detail" ? "Détails " : "Suppression "))) . "d'une date","*Date de livraison","*Période");
-    $fieldtype = 
+    $fieldtype =
     $champs["type"] = array("",($cde == "modif" || $cde == "ajout" ? "datepicker" : "afftext"),
                                ($cde == "modif" || $cde == "ajout" ? "libre" : "afftext"));
     $champs["lgmax"] = array("","10","");
@@ -51,7 +51,7 @@ function formulaire_date($cde="ajout",$id=0,$datelivraison="",$idperiode=0) {
     $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits from $base_producteurs where etat='Actif' order by produits");
     while(list($idproducteur,$nom,$produits) = mysqli_fetch_row($rep0))
     {
-        $producteurs .= html_checkbox_input("producteurs[$idproducteur]", "1", "$produits ($nom)", 
+        $producteurs .= html_checkbox_input("producteurs[$idproducteur]", "1", "$produits ($nom)",
                                             !$absences[$idproducteur]) . "<br>";
     }
 
@@ -66,10 +66,10 @@ function formulaire_date($cde="ajout",$id=0,$datelivraison="",$idperiode=0) {
     if($cde == "ajout" && count($tab_permanences_defauts) > 0) {
         $permanences = "";
         foreach($tab_permanences_defauts as $type=>$defauts) {
-            $permanences .= html_checkbox_input("permanences[$type]", "1", 
-                                                $tab_types_permanences[$type] . 
-                                                " (" . $defauts[0] . '-' . $defauts[1] . ", " . 
-                                                $defauts[2] ." participant" . ($defauts[2] > 1 ? 's' : '') . ')', 
+            $permanences .= html_checkbox_input("permanences[$type]", "1",
+                                                $tab_types_permanences[$type] .
+                                                " (" . $defauts[0] . '-' . $defauts[1] . ", " .
+                                                $defauts[2] ." participant" . ($defauts[2] > 1 ? 's' : '') . ')',
                                                 $defauts[3]) . "<br>";
         }
         $champs["libelle"][] = "Permanences";
@@ -88,8 +88,8 @@ function formulaire_date($cde="ajout",$id=0,$datelivraison="",$idperiode=0) {
         $champs["lgmax"][] = "";
         $champs["taille"][] = "";
         $champs["nomvar"][] = "";
-        $champs["valeur"][] = html_checkbox_input("supprpermanences", "1", 
-                                                  "Supprimer les permances associées à cette date", 
+        $champs["valeur"][] = html_checkbox_input("supprpermanences", "1",
+                                                  "Supprimer les permances associées à cette date",
                                                   "1");
         $champs["aide"][] = "";
     }
@@ -110,7 +110,7 @@ function formulaire_date($cde="ajout",$id=0,$datelivraison="",$idperiode=0) {
 function gerer_liste_dates($idperiode="-2") {
     global $base_dates,$base_commandes,$base_periodes,$g_periode_libelle;
     $condition = "";
-    if($idperiode > 0) { 
+    if($idperiode > 0) {
         $condition = "idperiode='$idperiode'";
     } else if($idperiode == "-2") {
         $condition = "$base_periodes.etat != 'Close'";
@@ -118,9 +118,9 @@ function gerer_liste_dates($idperiode="-2") {
         $condition = "1";
     }
 
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_dates.id,datelivraison,idperiode,$base_dates.datemodif," . 
-                       $g_periode_libelle . ",$base_periodes.etat " . 
-                       "from $base_dates " . 
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_dates.id,datelivraison,idperiode,$base_dates.datemodif," .
+                       $g_periode_libelle . ",$base_periodes.etat " .
+                       "from $base_dates " .
                        "inner join $base_periodes on $base_periodes.id = $base_dates.idperiode " .
                        "where $condition order by datelivraison desc");
     $chaine = "";
@@ -128,17 +128,14 @@ function gerer_liste_dates($idperiode="-2") {
     {
         $chaine .= html_debut_tableau("70%","0","2","0");
         $chaine .= html_debut_ligne("","","","top");
+        $chaine .= html_colonne("","","center","","","","","Action","","thliste");
         $chaine .= html_colonne("","","center","","","","","Date de livraison","","thliste");
         $chaine .= html_colonne("","","center","","","","","Période","","thliste");
         $chaine .= html_colonne("","","center","","","","","Modifiée le","","thliste");
-        $chaine .= html_colonne("","","center","","","","","Action","","thliste");
         $chaine .= html_fin_ligne();
         while (list($id,$datelivraison,$idperiode,$datemodif,$periode,$etat) = mysqli_fetch_row($rep))
         {
             $chaine .= html_debut_ligne("","","","top");
-            $chaine .= html_colonne("","","center","","","","",dateexterne($datelivraison),"","tdliste");
-            $chaine .= html_colonne("","","left","","","","",$periode,"","tdliste");
-            $chaine .= html_colonne("","","center","","","","",dateheureexterne($datemodif),"","tdliste");
             if($etat != "Close") {
                 $action = html_lien("?action=modif&id=$id","_top","Modifier");
                 $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select * from $base_commandes where iddatelivraison = '$id'");
@@ -149,6 +146,9 @@ function gerer_liste_dates($idperiode="-2") {
                 $action = html_lien("?action=detail&id=$id","_top","Détails");
             }
             $chaine .= html_colonne("","","center","","","","",$action,"","tdliste");
+            $chaine .= html_colonne("","","center","","","","",dateexterne($datelivraison),"","tdliste");
+            $chaine .= html_colonne("","","left","","","","",$periode,"","tdliste");
+            $chaine .= html_colonne("","","center","","","","",dateheureexterne($datemodif),"","tdliste");
             $chaine .= html_fin_ligne();
         }
         $chaine .= html_fin_tableau();
@@ -201,8 +201,8 @@ function afficher_liste_dates($nomvariable="iddatelivraison",$defaut=0) {
     global $base_dates, $base_periodes;
     $texte = "<select size=\"1\" name=\"$nomvariable\">\n";
 
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_dates.id,datelivraison " . 
-        "from $base_dates " . 
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_dates.id,datelivraison " .
+        "from $base_dates " .
         "inner join $base_periodes on $base_periodes.id = $base_dates.idperiode " .
         "where $base_periodes.etat != 'Close' order by datelivraison desc");
 

@@ -7,7 +7,7 @@ function nombre_produits() {
     return($nb);
 }
 
-function formulaire_produit($cde="ajout",$id=0,$description="",$prix=0.0,$idproducteur=0) {
+function formulaire_produit($cde="ajout",$id=0,$nom="",$description="",$prix=0.0,$idproducteur=0) {
     global $g_lib_somme_admin;
     $libelle = $cde == "ajout" ? "Ajout ": ($cde == "modif" ? "Modification " : "Suppression ");
     $type = $cde == "modif" || $cde == "ajout" ? "text" : "afftext";
@@ -24,13 +24,16 @@ function formulaire_produit($cde="ajout",$id=0,$description="",$prix=0.0,$idprod
         $producteurval = retrouver_producteur($idproducteur);
     }
 
-    $champs["libelle"] = array($libelle . "d'un produit","*Description","*Prix","*Producteur","");
-    $champs["type"] = array("",$type,$type,$producteurtype,"submit");
-    $champs["lgmax"] = array("","80","80","","");
-    $champs["taille"] = array("","40","40","","");
-    $champs["nomvar"] = array("","description","prix","idproducteur","");
-    $champs["valeur"] = array("",$description,sprintf($g_lib_somme_admin,$prix),$producteurval,$button);
-    $champs["aide"] = array("","Nom du produit","Prix du produit (avec un \".\" entre euros et centimes)","Producteur","");
+    $nom = htmlspecialchars($nom,ENT_QUOTES);
+    $description = htmlspecialchars($description,ENT_QUOTES);
+
+    $champs["libelle"] = array($libelle . "d'un produit","*Nom", "*Description","*Prix","*Producteur","");
+    $champs["type"] = array("",$type,"textarea",$type,$producteurtype,"submit");
+    $champs["lgmax"] = array("","80","5", "80","","");
+    $champs["taille"] = array("","40","80","40","","");
+    $champs["nomvar"] = array("","nom", "description","prix","idproducteur","");
+    $champs["valeur"] = array("",$nom,$description,sprintf($g_lib_somme_admin,$prix),$producteurval,$button);
+    $champs["aide"] = array("","Nom du produit","Description","Prix du produit (avec un \".\" entre euros et centimes)","Producteur","");
     return(saisir_enregistrement($champs,"?action=conf" . $cde . "&id=$id","formproduit","70","20"));
 }
 
@@ -43,49 +46,51 @@ function gerer_liste_produits() {
         $filter_producteur = "etat='Actif'";
     }
 
-    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits from $base_producteurs where $filter_producteur order by nom");
+    $produits_commandes = array();
+    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select idproduit from $base_commandes WHERE 1 group by idproduit");
+    while(list($idproduit) = mysqli_fetch_row($rep0))
+    {
+        $produits_commandes[$idproduit] = $idproduit;
+    }
+
+    $produits_commande_sur_periode = array();
+    $rep3 = mysqli_query($GLOBALS["___mysqli_ston"], "select idproduit from $base_commandes " .
+        "inner join $base_periodes on $base_periodes.id=$base_commandes.idperiode ".
+        "where $base_periodes.etat != 'Close' group by idproduit");
+    while(list($idproduit) = mysqli_fetch_row($rep3))
+    {
+        $produits_commande_sur_periode[$idproduit] = $idproduit;
+    }
+
+    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits from $base_producteurs where $filter_producteur order by ordre,nom");
     $chaine = "";
     while(list($idproducteur,$nom,$produits) = mysqli_fetch_row($rep0))
     {
-        $rep1 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,description,prix,idproducteur,datemodif,etat from $base_produits where idproducteur='$idproducteur' order by description");
+        $rep1 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,description,prix,idproducteur,datemodif,etat from $base_produits where idproducteur='$idproducteur' order by nom");
         if ($rep1 && mysqli_num_rows($rep1) != 0)
         {
             $chaine .= html_debut_tableau("90%","0","2","0");
             $chaine .= html_debut_ligne("","","","top");
-            $chaine .= html_colonne("","","center","","","","4",
+            $chaine .= html_colonne("","","center","","","","5",
                                     retrouver_producteur($idproducteur) . " - " . $produits,"","thliste");
             $chaine .= html_fin_ligne();
             $chaine .= html_debut_ligne("","","","top");
+            $chaine .= html_colonne("10%","","center","","","","","Action","","thliste");
+            $chaine .= html_colonne("20%","","center","","","","","Nom","","thliste");
             $chaine .= html_colonne("40%","","center","","","","","Description","","thliste");
-            $chaine .= html_colonne("20%","","center","","","","","Prix","","thliste");
+            $chaine .= html_colonne("10%","","center","","","","","Prix","","thliste");
             $chaine .= html_colonne("20%","","center","","","","","Modifié le","","thliste");
-            $chaine .= html_colonne("20%","","center","","","","","Action","","thliste");
             $chaine .= html_fin_ligne();
-            while(list($id,$description,$prix,$idproducteur,$datemodif,$etat) = mysqli_fetch_row($rep1))
+            while(list($id,$nom,$description,$prix,$idproducteur,$datemodif,$etat) = mysqli_fetch_row($rep1))
             {
                 $chaine .= html_debut_ligne("","","","top");
-                $chaine .= html_colonne("","","left","","","","","$description","","tdliste");
-                $chaine .= html_colonne("","","right","","","","",sprintf($g_lib_somme_admin,$prix),"","tdliste");
-                $chaine .= html_colonne("","","center","","","","",dateheureexterne($datemodif),"","tdliste");
                 $action = html_lien("?action=modif&id=$id","_top","Modifier");
-                $rep2 = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_commandes where idproduit = '$id' limit 1");
-                if(mysqli_num_rows($rep2) == 0) {
+                if($produits_commandes[$id] == "") {
                     $action .= " | " . html_lien("?action=suppr&id=$id","_top","Supprimer");
                 }
-
-                $rep3 = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_commandes.id from $base_commandes " .
-                                    "inner join $base_periodes on $base_periodes.id=$base_commandes.idperiode ".
-                                    "where idproduit='$id' and $base_periodes.etat != 'Close' limit 1");
-                $commande_active = mysqli_num_rows($rep3) != 0;
                 if($etat == "Actif") {
                     $desactiver = true;
-                    $idperiode = retrouver_periode_courante();
-                    if($idperiode > 0) {
-                        $rep3 = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_commandes.id from $base_commandes " .
-                                            "inner join $base_periodes on $base_periodes.id=$base_commandes.idperiode ".
-                                            "where idproduit='$id' and $base_periodes.etat != 'Close' limit 1");
-                    }
-                    if(!$commande_active) {
+                    if($produits_commande_sur_periode[$id] == "") {
                         $action .= " | " . html_lien("?action=modifetat&id=$id&etat=Inactif", "_top", "Desactiver");
                     }
                 }
@@ -93,6 +98,10 @@ function gerer_liste_produits() {
                     $action .= " | " .  html_lien("?action=modifetat&id=$id&etat=Actif", "_top", "Activer");
                 }
                 $chaine .= html_colonne("","","center","","","","",$action,"","tdliste");
+                $chaine .= html_colonne("","","left","","","","","$nom","","tdliste");
+                $chaine .= html_colonne("","","left","","","","","$description","","tdliste");
+                $chaine .= html_colonne("","","right","","","","",sprintf($g_lib_somme_admin,$prix),"","tdliste");
+                $chaine .= html_colonne("","","center","","","","",dateheureexterne($datemodif),"","tdliste");
                 $chaine .= html_fin_ligne();
 
             }
@@ -107,56 +116,56 @@ function gerer_liste_produits() {
     return($chaine);
 }
 
-function retrouver_produit($id) {
-    global $base_produits, $tab_produits;
-    if(!isset($tab_produits)) {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,description,prix,idproducteur from $base_produits where 1");
-        while (list($idproduit,$description,$prix,$idproducteur) = mysqli_fetch_row($rep))
-        {
-            $tab_produits[$idproduit] = array($description,$prix,$idproducteur);
-        }
-    }
-    if(!isset($tab_produits[$id])) {
-        return "??? produit n° $id ???";
-    }
-    return $tab_produits[$id][0];
+function retrouver_nom_produit($id) {
+    return retrouver_parametres_produit($id)['nom'];
 }
 
 function afficher_liste_produits($nomvariable="idproduit",$defaut=0,$actifOnly = True) {
     global $base_produits,$g_lib_somme;
     $texte = "<select size=\"1\" name=\"$nomvariable\">\n";
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,description,prix from $base_produits where " . ($actifOnly ? "etat='Actif'" : "1")  . " order by idproducteur");
-    while (list($id,$description,$prix) = mysqli_fetch_row($rep))
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,prix from $base_produits where " . ($actifOnly ? "etat='Actif'" : "1")  . " order by idproducteur");
+    while (list($id,$nom,$prix) = mysqli_fetch_row($rep))
     {
         $texte .= "<option value=\"" . $id . "\"";
         if ($id == $defaut) $texte .= " selected";
-        $texte .= ">" . $description . " (" . sprintf($g_lib_somme,$prix) . ")</option>\n";
+        $texte .= ">" . $nom . " (" . sprintf($g_lib_somme,$prix) . ")</option>\n";
     }
     $texte .= "</select>\n";
     return($texte);
 }
 
 function retrouver_parametres_produit($id) {
-    global $tab_produits;
-    $params['description'] = retrouver_produit($id);
+    global $base_produits, $tab_produits;
+    if(!isset($tab_produits)) {
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,description,prix,idproducteur from $base_produits where 1");
+        while (list($idproduit,$nom,$description,$prix,$idproducteur) = mysqli_fetch_row($rep))
+        {
+            $tab_produits[$idproduit]['nom'] = $nom;
+            $tab_produits[$idproduit]['description'] = $description;
+            $tab_produits[$idproduit]['prix'] = $prix;
+            $tab_produits[$idproduit]['idproducteur'] = $idproducteur;
+        }
+    }
+
     if(isset($tab_produits[$id])) {
-        $params['prix'] = $tab_produits[$id][1];
-        $param['idproducteur'] = $tab_produits[$id][2];
+        return $tab_produits[$id];
     } else {
+        $params['nom'] = "??? produit n° $id ???";
+        $params['description'] = "???";
         $params['prix'] = 0.0;
         $params['idproducteur'] = "0";
+        return $param;
     }
-    return($params);
 }
 
 function liste_produits($idproducteur) {
     global $base_produits;
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select description,prix from $base_produits where idproducteur = $idproducteur and etat='Actif'");
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select nom,prix from $base_produits where idproducteur = $idproducteur and etat='Actif'");
     $produits = array();
     if (mysqli_num_rows($rep) > 0) {
-        while (list($description, $prix) = mysqli_fetch_row($rep))
+        while (list($nom, $prix) = mysqli_fetch_row($rep))
         {
-            $produits[$description] = $prix;
+            $produits[$nom] = $prix;
         }
     }
     return $produits;

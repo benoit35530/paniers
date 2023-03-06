@@ -168,6 +168,7 @@ function gerer_clients($tri=1, $iddepot = -1, $etat = "Actif", $action = "filtre
     $chaine .= "<br><br>";
     $chaine .= html_debut_tableau("95%","0","2","0");
     $chaine .= html_debut_ligne("","","","","","","");
+    $chaine .= html_colonne("","","center","","","","","Actions","","thliste");
     $chaine .= html_colonne("","","center","","","","",html_lien("?tri=0" . $action,"_top","Code client"),"","thliste");
     $chaine .= html_colonne("","","center","","","","",html_lien("?tri=1" . $action,"_top","Nom"),"","thliste");
     $chaine .= html_colonne("","","center","","","","","Prénom","","thliste");
@@ -179,7 +180,6 @@ function gerer_clients($tri=1, $iddepot = -1, $etat = "Actif", $action = "filtre
     $chaine .= html_colonne("","","center","","","","","Dernière connexion","","thliste");
     $chaine .= html_colonne("","","center","","","","",html_lien("?tri=4","_top","Cotisation"),"","thliste");
     $chaine .= html_colonne("","","center","","","","","Modifié le","","thliste");
-    $chaine .= html_colonne("","","center","","","","","Actions","","thliste");
     $chaine .= html_fin_ligne();
 
     $champs_order = array();
@@ -194,6 +194,12 @@ function gerer_clients($tri=1, $iddepot = -1, $etat = "Actif", $action = "filtre
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,codeclient,nom,prenom,email,telephone,ville,iddepot,etat,derncnx,cotisation,datemodif from $base_clients where $filter order by $order");
     while($rep && list($id,$codeclient,$nom,$prenom,$email,$telephone,$ville,$iddepot,$etat,$derncnx,$cotisation,$datemodif) = mysqli_fetch_row($rep)) {
         $chaine .= html_debut_ligne("","","","","","","");
+        $action = html_lien("?action=modif&id=$id&tri=$tri","_top","Modif.");
+        $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_bons_cde where idclient='$id'");
+        if(mysqli_num_rows($rep0) == 0) {
+            $action .= " | " . html_lien("?action=suppr&id=$id&tri=$tri","_top","Suppr.");
+        }
+        $chaine .= html_colonne("","","center","","","","",$action,"","tdliste");
         $chaine .= html_colonne("","","left","","","","",$codeclient,"","tdliste");
         $chaine .= html_colonne("","","left","","","","",$nom,"","tdliste");
         $chaine .= html_colonne("","","left","","","","",$prenom,"","tdliste");
@@ -205,12 +211,6 @@ function gerer_clients($tri=1, $iddepot = -1, $etat = "Actif", $action = "filtre
         $chaine .= html_colonne("","","center","","","","",dateheureexterne($derncnx),"","tdliste");
         $chaine .= html_colonne("","","right","","","","",sprintf("%.02f ",$cotisation),"","tdliste");
         $chaine .= html_colonne("","","center","","","","",dateheureexterne($datemodif),"","tdliste");
-        $action = html_lien("?action=modif&id=$id&tri=$tri","_top","Modif.");
-        $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_bons_cde where idclient='$id'");
-        if(mysqli_num_rows($rep0) == 0) {
-            $action .= " | " . html_lien("?action=suppr&id=$id&tri=$tri","_top","Suppr.");
-        }
-        $chaine .= html_colonne("","","center","","","","",$action,"","tdliste");
         $chaine .= html_fin_ligne();
     }
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select sum(cotisation) from $base_clients where $filter");

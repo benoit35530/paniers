@@ -14,7 +14,7 @@ case "ajout":
 case "confajout":
     echo afficher_titre("Ajout d'un produit");
     $message = "";
-    if(!isset($nom) || $nom == "") $message .= "nom du produit manquante, ";
+    if(!isset($nom) || $nom == "") $message .= "nom du produit manquant, ";
     if(!isset($description) || $description == "") $message .= "description du produit manquante, ";
     if(!isset($prix) || $prix == "") $message .= "prix du produit manquant, ";
     if(!isset($idproducteur) || $idproducteur == "" || $idproducteur == 0) {
@@ -66,7 +66,7 @@ case "confmodif":
         $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,description,prix,idproducteur from $base_produits where id = '$id'");
         if(mysqli_num_rows($rep) != 0) {
             $message = "";
-            if(!isset($nom) || $nom == "") $message .= "nom du produit manquante, ";
+            if(!isset($nom) || $nom == "") $message .= "nom du produit manquant, ";
             if(!isset($description) || $description == "") $message .= "description du produit manquante, ";
             if(!isset($prix) || $prix == "") $message .= "prix du produit manquant, ";
             if(!isset($idproducteur) || $idproducteur == "" || $idproducteur == 0) {

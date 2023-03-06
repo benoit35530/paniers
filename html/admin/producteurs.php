@@ -198,7 +198,7 @@ case "modifetat":
     break;
 
 case 'filtrer':
-    echo afficher_titre("Gestion les producteurs");
+    echo afficher_titre("Gestion des producteurs");
     echo gerer_liste_producteurs($filtre_etat);
     break;
 

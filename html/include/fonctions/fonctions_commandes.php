@@ -846,9 +846,9 @@ function recapitulatif_commandes_clients($idperiode, $iddate, $iddepot) {
         return "Pas de commandes le " . retrouver_date($iddate);
     }
 
-    $chaine = afficher_titre("Dépôt \"" . retrouver_depot($iddepot) .
-                             "\", commandes clients pour la livraison du : " . retrouver_date($iddate));
-
+    $chaine = afficher_titre(retrouver_depot($iddepot) .
+                             ", commandes pour la livraison du : " . retrouver_date($iddate));
+    $chaine .= "<br/>";
     // $chaine .= html_debut_tableau("95%","0","1","0");
     // $chaine .= html_debut_ligne("","","","top");
     // $chaine .= html_colonne("20%","","center","","","","","Producteur (nombre de commandes)","","thliste");
@@ -915,8 +915,8 @@ function recapitulatif_commandes_clients($idperiode, $iddate, $iddepot) {
             foreach($producteurs as $idproducteur => $produits) {
                 $chaine2 .= html_debut_ligne("","","","top");
                 if($afficheClient) {
-                    $chaine2 .= html_colonne("15%","","left","","","","", "<b>" . $client[2] . ' ' . $client[1] . " (" .
-                                             $client[3] . "</b>)",
+                    $chaine2 .= html_colonne("10%","","left","","","","", "<b>" . $client[2] . ' ' . $client[1] . " (" .
+                                             $client[3] . ")</b>",
                                              count($producteurs),"tdliste");
                     $afficheClient = False;
                 }
@@ -930,7 +930,7 @@ function recapitulatif_commandes_clients($idperiode, $iddate, $iddepot) {
                     }
                     $liste .= "<b>" . $quantite . "</b> " . strtolower(retrouver_nom_produit($idproduit));
                 }
-                $chaine2 .= html_colonne("20%", "", "left", "", "", "", "", $tab_producteurs[$idproducteur], "","tdliste");
+                $chaine2 .= html_colonne("25%", "", "left", "", "", "", "", $tab_producteurs[$idproducteur], "","tdliste");
                 $chaine2 .= html_colonne("65%","","left","","","","", $liste, "", "tdliste");
                 $chaine2 .= html_fin_ligne();
             }

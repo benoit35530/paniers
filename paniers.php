@@ -113,6 +113,7 @@ function paniers_install()
                     produits text NOT NULL,
                     datemodif datetime NOT NULL,
                     etat enum('Actif','Inactif') NOT NULL default 'Actif',
+                    ordre int(11) NOT NULL,
                     KEY id (id)
                     );",
                "CREATE TABLE " . $paniers_dbprefix . "paniers_depots (
@@ -127,6 +128,7 @@ function paniers_install()
                     );",
                "CREATE TABLE " . $paniers_dbprefix . "paniers_produits (
                     id int(11) NOT NULL auto_increment,
+                    nom text NOT NULL,
                     description text NOT NULL,
                     prix float NOT NULL,
                     idproducteur int(11) NOT NULL,

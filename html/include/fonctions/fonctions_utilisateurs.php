@@ -95,7 +95,7 @@ function saisir_parametres_utilisateur($id,$cde) {
         }
     }
 
-    $isSuperAdmin = html_checkbox_input("superadmin", "1", "Super-administrateur", 
+    $isSuperAdmin = html_checkbox_input("superadmin", "1", "Super-administrateur",
                                         !(strpos($fonctions,"utilisateur") === false));
 
     $champs["libelle"] = array("$titre_form","","*Identifiant","*Nom", "*Prenom", "*Mot de passe","*Email","Producteur","Dépôt","*Fonctions","");
@@ -132,25 +132,25 @@ function gerer_utilisateurs() {
     global $base_utilisateurs;
     $chaine = html_debut_tableau("95%","0","2","0");
     $chaine .= html_debut_ligne("","","","top");
+    $chaine .= html_colonne("10%","","center","","","","","Actions","","thliste");
     $chaine .= html_colonne("10%","","center","","","","","Identifiant","","thliste");
     $chaine .= html_colonne("10%","","center","","","","","Prenom - Nom","","thliste");
     $chaine .= html_colonne("15%","","center","","","","","Email","","thliste");
     $chaine .= html_colonne("30%","","center","","","","","Fonctions","","thliste");
     $chaine .= html_colonne("10%","","center","","","","","Modifié le","","thliste");
     $chaine .= html_colonne("15%","","center","","","","","Date","","thliste");
-    $chaine .= html_colonne("10%","","center","","","","","Actions","","thliste");
     $chaine .= html_fin_ligne();
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nomutil,nom,prenom,email,fonctions,date,derncnx from $base_utilisateurs where 1 order by nomutil");
     while (list($id,$nomutil,$nom,$prenom,$email,$fonctions,$date,$derncnx) = mysqli_fetch_row($rep))
     {
         $chaine .= html_debut_ligne("","","","top");
+        $chaine .= html_colonne("","","center","","","","",html_lien("?action=modif&id=$id","_top","Modif.") . " | " . html_lien("?action=suppr&id=$id","_top","Suppr."),"","tdliste");
         $chaine .= html_colonne("","","left","","","","",$nomutil,"","tdliste");
         $chaine .= html_colonne("","","left","","","","","$prenom $nom","","tdliste");
         $chaine .= html_colonne("","","left","","","","","<a href=\"mailto:$email\">$email</a>","","tdliste");
         $chaine .= html_colonne("","","left","","","","",afficher_fonctions_utilisateur($fonctions),"","tdliste");
         $chaine .= html_colonne("","","center","","","","",dateheureexterne($derncnx),"","tdliste");
         $chaine .= html_colonne("","","center","","","","",dateheureexterne($date),"","tdliste");
-        $chaine .= html_colonne("","","center","","","","",html_lien("?action=modif&id=$id","_top","Modif.") . " | " . html_lien("?action=suppr&id=$id","_top","Suppr."),"","tdliste");
         $chaine .= html_fin_ligne();
     }
     $chaine .= html_fin_tableau();

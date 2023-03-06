@@ -19,7 +19,7 @@ case "ajout":
     $champs["aide"] = array("","","Choisissez le producteur sur lequel sera déduit l'avoir. Ne choisissez pas de producteur pour affecter l'avoir sur le compte des paniers.", "", "","");
     echo saisir_enregistrement($champs,"?action=confajout","formavoirclient",60,20,5,5,true);
     break;
-    
+
 case "confajout":
 
     echo afficher_titre("Ajout d'un avoir client");
@@ -52,7 +52,7 @@ case "ajoutlivraison":
     $champs["aide"] = array("","","Choisissez le producteur et date de la livraison annulée. Des avoirs seront ajoutés pour chaque client ayant commandé.", "", "");
     echo saisir_enregistrement($champs,"?action=confajoutlivraison","formavoirlivraison",60,20,5,5,true);
     break;
-    
+
 case "confajoutlivraison":
 
     echo afficher_titre("Ajout d'un avoir pour annulation de livraison");
@@ -75,7 +75,6 @@ case "confajoutlivraison":
 
         while(list($idclient,$idproduit,$quantity,$prix) = mysqli_fetch_row($rep0))
         {
-            $params = retrouver_parametres_produit($idproduit);
             if (!isset($commandes[$idclient]))
                 $commandes[$idclient] = 0.0;
             $commandes[$idclient] += $quantity * $prix;
@@ -84,7 +83,7 @@ case "confajoutlivraison":
         if (!isset($description) || $description == "") {
             $description = "Livraison du " . retrouver_date($iddatelivraison) . " annulée";
         }
- 
+
         foreach($commandes as $idclient => $montant) {
             $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_avoirs (id,idclient,idproducteur,montant,description,datemodif) values ('','$idclient','$idproducteur','$montant','$description',now())");
         }

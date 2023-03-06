@@ -11,9 +11,18 @@ echo html_debut_ligne("","","","","","","");
 echo html_debut_form("?action=ajout",false,"formajouter");
 echo html_colonne("","","left","","","","",html_bouton_submit("Ajouter un producteur"));
 echo html_fin_form();
+echo html_debut_form("?action=filtrer",false,"formfiltrer");
+if(!isset($filtre_etat)) {
+    $filtre_etat = "Actif";
+}
+echo html_colonne("80%","","center","","","","",
+                  afficher_etats_producteurs("filtre_etat", $filtre_etat, True) .
+                  html_bouton_submit("Filtrer"));
+echo html_fin_form();
 echo html_debut_form("?",false,"formlister");
 echo html_colonne("","","right","","","","",html_bouton_submit("Lister les producteurs"));
 echo html_fin_form();
 echo html_fin_ligne();
 echo html_fin_tableau();
+
 ?>

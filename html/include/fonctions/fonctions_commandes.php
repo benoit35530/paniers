@@ -35,7 +35,7 @@ function formulaire_bon_commande($idperiode, $champs, $qteproduit=array(),$avoir
         return afficher_message_erreur("Aucune date de disponible pour cette commande...");
     }
 
-    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits from $base_producteurs where etat = 'Actif' order by produits");
+    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits from $base_producteurs where etat = 'Actif' order by ordre,produits");
     $total_commande = 0.0;
 
     $absences = retrouver_absences($idperiode);
@@ -267,14 +267,6 @@ function afficher_formulaire_bon_commande($idperiode=0,$iddepot=0,$qteproduit=ar
     $champs["nomvar"][] = "";
     $champs["valeur"][] = "";
     $champs["aide"][] = "";
-
-    // $champs["libelle"][] = "";
-    // $champs["type"][] = "submit";
-    // $champs["lgmax"][] = "";
-    // $champs["taille"][] = "";
-    // $champs["nomvar"][] = "valider";
-    // $champs["valeur"][] = " Calculer ";
-    // $champs["aide"][] = "";
 
     $champs["libelle"][] = "";
     $champs["type"][] = "submit";
@@ -798,21 +790,16 @@ function gerer_liste_commandes($tri=0,$idperiode="-2",$iddepot="-1",$action="") 
     if($rep && mysqli_num_rows($rep) != 0) {
         $chaine .= html_debut_tableau("90%","0","2","0");
         $chaine .= html_debut_ligne("","","","top");
+        $chaine .= html_colonne("","","center","","","","","Actions","","thliste");
         $chaine .= html_colonne("","","center","","","","",html_lien("?tri=0" . $action,"_top","N° commande"),"","thliste");
-        $chaine .= html_colonne("","","center","","","","",html_lien("?tri=1" . $action,"_top","Période"),"","thliste");
         $chaine .= html_colonne("","","center","","","","",html_lien("?tri=2" . $action,"_top","Client"),"","thliste");
+        $chaine .= html_colonne("","","center","","","","",html_lien("?tri=1" . $action,"_top","Période"),"","thliste");
         $chaine .= html_colonne("","","center","","","","",html_lien("?tri=4" . $action,"_top","Dépôt"),"","thliste");
         $chaine .= html_colonne("","","center","","","","",html_lien("?tri=3" . $action,"_top","Modifiée le"),"","thliste");
-        $chaine .= html_colonne("","","center","","","","","Actions","","thliste");
         $chaine .= html_fin_ligne();
         while (list($id,$idboncde,$idperiode,$idclient,$datemodif,$periode,$etat,$depot,$nom,$prenom,$codeclient) = mysqli_fetch_row($rep))
         {
             $chaine .= html_debut_ligne("","","","top");
-            $chaine .= html_colonne("","","left","","","","","$idboncde","","tdliste");
-            $chaine .= html_colonne("","","left","","","","","$periode","","tdliste");
-            $chaine .= html_colonne("","","left","","","","","$prenom $nom ($codeclient)","","tdliste");
-            $chaine .= html_colonne("","","left","","","","",$depot,"","tdliste");
-            $chaine .= html_colonne("","","center","","","","",dateheureexterne($datemodif),"","tdliste");
             $actionlien = "";
             if($etat != "Close" && utilisateurIsAdmin()) {
                 $actionlien .= html_lien("?action=modifier&id=$id&tri=$tri","_top","Modifier") . " | ";
@@ -820,6 +807,11 @@ function gerer_liste_commandes($tri=0,$idperiode="-2",$iddepot="-1",$action="") 
             }
             $actionlien .= html_lien("?action=detail&id=$id&tri=$tri","_top","Détails");
             $chaine .= html_colonne("","","center","","","","",$actionlien,"","tdliste");
+            $chaine .= html_colonne("","","left","","","","","$idboncde","","tdliste");
+            $chaine .= html_colonne("","","left","","","","","$prenom $nom ($codeclient)","","tdliste");
+            $chaine .= html_colonne("","","left","","","","","$periode","","tdliste");
+            $chaine .= html_colonne("","","left","","","","",$depot,"","tdliste");
+            $chaine .= html_colonne("","","center","","","","",dateheureexterne($datemodif),"","tdliste");
             $chaine .= html_fin_ligne();
         }
         $chaine .= html_fin_tableau();
@@ -833,7 +825,7 @@ function gerer_liste_commandes($tri=0,$idperiode="-2",$iddepot="-1",$action="") 
 }
 
 function recapitulatif_commandes_clients($idperiode, $iddate, $iddepot) {
-    global $base_commandes,$base_bons_cde,$base_clients,$base_produits;
+    global $base_commandes,$base_bons_cde,$base_clients,$base_produits,$base_producteurs;
     $absences = retrouver_absences($idperiode);
     $tab_producteurs = retrouver_produits_producteurs();
     $recap_produits_producteurs = array();
@@ -856,45 +848,47 @@ function recapitulatif_commandes_clients($idperiode, $iddate, $iddepot) {
 
     $chaine = afficher_titre("Dépôt \"" . retrouver_depot($iddepot) .
                              "\", commandes clients pour la livraison du : " . retrouver_date($iddate));
-    $chaine .= html_debut_tableau("95%","0","1","0");
-    $chaine .= html_debut_ligne("","","","top");
-    $chaine .= html_colonne("20%","","center","","","","","Producteur (nombre de commandes)","","thliste");
-    $chaine .= html_colonne("80%", "", "center", "", "", "", "", "Produits", "", "thliste");
-    $chaine .= html_fin_ligne();
 
-    reset($tab_producteurs);
-    while(list($key_producteur,$val_producteur) = each($tab_producteurs))
-    {
-        if(isset($recap_produits_producteurs[$key_producteur]))
-        {
-            $rep2 = mysqli_query($GLOBALS["___mysqli_ston"], "select idboncommande from $base_commandes ".
-                                "inner join $base_bons_cde on $base_bons_cde.id=$base_commandes.idboncommande " .
-                                "where iddatelivraison='$iddate' and idproducteur='$key_producteur' " .
-                                "and $base_bons_cde.iddepot='$iddepot'".
-                                "group by idboncommande");
-            $nombrecommandes = mysqli_num_rows($rep2);
-            $recap = "";
-            foreach($recap_produits_producteurs[$key_producteur] as $produit => $quantite) {
-                if($recap != "") $recap .= ", ";
-                $recap .= "$produit (x$quantite)";
-            }
-            $chaine .= html_debut_ligne("","","","top");
-            $chaine .= html_colonne("","","left","","","","","$val_producteur (x$nombrecommandes)","","tdliste");
-            $chaine .= html_colonne("", "", "left", "", "", "", "", $recap,"", "tdliste");
-            $chaine .= html_fin_ligne();
-        }
-    }
-    $chaine .= html_fin_tableau();
+    // $chaine .= html_debut_tableau("95%","0","1","0");
+    // $chaine .= html_debut_ligne("","","","top");
+    // $chaine .= html_colonne("20%","","center","","","","","Producteur (nombre de commandes)","","thliste");
+    // $chaine .= html_colonne("80%", "", "center", "", "", "", "", "Produits", "", "thliste");
+    // $chaine .= html_fin_ligne();
 
-    $chaine .= "<br>";
+    // reset($tab_producteurs);
+    // while(list($key_producteur,$val_producteur) = each($tab_producteurs))
+    // {
+    //     if(isset($recap_produits_producteurs[$key_producteur]))
+    //     {
+    //         $rep2 = mysqli_query($GLOBALS["___mysqli_ston"], "select idboncommande from $base_commandes ".
+    //                             "inner join $base_bons_cde on $base_bons_cde.id=$base_commandes.idboncommande " .
+    //                             "where iddatelivraison='$iddate' and idproducteur='$key_producteur' " .
+    //                             "and $base_bons_cde.iddepot='$iddepot'".
+    //                             "group by idboncommande");
+    //         $nombrecommandes = mysqli_num_rows($rep2);
+    //         $recap = "";
+    //         foreach($recap_produits_producteurs[$key_producteur] as $produit => $quantite) {
+    //             if($recap != "") $recap .= " / ";
+    //             $recap .= "<b>$quantite</b> $produit";
+    //         }
+    //         $chaine .= html_debut_ligne("","","","top");
+    //         $chaine .= html_colonne("","","left","","","","","$val_producteur (x$nombrecommandes)","","tdliste");
+    //         $chaine .= html_colonne("", "", "left", "", "", "", "", $recap,"", "tdliste");
+    //         $chaine .= html_fin_ligne();
+    //     }
+    // }
+    // $chaine .= html_fin_tableau();
+
+    // $chaine .= "<br>";
 
     $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select idproduit,quantite,idproducteur,$base_commandes.idclient," .
                         "$base_clients.nom,$base_clients.prenom,$base_clients.codeclient " .
                         "from $base_commandes " .
                         "inner join $base_bons_cde on $base_bons_cde.id = $base_commandes.idboncommande " .
                         "inner join $base_clients on $base_clients.id = $base_commandes.idclient " .
+                        "inner join $base_producteurs on idproducteur = $base_producteurs.id " .
                         "where $base_bons_cde.iddepot='$iddepot' and $base_commandes.iddatelivraison='$iddate' ".
-                        "order by $base_clients.nom,$base_clients.prenom,idproducteur,idproduit");
+                        "order by $base_clients.nom,$base_clients.prenom,$base_producteurs.ordre,idproduit");
     if(mysqli_num_rows($rep0) != 0)
     {
         $chaine .= html_debut_tableau("100%","0","1","0");
@@ -921,19 +915,22 @@ function recapitulatif_commandes_clients($idperiode, $iddate, $iddepot) {
             foreach($producteurs as $idproducteur => $produits) {
                 $chaine2 .= html_debut_ligne("","","","top");
                 if($afficheClient) {
-                    $chaine2 .= html_colonne("15%","","left","","","","", $client[2] . ' ' . $client[1] . " (" .
-                                             $client[3] . ")",
+                    $chaine2 .= html_colonne("15%","","left","","","","", "<b>" . $client[2] . ' ' . $client[1] . " (" .
+                                             $client[3] . "</b>)",
                                              count($producteurs),"tdliste");
                     $afficheClient = False;
                 }
                 $liste = "";
                 foreach($produits as $produit) {
                     list($idproduit,$quantite) = $produit;
-                    if($liste != "") $liste .= ", ";
-                    $liste .= retrouver_produit($idproduit) . " (x" . $quantite . ")";
+                    if($liste != "") {
+                        $liste .= " / ";
+                    } else {
+                        $liste = "&nbsp;";
+                    }
+                    $liste .= "<b>" . $quantite . "</b> " . strtolower(retrouver_nom_produit($idproduit));
                 }
-                $chaine2 .= html_colonne("20%", "", "left", "", "", "", "", $tab_producteurs[$idproducteur], "",
-                                         "tdliste");
+                $chaine2 .= html_colonne("20%", "", "left", "", "", "", "", $tab_producteurs[$idproducteur], "","tdliste");
                 $chaine2 .= html_colonne("65%","","left","","","","", $liste, "", "tdliste");
                 $chaine2 .= html_fin_ligne();
             }
@@ -979,7 +976,7 @@ function recapituler_par_producteur($idproducteur,$idperiode,$iddepot) {
     while(list($key_produit,$val_produit) = each($recap))
     {
         $chaine .= html_debut_ligne("","","","top");
-        $chaine .= html_colonne("","","left","","","","",retrouver_produit($key_produit),"","tdliste");
+        $chaine .= html_colonne("","","left","","","","",retrouver_nom_produit($key_produit),"","tdliste");
         reset($date);
         while(list($key_date,$val_date) = each($date))
         {
@@ -1189,11 +1186,11 @@ function recapitulatif_cheques_clients($idperiode,$iddepot) {
     $chaine .= html_debut_ligne("","","","top");
     $chaine .= html_colonne("20%","","center","","","","","Client","","thliste");
 
-    $rep1 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,produits, nom from $base_producteurs where 1");
+    $rep1 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,produits,nom,ordre from $base_producteurs where 1 order by ordre,nom");
     while (list($idproducteur,$produit,$nom) = mysqli_fetch_row($rep1))
     {
         if(isset($producteurs[$idproducteur])) {
-            $chaine .= html_colonne("$largeur","","center","","","","", $produit . " (" . $nom . ")","","thliste");
+            $chaine .= html_colonne("$largeur","","center","","","","", $nom . " - " . $produit,"","thliste");
         }
     }
 

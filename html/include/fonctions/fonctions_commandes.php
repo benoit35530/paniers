@@ -934,6 +934,12 @@ function recapitulatif_commandes_clients($idperiode, $iddate, $iddepot) {
                 $chaine2 .= html_colonne("65%","","left","","","","", $liste, "", "tdliste");
                 $chaine2 .= html_fin_ligne();
             }
+            $chaine2 .= html_debut_ligne("","","","top");
+            $chaine2 .= html_colonne("10%", "", "left", "", "", "", "", "", "","thlisteseparateur");
+            $chaine2 .= html_colonne("25%", "", "left", "", "", "", "", "", "","thlisteseparateur");
+            $chaine2 .= html_colonne("65%", "", "left", "", "", "", "", "", "","thlisteseparateur");
+            $chaine2 .= html_fin_ligne();
+
             $chaine .= $chaine2;
         }
         $chaine .= html_fin_tableau();

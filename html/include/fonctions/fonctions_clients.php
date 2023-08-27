@@ -234,7 +234,6 @@ function retrouver_client($idclient,$affcodeclient=false) {
         $idclient = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
     }
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select nom,prenom,codeclient from $base_clients where id='$idclient'");
-    $texte = "??? client n° $id ???";
     if (mysqli_num_rows($rep) != 0)
     {
         list($nom,$prenom,$codeclient) = mysqli_fetch_row($rep);
@@ -245,7 +244,6 @@ function retrouver_client($idclient,$affcodeclient=false) {
 function retrouver_code_client($idclient) {
     global $base_clients;
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select codeclient from $base_clients where id='$idclient'");
-    $texte = "??? code client n° $id ???";
     if (mysqli_num_rows($rep) != 0)
     {
         list($codeclient) = mysqli_fetch_row($rep);
@@ -326,7 +324,7 @@ function afficher_etats_client($nomvariable, $defaut="Inactif", $addAll = False)
 
 function export_clients($depot) {
     global $base_clients,$base_bons_cde;
-    $chaine .= html_debut_tableau("100%","0","2","0");
+    $chaine = html_debut_tableau("100%","0","2","0");
     $chaine .= html_debut_ligne("","","","","","","");
     $chaine .= html_colonne("4%","","center","","","","","Code","","thliste");
     $chaine .= html_colonne("26%","","center","","","","","Nom Prénom","","thliste");

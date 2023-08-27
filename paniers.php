@@ -8,15 +8,12 @@
  */
 
 define('paniers_plugin_dir', WP_PLUGIN_DIR . '/' . dirname( plugin_basename( __FILE__ ) ) );
-//define('paniers_plugin_url', WP_PLUGIN_URL . '/' . dirname( plugin_basename( __FILE__ ) ) );
 define('paniers_plugin_url', plugins_url('.', __FILE__));
 define('paniers_dir', paniers_plugin_dir . '/html');
 
 require_once(paniers_dir . "/include/dbconnect.php");
 require_once(paniers_dir . "/include/parametres.php");
 require_once(paniers_dir . "/include/fonctions/fonctions_periodes.php");
-
-require_once("autoupdate.php");
 
 function paniers_install()
 {
@@ -219,7 +216,7 @@ prisecommande,Prise de commandes,18:30,19:30,1,1;";
 
 function paniers_rewriteURL()
 {
-    add_rewrite_rule('paniers/(.*)$',$paniers_dir . '/$1','top');
+    add_rewrite_rule('paniers/(.*)$', paniers_dir . '/$1','top');
 }
 
 function paniers_uninstall()
@@ -622,7 +619,7 @@ function paniers_updateprofile() {
     global $base_utilisateurs, $base_clients, $tab_villes_clients;
 
     $user = wp_get_current_user();
-    if ($user->id == 0) {
+    if ($user->ID == 0) {
         echo "Vous n'êtes pas connecté.";
         return;
     }
@@ -690,7 +687,7 @@ function paniers_updateprofile() {
                 $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_utilisateurs set email='$email',date=now() $updatemotdepasse where id='" . $admin_id . "'");
             }
 
-            $userarray['ID'] = $user->id;
+            $userarray['ID'] = $user->ID;
             $userarray['first_name'] = $prenom;
             $userarray['last_name'] = $nom;
             $userarray['user_email'] = $email;
@@ -829,7 +826,7 @@ function paniers_password_reset($user, $password) {
     global $base_utilisateurs, $base_clients, $tab_villes_clients;
 
     $user = new WP_User($user->ID);
-    if ( $user->id == 0 ) {
+    if ( $user->ID == 0 ) {
         return;
     }
     $userdata = $user->data;
@@ -882,9 +879,7 @@ function paniers_plugin_options() {
         foreach ($_POST as $postKey => $postValue){
             if( substr($postKey, 0, 8) == 'paniers_' ){
                 //For now, no validation, since this is in admin area.
-                if($postValue != ''){
-                    $paniers_data[substr($postKey, 8)] = stripslashes($postValue);
-                }
+                $paniers_data[substr($postKey, 8)] = stripslashes($postValue);
             }
         }
         update_option('paniers_data', $paniers_data);
@@ -900,7 +895,6 @@ function paniers_plugin_options() {
     }
     ?>
 <div class="wrap">
-  <?php screen_icon(); ?>
   <h2>Paniers Options</h2>
   <form method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>" class="form-table">
     <!-- Ajoute 2 champs cachés pour savoir comment rediriger l'utilisateur -->
@@ -1332,5 +1326,3 @@ add_filter('authenticate', 'paniers_check_login', 10, 3);
 add_shortcode('paniers-updateprofile', 'paniers_updateprofile');
 add_shortcode('paniers-date-commande', 'paniers_datecommande');
 add_shortcode('paniers-produits', 'paniers_produits');
-
-?>

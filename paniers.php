@@ -89,7 +89,7 @@ function paniers_install()
                     heurefin time NOT NULL,
                     nbparticipants int(11) NOT NULL,
                     nbinscrits int(11) NOT NULL default '0',
-                    typepermanence enum('reception','livraison','prisecommande') NOT NULL,
+                    typepermanence enum('reception','livraison','prisecommande','miseensachets') NOT NULL,
                     datemodif datetime NOT NULL,
                     KEY id (id)
                     );",
@@ -188,9 +188,10 @@ function paniers_install()
         $paniers_data["ordrecheque"] = "";
         $paniers_data["periodicite"] = "mensuel";
         $paniers_data["jourcommande"] = "Wednesday";
-        $paniers_data["permanences"] = "reception,Réception des produits,15:30,16:00,1;
+        $paniers_data["permanences"] = "reception,Réception des produits;
 livraison,Livraison des produits,18:30,19:30,1,1;
-prisecommande,Prise de commandes,18:30,19:30,1,1;";
+prisecommande,Prise de commandes,18:30,19:30,1,0;
+misensachets,Mise en sachets des pommes,14:00,14:30,2,0";
         $paniers_data["smtpuser"] = "";
         $paniers_data["smtppassword"] = "";
         $paniers_data["smtpserver"] = "";

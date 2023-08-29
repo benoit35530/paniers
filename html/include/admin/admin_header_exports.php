@@ -47,6 +47,15 @@ h2 {
 	font-weight: bold;
 }
 
+.thlisteseparateur {
+	border: solid 1px #000000;
+	height: 5pt;
+	font-size: 10pt;
+	color: #000000;
+	background-color: #CCCCCC;
+	font-weight: bold;
+}
+
 .thlistenormal {
 	border: solid 1px #000000;
 	font-size: 10pt;

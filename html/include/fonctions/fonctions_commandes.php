@@ -829,7 +829,7 @@ function recapitulatif_commandes_clients($idperiode, $iddate, $iddepot) {
     $absences = retrouver_absences($idperiode);
     $tab_producteurs = retrouver_produits_producteurs();
     $recap_produits_producteurs = array();
-    $rep2 = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_commandes.idproducteur,$base_produits.description,sum(quantite) " .
+    $rep2 = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_commandes.idproducteur,$base_produits.nom,sum(quantite) " .
                         "from $base_commandes " .
                         "inner join $base_bons_cde on $base_bons_cde.id=$base_commandes.idboncommande " .
                         "inner join $base_produits on $base_produits.id=$base_commandes.idproduit " .
@@ -846,40 +846,40 @@ function recapitulatif_commandes_clients($idperiode, $iddate, $iddepot) {
         return "Pas de commandes le " . retrouver_date($iddate);
     }
 
-    $chaine = afficher_titre("Dépôt \"" . retrouver_depot($iddepot) .
-                             "\", commandes clients pour la livraison du : " . retrouver_date($iddate));
+    $chaine = afficher_titre(retrouver_depot($iddepot) .
+                             ", commandes pour la livraison du : " . retrouver_date($iddate));
+    $chaine .= "<br/>";
+    $chaine .= html_debut_tableau("95%","0","1","0");
+    $chaine .= html_debut_ligne("","","","top");
+    $chaine .= html_colonne("20%","","center","","","","","Producteur (nombre de commandes)","","thliste");
+    $chaine .= html_colonne("80%", "", "center", "", "", "", "", "Produits", "", "thliste");
+    $chaine .= html_fin_ligne();
 
-    // $chaine .= html_debut_tableau("95%","0","1","0");
-    // $chaine .= html_debut_ligne("","","","top");
-    // $chaine .= html_colonne("20%","","center","","","","","Producteur (nombre de commandes)","","thliste");
-    // $chaine .= html_colonne("80%", "", "center", "", "", "", "", "Produits", "", "thliste");
-    // $chaine .= html_fin_ligne();
+    reset($tab_producteurs);
+    while(list($key_producteur,$val_producteur) = each($tab_producteurs))
+    {
+        if(isset($recap_produits_producteurs[$key_producteur]))
+        {
+            $rep2 = mysqli_query($GLOBALS["___mysqli_ston"], "select idboncommande from $base_commandes ".
+                                "inner join $base_bons_cde on $base_bons_cde.id=$base_commandes.idboncommande " .
+                                "where iddatelivraison='$iddate' and idproducteur='$key_producteur' " .
+                                "and $base_bons_cde.iddepot='$iddepot'".
+                                "group by idboncommande");
+            $nombrecommandes = mysqli_num_rows($rep2);
+            $recap = "";
+            foreach($recap_produits_producteurs[$key_producteur] as $produit => $quantite) {
+                if($recap != "") $recap .= " / ";
+                $recap .= "<b>$quantite</b> " . strtolower($produit);
+            }
+            $chaine .= html_debut_ligne("","","","top");
+            $chaine .= html_colonne("","","left","","","","","$val_producteur - $nombrecommandes commande(s)","","tdliste");
+            $chaine .= html_colonne("", "", "left", "", "", "", "", $recap,"", "tdliste");
+            $chaine .= html_fin_ligne();
+        }
+    }
+    $chaine .= html_fin_tableau();
 
-    // reset($tab_producteurs);
-    // while(list($key_producteur,$val_producteur) = each($tab_producteurs))
-    // {
-    //     if(isset($recap_produits_producteurs[$key_producteur]))
-    //     {
-    //         $rep2 = mysqli_query($GLOBALS["___mysqli_ston"], "select idboncommande from $base_commandes ".
-    //                             "inner join $base_bons_cde on $base_bons_cde.id=$base_commandes.idboncommande " .
-    //                             "where iddatelivraison='$iddate' and idproducteur='$key_producteur' " .
-    //                             "and $base_bons_cde.iddepot='$iddepot'".
-    //                             "group by idboncommande");
-    //         $nombrecommandes = mysqli_num_rows($rep2);
-    //         $recap = "";
-    //         foreach($recap_produits_producteurs[$key_producteur] as $produit => $quantite) {
-    //             if($recap != "") $recap .= " / ";
-    //             $recap .= "<b>$quantite</b> $produit";
-    //         }
-    //         $chaine .= html_debut_ligne("","","","top");
-    //         $chaine .= html_colonne("","","left","","","","","$val_producteur (x$nombrecommandes)","","tdliste");
-    //         $chaine .= html_colonne("", "", "left", "", "", "", "", $recap,"", "tdliste");
-    //         $chaine .= html_fin_ligne();
-    //     }
-    // }
-    // $chaine .= html_fin_tableau();
-
-    // $chaine .= "<br>";
+    $chaine .= "<br>";
 
     $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select idproduit,quantite,idproducteur,$base_commandes.idclient," .
                         "$base_clients.nom,$base_clients.prenom,$base_clients.codeclient " .
@@ -915,8 +915,8 @@ function recapitulatif_commandes_clients($idperiode, $iddate, $iddepot) {
             foreach($producteurs as $idproducteur => $produits) {
                 $chaine2 .= html_debut_ligne("","","","top");
                 if($afficheClient) {
-                    $chaine2 .= html_colonne("15%","","left","","","","", "<b>" . $client[2] . ' ' . $client[1] . " (" .
-                                             $client[3] . "</b>)",
+                    $chaine2 .= html_colonne("10%","","left","","","","", "<b>" . $client[2] . ' ' . $client[1] . " (" .
+                                             $client[3] . ")</b>",
                                              count($producteurs),"tdliste");
                     $afficheClient = False;
                 }
@@ -930,10 +930,16 @@ function recapitulatif_commandes_clients($idperiode, $iddate, $iddepot) {
                     }
                     $liste .= "<b>" . $quantite . "</b> " . strtolower(retrouver_nom_produit($idproduit));
                 }
-                $chaine2 .= html_colonne("20%", "", "left", "", "", "", "", $tab_producteurs[$idproducteur], "","tdliste");
+                $chaine2 .= html_colonne("25%", "", "left", "", "", "", "", $tab_producteurs[$idproducteur], "","tdliste");
                 $chaine2 .= html_colonne("65%","","left","","","","", $liste, "", "tdliste");
                 $chaine2 .= html_fin_ligne();
             }
+            $chaine2 .= html_debut_ligne("","","","top");
+            $chaine2 .= html_colonne("10%", "", "left", "", "", "", "", "", "","thlisteseparateur");
+            $chaine2 .= html_colonne("25%", "", "left", "", "", "", "", "", "","thlisteseparateur");
+            $chaine2 .= html_colonne("65%", "", "left", "", "", "", "", "", "","thlisteseparateur");
+            $chaine2 .= html_fin_ligne();
+
             $chaine .= $chaine2;
         }
         $chaine .= html_fin_tableau();

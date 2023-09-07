@@ -44,11 +44,11 @@ function formulaire_bon_commande($idperiode, $champs, $qteproduit=array(),$avoir
     {
         $total_producteur = 0.0;
         $champs["libelle"][] = "$produits";
-        $champs["type"][] = "afftext";
+        $champs["type"][] = "afftextfull";
         $champs["lgmax"][] = "";
         $champs["taille"][] = "";
         $champs["nomvar"][] = "";
-        $champs["valeur"][] = $nom;
+        $champs["valeur"][] = "<b>$produits - $nom</b>";
         $champs["aide"][] = "";
 
         $tableau_produits = html_debut_tableau("100%","0");
@@ -128,7 +128,7 @@ function formulaire_bon_commande($idperiode, $champs, $qteproduit=array(),$avoir
         $total_commande += $total_producteur;
 
         $champs["libelle"][] = "";
-        $champs["type"][] = "afftext";
+        $champs["type"][] = "afftextfull";
         $champs["lgmax"][] = "";
         $champs["taille"][] = "";
         $champs["nomvar"][] = "";
@@ -158,7 +158,7 @@ function formulaire_bon_commande($idperiode, $champs, $qteproduit=array(),$avoir
         $tableau_total .= html_colonne("90%","","center","top","","","","Description","","thliste");
         $tableau_total .= html_colonne("10%","","center","top","","","","Montant","","thliste");
         $tableau_total .= html_fin_ligne();
-        $otal_avoirs = 0.0;
+        $total_avoirs = 0.0;
         foreach($avoirs[0]["montant"] as $id => $montant) {
             if($montant < 0.0) {
                 $m = sprintf($g_lib_somme,-$montant);
@@ -280,33 +280,9 @@ function afficher_formulaire_bon_commande($idperiode=0,$iddepot=0,$qteproduit=ar
 
 }
 
-function afficher_formulaire_bon_commande_nouveau_client($idperiode=0, $qteproduit, $nom, $prenom, $email, $telephone,
-                                                         $ville,$iddepot = 0)
+function afficher_formulaire_bon_commande_nouveau_client(
+    $idperiode=0, $qteproduit, $nom, $prenom, $email, $telephone, $ville,$iddepot = 0)
 {
-    $champs["libelle"][] = "Bon de commande";
-    $champs["type"][] = "";
-    $champs["lgmax"][] = "";
-    $champs["taille"][] = "";
-    $champs["nomvar"][] = "";
-    $champs["valeur"][] = "";
-    $champs["aide"][] = "";
-
-    $champs["libelle"][] = "Période";
-    $champs["type"][] = "afftext";
-    $champs["lgmax"][] = "";
-    $champs["taille"][] = "";
-    $champs["nomvar"][] = "";
-    $champs["valeur"][] = retrouver_periode($idperiode);
-    $champs["aide"][] = "";
-
-    $champs["libelle"][] = "";
-    $champs["type"][] = "separateur";
-    $champs["lgmax"][] = "";
-    $champs["taille"][] = "";
-    $champs["nomvar"][] = "";
-    $champs["valeur"][] = "";
-    $champs["aide"][] = "";
-
     $champs["libelle"] = array("Bon de commande","Nom","Prenom","Email","Téléphone","Ville","Dépôt");
     $champs["type"] = array("","text","text","text","text","libre","libre");
     $champs["lgmax"] = array("","40","40","100","40","40","40");
@@ -338,18 +314,11 @@ function afficher_formulaire_bon_commande_nouveau_client($idperiode=0, $qteprodu
     $champs["lgmax"][] = "";
     $champs["taille"][] = "";
     $champs["nomvar"][] = "valider";
-    $champs["valeur"][] = " Calculer ";
-    $champs["aide"][] = "";
-
-    $champs["libelle"][] = "";
-    $champs["type"][] = "submit";
-    $champs["lgmax"][] = "";
-    $champs["taille"][] = "";
-    $champs["nomvar"][] = "valider";
     $champs["valeur"][] = " Imprimer ";
     $champs["aide"][] = "";
+    $champs["action"][count($champs["libelle"]) - 1] = "/paniers/nouveau.php?idperiode=$idperiode&action=imprimercde";
 
-    return(saisir_enregistrement($champs,"?action=imprimercde&idperiode=$idperiode","formcde",95,15,2,2,false));
+    return(saisir_enregistrement($champs,"","formcde",95,15,2,2,false, "_blank"));
 }
 
 function afficher_recapitulatif_commande($id) {
@@ -465,7 +434,7 @@ function afficher_recapitulatif_commande_interne($idperiode, $iddepot,$qteprodui
         $chaine2 = "";
         $chaine2 .= html_debut_tableau("95%","0");
         $chaine2 .= html_debut_ligne("","","","top");
-        $chaine2 .= html_colonne("30%","","left","","","","",$param_producteur['produits'],"","thliste");
+        $chaine2 .= html_colonne("30%","","left","","","","",$param_producteur['produits'] . "<br>(" . $param_producteur['nom'] . ")","","thliste");
         $chaine2 .= html_colonne("10%","","center","","","","","Prix unitaire","","thliste");
 
         reset($dates);
@@ -600,14 +569,6 @@ function afficher_recapitulatif_commande_interne($idperiode, $iddepot,$qteprodui
     $chaine2 .= html_fin_ligne();
     $chaine2 .= html_fin_tableau() . "<br><br>";
     $chaine .= $chaine2;
-
-    if($total_commande > 0) {
-        $texte = afficher_message_info("Montant total de la commande : " . sprintf($g_lib_somme,$total_commande));
-        $texte .= "<h4><b>Dépôt : </b>" . retrouver_depot($iddepot) . "</h4>";
-        if($g_ordrecheque != "") {
-            $texte .= "<h4><b>Chèque à l'ordre de \"$g_ordrecheque\"</b></h4>";
-        }
-    }
     $texte .= $chaine;
     return("$texte");
 }
@@ -683,7 +644,7 @@ function enregistrer_commande($idperiode,$qteproduit,$idboncommande,$idclient) {
     }
 }
 
-function lister_commandes($idclient = 0) {
+function lister_commandes($idclient = 0, $path) {
     global $base_bons_cde,$base_periodes,$g_delta_date_verrouillage,$g_periode_libelle;
     $chaine = "";
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_bons_cde.id,idboncde,idperiode,$base_bons_cde.datemodif," .
@@ -708,12 +669,12 @@ function lister_commandes($idclient = 0) {
             $chaine .= html_colonne("","","center","top","","","",$idboncde,"","tdliste");
             $chaine .= html_colonne("","","center","top","","","",$periode,"","tdliste");
             $chaine .= html_colonne("","","center","top","","","",dateheureexterne($datemodif),"","tdliste");
-            $actions = html_lien("?action=detaillercde&id=$id","_top","Détails");
-            $actions .= "<br>" . html_lien("imprimer.php?id=$id","_blank","Imprimer");
+            $actions = html_lien("$path?action=affichercde&id=$id","_top","Détails");
+            $actions .= "<br>" . html_lien("/paniers/imprimer.php?id=$id","_blank","Imprimer");
             if($etat == "Active" && $restant >= ($g_delta_date_verrouillage * 24 * 3600))
             {
-                $actions .= "<br>" . html_lien("?action=modifiercde&id=$id","_top","Modifier");
-                $actions .= "<br>" . html_lien("?action=supprimercde&id=$id","_top","Supprimer");
+                $actions .= "<br>" . html_lien("$path?action=editercde&id=$id","_top","Modifier");
+                $actions .= "<br>" . html_lien("$path?action=supprimercde&id=$id","_top","Supprimer");
             }
             $chaine .= html_colonne("","","center","top","","","",$actions,"","tdliste");
             $chaine .= html_fin_ligne();

@@ -975,28 +975,6 @@ function paniers_plugin_options() {
         </span></td>
       </tr>
       <tr valign="top">
-        <td><label><?php _e("Message commande verouillée", 'commandeverouille'); ?> </label></td>
-        <td><?php
-        $message = $paniers_data['commandeverouille'];
-        if(empty($message))
-        {
-            $message = __("La fiche de commande n'est plus disponible (la date de fin de saisie ayant été dépassée). Merci de saisir, imprimer et apporter votre commande en utilisant le bon de commande de <b><a href=\"nouveau.php\">cette page</a></b>.", 'commandeverouille');
-        }
-        ?> <textarea name="paniers_commandeverouille" class='wide' style="width: 100%; height: 50px;"><?php echo esc_textarea($message) ?></textarea>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Message commande non disponible", 'commandenondisponible'); ?> </label></td>
-        <td><?php
-        $message = $paniers_data['commandenondisponible'];
-        if(empty($message))
-        {
-            $message = __("La nouvelle fiche de commande n'est pas encore disponible... merci de revenir dans quelques jours!", 'commandenondisponible');
-        }
-        ?> <textarea name="paniers_commandenondisponible" class='wide' style="width: 100%; height: 50px;"><?php echo esc_textarea($message) ?></textarea>
-        </td>
-      </tr>
-      <tr valign="top">
         <td colspan="2">
           <h4>
             <?php _e("Configuration bon de commandes", 'paniers'); ?>
@@ -1327,3 +1305,283 @@ add_filter('authenticate', 'paniers_check_login', 10, 3);
 add_shortcode('paniers-updateprofile', 'paniers_updateprofile');
 add_shortcode('paniers-date-commande', 'paniers_datecommande');
 add_shortcode('paniers-produits', 'paniers_produits');
+
+function paniers_commande_nouveau($atts) {
+    require_once(paniers_dir . "/include/fonctions_include.php");
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
+
+    extract( shortcode_atts( array(
+		'page_commande_non_disponible' => '',
+    ), $atts ) );
+
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        foreach($_POST as $k=>$v) $$k=$v;
+    }
+    $idperiode = retrouver_periode_courante();
+
+    ob_start();
+    echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
+    if ($idperiode == 0 || !periode_active($idperiode)) {
+        wp_redirect($page_commande_non_disponible);
+    } else {
+        echo afficher_formulaire_bon_commande_nouveau_client($idperiode,
+                                                             $qteproduit,
+                                                             $nom,
+                                                             $prenom,
+                                                             $email,
+                                                             $telephone,
+                                                             $ville);
+    }
+    $content = ob_get_contents();
+    ob_clean();
+    return $content;
+}
+add_shortcode('paniers-commande-nouveau', 'paniers_commande_nouveau');
+
+function paniers_permanences() {
+    if(!is_user_logged_in()) {
+        wp_redirect( wp_login_url() );
+    }
+
+    require_once(paniers_dir . "/include/fonctions_include.php");
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
+
+    global $wp_query;
+    global $base_permanences;
+    global $base_permanenciers;
+
+    $action = $wp_query->get("action");
+    $id = $wp_query->get("id");
+    $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
+
+    ob_start();
+    echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
+    if ($action == "") {
+        echo afficher_planning_permanences(false, $userid);
+    } else if ($action == "inscrire") {
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select nbparticipants,nbinscrits from $base_permanences where id='$id' and date >= curdate()");
+        if (mysqli_num_rows($rep) != 0) {
+            list($nbparticipants,$nbinscrits) = mysqli_fetch_row($rep);
+        }
+        if ($nbinscrits < $nbparticipants && verifier_non_inscription($id,$userid))
+        {
+            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_permanenciers (id,idpermanence,idclient,commentaire,datemodif) values ('','$id','" . $userid . "','',now())");
+            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits+1 where id='$id'");
+            afficher_corps_page(
+                "Merci de vous être inscrit à cette permanence",
+                "",
+                afficher_planning_permanences(false,$userid));
+            ecrire_log_public("Inscription à la permanence : " . retrouver_permanence($id));
+        } else {
+            afficher_corps_page(
+                "Une erreur est survenue",
+                "",
+                afficher_planning_permanences(false,$userid));
+        }
+    } else if ($action == "desinscrire") {
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_permanences where id='$id' and date >= curdate()");
+        if (mysqli_num_rows($rep) != 0 && !verifier_non_inscription($id,$userid)) {
+            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_permanenciers where idpermanence='$id' and idclient='" . $userid . "' limit 1");
+            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits-1 where id='$id'");
+            afficher_corps_page(
+                "Vous êtes désinscrit de cette permanence",
+                "",
+                afficher_planning_permanences(false,$userid));
+            ecrire_log_public("Désinscription de la permanence : " . retrouver_permanence($id));
+        }
+        else
+        {
+            afficher_corps_page(
+                "Une erreur est survenue",
+                "Vous êtes déja désinscrit de la permanence",
+                afficher_planning_permanences(false,$userid));
+        }
+    }
+    $content = ob_get_contents();
+    ob_clean();
+    return $content;
+}
+add_shortcode('paniers-permanences', 'paniers_permanences');
+
+function paniers_commande_adherent($atts) {
+
+    if (!function_exists('message_erreur')) {
+        function message_erreur($message) {
+            echo afficher_message_erreur($message);
+            $content = ob_get_contents();
+            ob_clean();
+            return $content;
+        }
+    }
+
+    if(!is_user_logged_in()) {
+        wp_redirect( wp_login_url() );
+    }
+
+    require_once(paniers_dir . "/include/fonctions_include.php");
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
+
+    extract( shortcode_atts( array(
+		'page_commande_non_disponible' => '',
+    ), $atts ) );
+
+    global $wp_query;
+    global $base_bons_cde;
+
+    $action = $wp_query->get("action");
+    $id = $wp_query->get("id");
+    $idperiode = $wp_query->get("idperiode");
+    $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
+
+    ob_start();
+    echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
+    if ($action == "" || $action == "editercde") {
+
+        if (!isset($id) || $id == "" || $id == 0) {
+            $idperiode = retrouver_periode_courante(true);
+            if($idperiode == -1) {
+                wp_redirect($page_commande_non_disponible);
+            }
+            else if($idperiode == 0 || !periode_active($idperiode)) {
+                wp_redirect($page_commande_non_disponible);
+            } else {
+                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_bons_cde where idclient = '$userid' and idperiode = '$idperiode'");
+                if (mysqli_num_rows($rep) > 0) {
+                    list($id) = mysqli_fetch_row($rep);
+                }
+            }
+        }
+
+        if (isset($id) && $id != "" && $id != 0) {
+            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idperiode,iddepot from $base_bons_cde where id = '$id'");
+            if(mysqli_num_rows($rep) == 0) {
+                return message_erreur("Commande introuvable");
+            }
+            list($idperiode,$iddepot) = mysqli_fetch_row($rep);
+            $qteproduit = retrouver_quantites_commande($id,$idperiode);
+        } else {
+            $id = 0;
+            $iddepot = retrouver_depot_client($userid);
+            $qteproduit = array();
+        }
+
+        afficher_corps_page(
+            "",
+            "",
+            afficher_formulaire_bon_commande(
+                $idperiode,
+                $iddepot,
+                $qteproduit,
+                "enregistrercde",
+                $id,
+                $userid));
+
+    } else if ($action == "affichercde" && $id != "" && $id != 0) {
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idperiode,iddepot from $base_bons_cde where id='$id'");
+        if (mysqli_num_rows($rep) != 0) {
+            list($idperiode,$iddepot) = mysqli_fetch_row($rep);
+            $qteproduit = retrouver_quantites_commande($id,$idperiode);
+            afficher_corps_page(
+                "",
+                "",
+                afficher_recapitulatif_commande($id));
+        }
+        else {
+            return message_erreur("Commande introuvable");
+        }
+    } else if ($action == "enregistrercde") {
+        $iddepot = $_POST["iddepot"];
+        if (!isset($idperiode) || $idperiode == "" || $idperiode == 0) {
+            return message_erreur("Pas de période définie");
+        }
+        else if (!isset($iddepot) || $iddepot == "" || $iddepot == 0) {
+            return message_erreur("Pas de dépot selectionné");
+        }
+        else {
+            if (isset($id) && $id != "" && $id != 0) {
+                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,iddepot from $base_bons_cde where id='$id'");
+                if(mysqli_num_rows($rep) == 0) {
+                    return message_erreur("Commande introuvable");
+                }
+            }
+            else {
+                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,iddepot from $base_bons_cde where idperiode='$idperiode' and idclient='$userid'");
+            }
+
+            if(mysqli_num_rows($rep) == 0) {
+                $id = enregistrer_bon_commande($idperiode,$userid,$iddepot);
+            } else {
+                list($id, $iddepotorig) = mysqli_fetch_row($rep);
+                if($iddepotorig != $iddepot) {
+                    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_bons_cde set iddepot=$iddepot where id='$id'");
+                }
+            }
+
+            enregistrer_commande($idperiode,$_POST['qteproduit'],$id,$userid);
+            afficher_corps_page(
+                "Commande enregistrée sous le n° C$userid-$id (" . html_lien("/paniers/imprimer.php?id=$id","_blank","l'imprimer") . ")",
+                "",
+                afficher_recapitulatif_commande($id));
+            ecrire_log_public("Commande enregistrée sous le n° C$userid-$id");
+        }
+    } else if ($action == "supprimercde" && $id > 0) {
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idperiode,etat,datemodif from $base_bons_cde where id='$id'");
+        if(mysqli_num_rows($rep) != 0) {
+            list($idperiode,$datemodif) = mysqli_fetch_row($rep);
+            $champs["libelle"] = array("Commande n° C$userid-$id","Période","Créée le","","");
+            $champs["type"] = array("","afftext","afftext","submit","submit");
+            $champs["lgmax"] = array("","","","","");
+            $champs["taille"] = array("","","","","");
+            $champs["nomvar"] = array("","","","valider","valider");
+            $champs["valeur"] = array("",retrouver_periode($idperiode),dateheureexterne($datemodif)," Annuler "," Valider ");
+            $champs["aide"] = array("","","");
+            afficher_corps_page(
+                "Suppression de la commande n° C$userid-$id",
+                "",
+                saisir_enregistrement($champs,"?action=confsupprimercde&id=$id","formsupprimer",70,20,2,2,false));
+        }
+        else {
+            return message_erreur("Commande introuvable");
+        }
+    } else if ($action == "confsupprimercde" && $id > 0) {
+        if ($_POST["valider"] == " Valider ") {
+            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_bons_cde where id='$id'");
+            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_commandes where idboncommande='$id'");
+            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_avoirs set idboncommande=0 where idboncommande='$id'");
+            ecrire_log_public("Commande n° C$userid-$id supprimée");
+        }
+        else {
+            echo(lister_commandes($userid, $page_commande));
+        }
+    } else {
+        return message_erreur("Action de commande invalide");
+    }
+
+    $content = ob_get_contents();
+    ob_clean();
+    return $content;
+}
+add_shortcode('paniers-commande-adherent', 'paniers_commande_adherent');
+
+function paniers_liste_commandes_adherent($atts) {
+    if(!is_user_logged_in()) {
+        wp_redirect( wp_login_url() );
+    }
+
+    require_once(paniers_dir . "/include/fonctions_include.php");
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
+
+    extract( shortcode_atts( array(
+		'page_commande' => '/commande/',
+    ), $atts ) );
+
+    $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
+
+    ob_start();
+    echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
+    echo(lister_commandes($userid, $page_commande));
+    $content = ob_get_contents();
+    ob_clean();
+    return $content;
+}
+add_shortcode('paniers-liste-commandes-adherent', 'paniers_liste_commandes_adherent');

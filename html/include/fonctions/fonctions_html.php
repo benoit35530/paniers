@@ -211,14 +211,17 @@ function html_radio_input($nomvar,$valeur,$libelle,$coche=false) {
     return ("$chaine");
 }
 
-function html_bouton_submit($texte,$image="",$nomvar="b1") {
+function html_bouton_submit($texte,$image="",$nomvar="b1", $formaction="") {
+    if ($formaction != "") {
+        $formaction = " formaction=\"$formaction\"";
+    }
     if ($image != "")
     {
-        return("<input type=\"image\" src=\"$image\" border=\"0\" alt=\"$nom\" name=\"image1\"/>\n");
+        return("<input type=\"image\" src=\"$image\" border=\"0\" alt=\"$nomvar\" name=\"image1\"$formaction/>\n");
     }
     else
     {
-        return("<input type=\"submit\" value=\"$texte\" name=\"$nomvar\" class=\"champsubmit\"/>\n");
+        return("<input type=\"submit\" value=\"$texte\" name=\"$nomvar\" class=\"champsubmit\"$formaction/>\n");
     }
 }
 

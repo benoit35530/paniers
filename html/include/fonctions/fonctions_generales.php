@@ -141,6 +141,11 @@ function saisir_enregistrement($champs,$action,$formname,$prc_taille=95,$prc_ind
             $texte .= html_colonne("","","","","","","2",stripslashes($champs["libelle"][$i]),"","champtitre");
             $texte .= html_fin_ligne();
         }
+        else if ($champs["type"][$i] == "afftextfull") {
+            $texte .= html_debut_ligne("","","","top");
+            $texte .= html_colonne("100%","","","","","","2",stripslashes($champs["valeur"][$i]),"","champvaleur","champvaleurtexte");
+            $texte .= html_fin_ligne();
+        }
         else if ($champs["type"][$i] != "hidden")
         {
             $texte .= html_debut_ligne("","","","top");
@@ -190,7 +195,7 @@ function saisir_enregistrement($champs,$action,$formname,$prc_taille=95,$prc_ind
                 }
                 break;
             case "submit":
-                $chaine2 .= html_bouton_submit($champs["valeur"][$i],"",($champs["nomvar"][$i] != "" ? $champs["nomvar"][$i] : "b1"));
+                $chaine2 .= html_bouton_submit($champs["valeur"][$i],"",($champs["nomvar"][$i] != "" ? $champs["nomvar"][$i] : "b1"), $champs["action"][$i]);
                 break;
             case "text":
                 $chaine2 .= html_text_input($champs["nomvar"][$i],stripslashes($champs["valeur"][$i]),$champs["taille"][$i],$champs["lgmax"][$i]);
@@ -203,13 +208,13 @@ function saisir_enregistrement($champs,$action,$formname,$prc_taille=95,$prc_ind
                 break;
             default:
                 break;
-                endswitch;
-                if (isset($champs["aide"][$i]) && $champs["aide"][$i] != "" && $champs["type"][$i] != "checkbox")
-                {
-                    $chaine2 .= "<br>" . html_span_class($champs["aide"][$i],"champaidetexte") . "\n";
-                }
-                $texte .= html_colonne((100-$prc_indent)."%","","","","","","",$chaine2,"","champvaleur","champvaleurtexte");
-                $texte .= html_fin_ligne();
+            endswitch;
+            if (isset($champs["aide"][$i]) && $champs["aide"][$i] != "" && $champs["type"][$i] != "checkbox")
+            {
+                $chaine2 .= "<br>" . html_span_class($champs["aide"][$i],"champaidetexte") . "\n";
+            }
+            $texte .= html_colonne((100-$prc_indent)."%","","","","","","",$chaine2,"","champvaleur","champvaleurtexte");
+            $texte .= html_fin_ligne();
         }
         else
         {

@@ -27,6 +27,6 @@ else
     $PAGE_Contenu = afficher_message_erreur("Il manque le n° de commande !!!");
 }
 
-afficher_corps_page($PAGE_Titre,"",$PAGE_Contenu);
+afficher_corps_page($PAGE_Titre,"", $PAGE_Contenu);
 require_once("include/footer_imprimer.php");
 ?>

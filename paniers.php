@@ -1435,7 +1435,9 @@ function paniers_commande_adherent($atts) {
 
     ob_start();
     echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
-    if ($action == "" || $action == "editercde") {
+    if ($action == "editercde" || 
+	($action=="" && !str_starts_with($_SERVER['REQUEST_URI'], 
+"/wp-admin"))) {
 
         if (!isset($id) || $id == "" || $id == 0) {
             $idperiode = retrouver_periode_courante(true);

@@ -278,7 +278,7 @@ function paniers_check_login($user, $username, $password) {
     //
     // Est-ce un consommateur des paniers?
     //
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,email,motpasse,etat from $base_clients where lower(codeclient)=lower('$username') or email=lower('$username') limit 1");
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,email,motpasse,etat from $base_clients where lower(codeclient)=lower('$username') or email=lower('$username')");
     if($rep && mysqli_num_rows($rep) != 0) {
         // Fetch all the rows until we find an active consummers. This is required in case multiple consummers
         // were registered with different addresses.
@@ -327,7 +327,7 @@ function paniers_check_login($user, $username, $password) {
         list($gestionnaireId,$nom, $prenom, $email) = mysqli_fetch_row($rep);
     }
 
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id, nom, prenom, email, codeclient from $base_clients where email='$email' limit 1");
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id, nom, prenom, email, codeclient from $base_clients where email='$email' and etat='Actif' limit 1");
     if($rep && mysqli_num_rows($rep) != 0) {
         list($consommateurId,$nom, $prenom, $email, $codeclient) = mysqli_fetch_row($rep);
     }
@@ -335,7 +335,7 @@ function paniers_check_login($user, $username, $password) {
     $userarray['first_name'] = $prenom;
     $userarray['last_name'] = $nom;
     if ($codeclient == '') {
-        $userarray['user_login'] = upper($username);
+        $userarray['user_login'] = $username;
     } else {
         $userarray['user_login'] = $codeclient;
     }

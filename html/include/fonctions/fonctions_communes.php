@@ -2,12 +2,18 @@
 
 function ecrire_log_public($texte) {
     global $base_journal;
-    mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_journal (date,auteur,commentaire) values(now(),'" . wp_get_current_user()->user_login . "','$texte')");
+    $user = wp_get_current_user();
+    if ($user) {
+        $userlogin = $user->user_login;
+    } else {
+        $userlogin = "<unknown>";
+    }
+
+    mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_journal (date,auteur,commentaire) values(now(),'" . $userlogin . "','$texte')");
 }
 
 function ecrire_log_admin($texte) {
-    global $base_journal;
-    mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_journal (date,auteur,commentaire) values(now(),'" . wp_get_current_user()->user_login . "','$texte')");
+    ecrire_log_public($texte);
 }
 
 function encode_password($password)    {

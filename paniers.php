@@ -249,13 +249,19 @@ function paniers_check_login($user, $username, $password) {
         return $user;
     }
 
+    if ($user) {
+        ecrire_log_public("Identification de " . $user->ID . " " . $user->get('user_firstname'));
+    } else {
+        ecrire_log_public("Identification de $username");
+    }
+
     $mysql_password = encode_password($password);
 
     //
     // Est ce un administrateur des paniers?
     //
     $authenticated = false;
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select email,motpasse from $base_utilisateurs where nomutil='$username' limit 1");
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select email,motpasse from $base_utilisateurs where nomutil='$username' or email=lower('$username') limit 1");
     if($rep && mysqli_num_rows($rep) != 0) {
         list($email,$motpasse) = mysqli_fetch_row($rep);
         if($motpasse == $mysql_password) {
@@ -263,6 +269,7 @@ function paniers_check_login($user, $username, $password) {
         }
         else {
             remove_action('authenticate', 'wp_authenticate_username_password', 20);
+            ecrire_log_public("Echec de connection de $username / $email: mot de passe invalide");
             $user =  new WP_Error('invalidpassword', __("Mot de passe invalide"));
             return $user;
         }
@@ -271,11 +278,12 @@ function paniers_check_login($user, $username, $password) {
     //
     // Est-ce un consommateur des paniers?
     //
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,email,motpasse,etat from $base_clients where lower(codeclient)=lower('$username') limit 1");
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,email,motpasse,etat from $base_clients where lower(codeclient)=lower('$username') or email=lower('$username') limit 1");
     if($rep && mysqli_num_rows($rep) != 0) {
         list($client_id,$email,$motpasse,$etat) = mysqli_fetch_row($rep);
         if($etat != "Actif") {
             remove_action('authenticate', 'wp_authenticate_username_password', 20);
+            ecrire_log_public("Echec de connection de $username / $email: identifiant inactif");
             $user =  new WP_Error('nouserid', __("Identifiant inactif"));
             return $user;
         }
@@ -295,6 +303,7 @@ function paniers_check_login($user, $username, $password) {
 
         if(!$authenticated) {
             remove_action('authenticate', 'wp_authenticate_username_password', 20);
+            ecrire_log_public("Echec de connection de $username / $email: mot de passe invalide");
             $user =  new WP_Error('invalidpassword', __("Mot de passe invalide"));
             return $user;
         }
@@ -305,30 +314,40 @@ function paniers_check_login($user, $username, $password) {
         return null;
     }
 
+    $codeclient = '';
+
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id, nom, prenom, email from $base_utilisateurs where email='$email' limit 1");
     if($rep && mysqli_num_rows($rep) != 0) {
         list($gestionnaireId,$nom, $prenom, $email) = mysqli_fetch_row($rep);
     }
 
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id, nom, prenom, email from $base_clients where email='$email' limit 1");
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id, nom, prenom, email, codeclient from $base_clients where email='$email' limit 1");
     if($rep && mysqli_num_rows($rep) != 0) {
-        list($consommateurId,$nom, $prenom, $email) = mysqli_fetch_row($rep);
+        list($consommateurId,$nom, $prenom, $email, $codeclient) = mysqli_fetch_row($rep);
     }
 
     $userarray['first_name'] = $prenom;
     $userarray['last_name'] = $nom;
-    $userarray['user_login'] = $username;
+    if ($codeclient == '') {
+        $userarray['user_login'] = upper($username);
+    } else {
+        $userarray['user_login'] = $codeclient;
+    }
     $userarray['user_pass'] = $password;
     $userarray['display_name'] = "$prenom $nom";
     $userarray['user_email'] = $email;
 
-    $user = get_user_by('email', $email);
+    $user = get_user_by('login', $username);
     if(!$user) {
-        $user = get_user_by('login', $username);
+        $user = get_user_by('email', $email);
+    }
+    if(!$user) {
+        $user = get_user_by('email', $username);
     }
     if(!$user) {
         $id = wp_insert_user($userarray);
         if(is_wp_error($id)) {
+            ecrire_log_public("Echec de connection de $username / $email: " . $id->get_error_message());
             remove_action('authenticate', 'wp_authenticate_username_password', 20);
             return $id;
         }
@@ -1435,8 +1454,8 @@ function paniers_commande_adherent($atts) {
 
     ob_start();
     echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
-    if ($action == "editercde" || 
-	($action=="" && !str_starts_with($_SERVER['REQUEST_URI'], 
+    if ($action == "editercde" ||
+	($action=="" && !str_starts_with($_SERVER['REQUEST_URI'],
 "/wp-admin"))) {
 
         if (!isset($id) || $id == "" || $id == 0) {

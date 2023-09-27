@@ -44,7 +44,11 @@ function gerer_liste_permanenciers() {
 
             $chaine .= html_debut_ligne("","","","top");
             $chaine .= html_colonne("","","center","","","","",retrouver_permanence($idpermanence),"","tdliste");
-            $chaine .= html_colonne("","","left","","","","",retrouver_client($idclient,true),"","tdliste");
+            if ($idclient <= 0) {
+                $chaine .= html_colonne("","","left","","","","","Erreur: client inconnu","","tdliste");
+            } else {
+                $chaine .= html_colonne("","","left","","","","",retrouver_client($idclient,true),"","tdliste");
+            }
             $chaine .= html_colonne("","","center","","","","",dateheureexterne($datemodif),"","tdliste");
             $action = html_lien("?action=modif&id=$id","_top","Modifier");
             $action .= " | " . html_lien("?action=suppr&id=$id","_top","Supprimer");
@@ -74,7 +78,11 @@ function retrouver_permanenciers($idpermanence,$affcodeclient=true) {
     {
         while(list($idclient) = mysqli_fetch_row($rep))
         {
-            $tab_permanenciers[] = retrouver_client($idclient,$affcodeclient);
+            if ($idclient <= 0) {
+                $tab_permanenciers[] = ("Erreur: permanencier inconnu");
+            } else {
+                $tab_permanenciers[] = retrouver_client($idclient,$affcodeclient);
+            }
         }
     }
     else

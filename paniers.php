@@ -280,7 +280,13 @@ function paniers_check_login($user, $username, $password) {
     //
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,email,motpasse,etat from $base_clients where lower(codeclient)=lower('$username') or email=lower('$username') limit 1");
     if($rep && mysqli_num_rows($rep) != 0) {
-        list($client_id,$email,$motpasse,$etat) = mysqli_fetch_row($rep);
+        // Fetch all the rows until we find an active consummers. This is required in case multiple consummers
+        // were registered with different addresses.
+        while (list($client_id,$email,$motpasse,$etat) = mysqli_fetch_row($rep)) {
+            if ($etat == "Actif") {
+                break;
+            }
+        }
         if($etat != "Actif") {
             remove_action('authenticate', 'wp_authenticate_username_password', 20);
             ecrire_log_public("Echec de connection de $username / $email: identifiant inactif");

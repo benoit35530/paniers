@@ -337,7 +337,7 @@ function paniers_check_login($user, $username, $password) {
     if ($codeclient == '') {
         $userarray['user_login'] = $username;
     } else {
-        $userarray['user_login'] = $codeclient;
+        $userarray['user_login'] = strtoupper($codeclient);
     }
     $userarray['user_pass'] = $password;
     $userarray['display_name'] = "$prenom $nom";

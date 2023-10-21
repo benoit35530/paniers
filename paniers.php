@@ -217,7 +217,7 @@ misensachets,Mise en sachets des pommes,14:00,14:30,2,0";
 
 function paniers_rewriteURL()
 {
-    add_rewrite_rule('paniers/(.*)$', paniers_dir . '/$1','top');
+    add_rewrite_rule('paniers/(.*)$', substr(paniers_dir, 1) . '/$1','top');
 }
 
 function paniers_uninstall()
@@ -1365,7 +1365,7 @@ add_shortcode('paniers-commande-nouveau', 'paniers_commande_nouveau');
 
 function paniers_permanences() {
     if(!is_user_logged_in()) {
-        wp_redirect( wp_login_url() );
+        wp_redirect( wp_login_url($_SERVER['REQUEST_URI']) );
     }
 
     require_once(paniers_dir . "/include/fonctions_include.php");
@@ -1428,6 +1428,14 @@ function paniers_permanences() {
 }
 add_shortcode('paniers-permanences', 'paniers_permanences');
 
+function paniers_login_redirect($redirect_to, $request='', $user=null){
+    if(isset($_REQUEST['redirect_to'])){
+        $redirect_to = $_REQUEST['redirect_to'];
+    }
+    return $redirect_to;
+}
+add_filter('login_redirect','paniers_login_redirect',999);
+
 function paniers_commande_adherent($atts) {
 
     if (!function_exists('message_erreur')) {
@@ -1440,7 +1448,7 @@ function paniers_commande_adherent($atts) {
     }
 
     if(!is_user_logged_in()) {
-        wp_redirect( wp_login_url() );
+        wp_redirect( wp_login_url($_SERVER['REQUEST_URI']) );
     }
 
     require_once(paniers_dir . "/include/fonctions_include.php");
@@ -1592,7 +1600,7 @@ add_shortcode('paniers-commande-adherent', 'paniers_commande_adherent');
 
 function paniers_liste_commandes_adherent($atts) {
     if(!is_user_logged_in()) {
-        wp_redirect( wp_login_url() );
+        wp_redirect( wp_login_url($_SERVER['REQUEST_URI']) );
     }
 
     require_once(paniers_dir . "/include/fonctions_include.php");

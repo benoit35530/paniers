@@ -16,13 +16,15 @@ case "confajout":
     $message = "";
     if(!isset($nom) || $nom == "") $message .= "nom du produit manquant, ";
     if(!isset($description) || $description == "") $message .= "description du produit manquante, ";
-    if(!isset($prix) || $prix == "") $message .= "prix du produit manquant, ";
+    if(!isset($prix) || $prix == "" || !is_numeric(($prix))) $message .= "prix du produit manquant ou invalide, ";
     if(!isset($idproducteur) || $idproducteur == "" || $idproducteur == 0) {
         $idproducteur = obtenir_producteur_utilisateur();
         if($idproducteur <= 0) {
             $message .= "producteur du produit manquant";
         }
     }
+    $nom = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $nom);
+    $description = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $description);
     if($message != "") {
         echo afficher_message_erreur("Impossible d'ajouter ce produit : " . $message);
     }
@@ -68,13 +70,15 @@ case "confmodif":
             $message = "";
             if(!isset($nom) || $nom == "") $message .= "nom du produit manquant, ";
             if(!isset($description) || $description == "") $message .= "description du produit manquante, ";
-            if(!isset($prix) || $prix == "") $message .= "prix du produit manquant, ";
+            if(!isset($prix) || $prix == "" || !is_numeric($prix)) $message .= "prix du produit manquant ou invalide, ";
             if(!isset($idproducteur) || $idproducteur == "" || $idproducteur == 0) {
                 $idproducteur = obtenir_producteur_utilisateur();
                 if($idproducteur <= 0) {
                     $message .= "producteur du produit manquant";
                 }
             }
+            $nom = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $nom);
+            $description = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $description);
             if($message != "")
             {
                 echo afficher_message_erreur("Le produit n° $id ne peut pas être modifié, erreur : " . $message);

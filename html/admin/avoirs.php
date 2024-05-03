@@ -25,14 +25,14 @@ case "confajout":
     echo afficher_titre("Ajout d'un avoir client");
     $message = "";
     if(!isset($idclient) || $idclient == "" || $idclient == 0) $message .= "client manquant, ";
-    if(!isset($montant)) $message .= "montant manquant, ";
+    if(!isset($montant) || $montant == "" || !is_numeric($montant)) $message .= "montant manquant ou invalide, ";
     if($message != "")
     {
         echo afficher_message_erreur("Impossible d'ajouter cet avoir : " . $message);
     }
     else
     {
-        $description = addslashes($description);
+        $description = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $description);
         $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_avoirs (id,idclient,idproducteur,montant,description,datemodif) values ('','$idclient','$idproducteur','$montant','$description',now())");
         $last_id = ((is_null($___mysqli_res = mysqli_insert_id($GLOBALS["___mysqli_ston"]))) ? false : $___mysqli_res);
         echo afficher_message_info("L'avoir n° $last_id est ajoutée");
@@ -65,7 +65,7 @@ case "confajoutlivraison":
     }
     else
     {
-        $description = addslashes($description);
+        $description = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $description);
 
         $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_commandes.idclient,idproduit,quantite,prix " .
             "from $base_commandes " .
@@ -133,7 +133,7 @@ case "confmodif":
         if(mysqli_num_rows($rep) != 0)
         {
             $message = "";
-            if(!isset($montant) || $montant == "") $message .= "montant manquant, ";
+            if(!isset($montant) || $montant == "" || !is_numeric($montant)) $message .= "montant manquant ou invalide, ";
             if($message != "")
             {
                 echo afficher_message_erreur("La avoir n° $id ne peut pas être modifiée, erreur : " . $message);
@@ -141,7 +141,7 @@ case "confmodif":
             }
             else
             {
-                $description = addslashes($description);
+                $description = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $description);
                 mysqli_query($GLOBALS["___mysqli_ston"], "update $base_avoirs set montant='$montant',idproducteur='$idproducteur'," .
                             "idboncommande='$idboncommande',description='$description' where id='$id'");
                 ecrire_log_admin("Avoir n° $id modifiée");

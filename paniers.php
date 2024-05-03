@@ -1364,8 +1364,9 @@ function paniers_commande_nouveau($atts) {
 add_shortcode('paniers-commande-nouveau', 'paniers_commande_nouveau');
 
 function paniers_permanences() {
-    if(!is_user_logged_in()) {
-        wp_redirect( wp_login_url($_SERVER['REQUEST_URI']) );
+    $wpUserId = get_current_user_id();
+    if(!is_user_logged_in() || $wpUserId == 0) {
+        wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
     }
 
     require_once(paniers_dir . "/include/fonctions_include.php");
@@ -1377,10 +1378,11 @@ function paniers_permanences() {
 
     $action = $wp_query->get("action");
     $id = $wp_query->get("id");
-    $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
+    $userid = get_user_meta($wpUserId, 'paniers_consommateurId', true);
 
     ob_start();
     echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
+
     if ($action == "") {
         echo afficher_planning_permanences(false, $userid);
     } else if ($action == "inscrire") {
@@ -1388,7 +1390,7 @@ function paniers_permanences() {
         if (mysqli_num_rows($rep) != 0) {
             list($nbparticipants,$nbinscrits) = mysqli_fetch_row($rep);
         }
-        if ($nbinscrits < $nbparticipants && verifier_non_inscription($id,$userid))
+        if ($userid > 0 && $nbinscrits < $nbparticipants && verifier_non_inscription($id,$userid))
         {
             $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_permanenciers (id,idpermanence,idclient,commentaire,datemodif) values ('','$id','" . $userid . "','',now())");
             $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits+1 where id='$id'");
@@ -1400,12 +1402,12 @@ function paniers_permanences() {
         } else {
             afficher_corps_page(
                 "Une erreur est survenue",
-                "",
+                "Numéro d'utilisateur inconnu, déjà inscrit ou trop d'inscrits.",
                 afficher_planning_permanences(false,$userid));
         }
     } else if ($action == "desinscrire") {
         $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_permanences where id='$id' and date >= curdate()");
-        if (mysqli_num_rows($rep) != 0 && !verifier_non_inscription($id,$userid)) {
+        if ($userid > 0 && mysqli_num_rows($rep) != 0 && !verifier_non_inscription($id,$userid)) {
             $rep = mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_permanenciers where idpermanence='$id' and idclient='" . $userid . "' limit 1");
             $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits-1 where id='$id'");
             afficher_corps_page(
@@ -1418,10 +1420,11 @@ function paniers_permanences() {
         {
             afficher_corps_page(
                 "Une erreur est survenue",
-                "Vous êtes déja désinscrit de la permanence",
+                "Vous êtes déja désinscrit de la permanence ou votre numéro d'utilisateur est inconnu",
                 afficher_planning_permanences(false,$userid));
         }
     }
+
     $content = ob_get_contents();
     ob_clean();
     return $content;
@@ -1469,7 +1472,7 @@ function paniers_commande_adherent($atts) {
     ob_start();
     echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
     if ($action == "editercde" ||
-	($action=="" && !str_starts_with($_SERVER['REQUEST_URI'],
+    	($action=="" && !str_starts_with($_SERVER['REQUEST_URI'],
 "/wp-admin"))) {
 
         if (!isset($id) || $id == "" || $id == 0) {
@@ -1503,7 +1506,7 @@ function paniers_commande_adherent($atts) {
         afficher_corps_page(
             "",
             "",
-            afficher_formulaire_bon_commande(
+            afficher_formulaire_bon_com/mande(
                 $idperiode,
                 $iddepot,
                 $qteproduit,

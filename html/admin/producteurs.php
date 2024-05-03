@@ -22,6 +22,7 @@ case "confajout":
     if(!isset($produits) || $produits == "") $message .= "description des produits manquante";
     if(!isset($ordre) || $ordre == "") $message .= "ordre des producteur manquante";
     $nom = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $nom);
+    $email = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $email);
     $ordrecheque = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $ordrecheque);
     $produits = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $produits);
     if($message != "")

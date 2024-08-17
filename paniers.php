@@ -32,6 +32,7 @@ function paniers_install()
                     iddepot int(11) NOT NULL,
                     etat enum('encours','valide') NOT NULL default 'encours',
                     datemodif datetime NOT NULL,
+                    PRIMARY KEY  (idperiode,idclient),
                     KEY id (id)
                     );",
                "CREATE TABLE " . $paniers_dbprefix . "paniers_commandes (
@@ -1386,42 +1387,58 @@ function paniers_permanences() {
     if ($action == "") {
         echo afficher_planning_permanences(false, $userid);
     } else if ($action == "inscrire") {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select nbparticipants,nbinscrits from $base_permanences where id='$id' and date >= curdate()");
-        if (mysqli_num_rows($rep) != 0) {
-            list($nbparticipants,$nbinscrits) = mysqli_fetch_row($rep);
-        }
-        if ($userid > 0 && $nbinscrits < $nbparticipants && verifier_non_inscription($id,$userid))
-        {
-            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_permanenciers (id,idpermanence,idclient,commentaire,datemodif) values ('','$id','" . $userid . "','',now())");
-            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits+1 where id='$id'");
-            afficher_corps_page(
-                "Merci de vous être inscrit à cette permanence",
-                "",
-                afficher_planning_permanences(false,$userid));
-            ecrire_log_public("Inscription à la permanence : " . retrouver_permanence($id));
-        } else {
-            afficher_corps_page(
-                "Une erreur est survenue",
-                "Numéro d'utilisateur inconnu, déjà inscrit ou trop d'inscrits.",
-                afficher_planning_permanences(false,$userid));
+        mysqli_begin_transaction($GLOBALS["___mysqli_ston"], MYSQLI_TRANS_START_READ_WRITE);
+        try {
+            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select nbparticipants,nbinscrits from $base_permanences where id='$id' and date >= curdate()");
+            if (mysqli_num_rows($rep) != 0) {
+                list($nbparticipants,$nbinscrits) = mysqli_fetch_row($rep);
+            }
+            if ($userid > 0 && $nbinscrits < $nbparticipants && verifier_non_inscription($id,$userid))
+            {
+                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_permanenciers (id,idpermanence,idclient,commentaire,datemodif) values ('','$id','$userid','',now())");
+                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits+1 where id='$id'");
+                afficher_corps_page(
+                    "Merci de vous être inscrit à cette permanence",
+                    "",
+                    afficher_planning_permanences(false,$userid));
+                ecrire_log_public("Inscription à la permanence : " . retrouver_permanence($id));
+                mysqli_commit($GLOBALS["___mysqli_ston"]);
+            } else {
+                afficher_corps_page(
+                    "Une erreur est survenue",
+                    "Numéro d'utilisateur inconnu, déjà inscrit ou trop d'inscrits.",
+                    afficher_planning_permanences(false,$userid));
+                mysqli_rollback($GLOBALS["___mysqli_ston"]);
+            }
+        } catch (Exception $e) {
+            mysqli_rollback($GLOBALS["___mysqli_ston"]);
+            throw $e;
         }
     } else if ($action == "desinscrire") {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_permanences where id='$id' and date >= curdate()");
-        if ($userid > 0 && mysqli_num_rows($rep) != 0 && !verifier_non_inscription($id,$userid)) {
-            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_permanenciers where idpermanence='$id' and idclient='" . $userid . "' limit 1");
-            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits-1 where id='$id'");
-            afficher_corps_page(
-                "Vous êtes désinscrit de cette permanence",
-                "",
-                afficher_planning_permanences(false,$userid));
-            ecrire_log_public("Désinscription de la permanence : " . retrouver_permanence($id));
-        }
-        else
-        {
-            afficher_corps_page(
-                "Une erreur est survenue",
-                "Vous êtes déja désinscrit de la permanence ou votre numéro d'utilisateur est inconnu",
-                afficher_planning_permanences(false,$userid));
+        mysqli_begin_transaction($GLOBALS["___mysqli_ston"], MYSQLI_TRANS_START_READ_WRITE);
+        try {
+            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_permanences where id='$id' and date >= curdate()");
+            if ($userid > 0 && mysqli_num_rows($rep) != 0 && !verifier_non_inscription($id,$userid)) {
+                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_permanenciers where idpermanence='$id' and idclient='" . $userid . "' limit 1");
+                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits-1 where id='$id'");
+                afficher_corps_page(
+                    "Vous êtes désinscrit de cette permanence",
+                    "",
+                    afficher_planning_permanences(false,$userid));
+                ecrire_log_public("Désinscription de la permanence : " . retrouver_permanence($id));
+                mysqli_commit($GLOBALS["___mysqli_ston"]);
+            }
+            else
+            {
+                afficher_corps_page(
+                    "Une erreur est survenue",
+                    "Vous êtes déja désinscrit de la permanence ou votre numéro d'utilisateur est inconnu",
+                    afficher_planning_permanences(false,$userid));
+                mysqli_rollback($GLOBALS["___mysqli_ston"]);
+            }
+        } catch (Exception $e) {
+            mysqli_rollback($GLOBALS["___mysqli_ston"]);
+            throw $e;
         }
     }
 
@@ -1472,9 +1489,7 @@ function paniers_commande_adherent($atts) {
     ob_start();
     echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
     if ($action == "editercde" ||
-    	($action=="" && !str_starts_with($_SERVER['REQUEST_URI'],
-"/wp-admin"))) {
-
+        ($action=="" && !str_starts_with($_SERVER['REQUEST_URI'], "/wp-admin"))) {
         if (!isset($id) || $id == "" || $id == 0) {
             $idperiode = retrouver_periode_courante(true);
             if($idperiode == -1) {
@@ -1506,7 +1521,7 @@ function paniers_commande_adherent($atts) {
         afficher_corps_page(
             "",
             "",
-            afficher_formulaire_bon_com/mande(
+            afficher_formulaire_bon_commande(
                 $idperiode,
                 $iddepot,
                 $qteproduit,
@@ -1539,7 +1554,7 @@ function paniers_commande_adherent($atts) {
             if (isset($id) && $id != "" && $id != 0) {
                 $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,iddepot from $base_bons_cde where id='$id'");
                 if(mysqli_num_rows($rep) == 0) {
-                    return message_erreur("Commande introuvable");
+                    return message_erreur("Commande introuvable!");
                 }
             }
             else {
@@ -1548,6 +1563,9 @@ function paniers_commande_adherent($atts) {
 
             if(mysqli_num_rows($rep) == 0) {
                 $id = enregistrer_bon_commande($idperiode,$userid,$iddepot);
+                if($id < 0) {
+                    return message_erreur("La commande a déjà été enregistrée!");
+                }
             } else {
                 list($id, $iddepotorig) = mysqli_fetch_row($rep);
                 if($iddepotorig != $iddepot) {
@@ -1555,10 +1573,18 @@ function paniers_commande_adherent($atts) {
                 }
             }
 
-            enregistrer_commande($idperiode,$_POST['qteproduit'],$id,$userid);
+            mysqli_begin_transaction($GLOBALS["___mysqli_ston"], MYSQLI_TRANS_START_READ_WRITE);
+            try {
+                enregistrer_commande($idperiode,$_POST['qteproduit'],$id,$userid);
+                mysqli_commit($GLOBALS["___mysqli_ston"]);
+            } catch (Exception $e) {
+                mysqli_rollback($GLOBALS["___mysqli_ston"]);
+                throw $e;
+            }
+
             afficher_corps_page(
                 "Commande enregistrée sous le n° C$userid-$id (" . html_lien("/paniers/imprimer.php?id=$id","_blank","l'imprimer") . ")",
-                "",
+                "N'oubliez pas pas de faire votre virement ou de déposer votre chèque pour le " . strtolower(paniers_datecommande()),
                 afficher_recapitulatif_commande($id));
             ecrire_log_public("Commande enregistrée sous le n° C$userid-$id");
         }

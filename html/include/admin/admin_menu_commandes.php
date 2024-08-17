@@ -24,15 +24,16 @@ if(!isset($idperiode)) {
 }
 
 if(obtenir_depot_utilisateur() == -1 || obtenir_producteur_utilisateur() > 0)  {
-    $depots = afficher_liste_depots_et_tous("iddepot", $iddepot);
+    $depots = afficher_liste_depots_et_tous("iddepot");
+    $iddepot = -1;
 } else {
     $depots = "";
     $iddepot = obtenir_depot_utilisateur();
 }
 
-echo html_colonne("95%","","center","","","","", 
-                  afficher_liste_periodes("idperiode",$idperiode,false,true) . 
-                  $depots . 
+echo html_colonne("95%","","center","","","","",
+                  afficher_liste_periodes("idperiode",$idperiode,false,true) .
+                  $depots .
                   html_bouton_submit("Filtrer"));
 
 echo html_fin_form();

@@ -195,7 +195,7 @@ function saisir_enregistrement($champs,$action,$formname,$prc_taille=95,$prc_ind
                 }
                 break;
             case "submit":
-                $chaine2 .= html_bouton_submit($champs["valeur"][$i],"",($champs["nomvar"][$i] != "" ? $champs["nomvar"][$i] : "b1"), $champs["action"][$i]);
+                $chaine2 .= html_bouton_submit($champs["valeur"][$i],"",($champs["nomvar"][$i] != "" ? $champs["nomvar"][$i] : "b1"), array_key_exists("action", $champs) ? $champs["action"][$i] : "");
                 break;
             case "text":
                 $chaine2 .= html_text_input($champs["nomvar"][$i],stripslashes($champs["valeur"][$i]),$champs["taille"][$i],$champs["lgmax"][$i]);

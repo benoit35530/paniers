@@ -50,18 +50,11 @@ function gerer_liste_producteurs($etat = "Actif") {
         while (list($id,$nom,$email,$telephone,$ordrecheque,$produits,$datemodif,$etat, $ordre) = mysqli_fetch_row($rep))
         {
             $chaine .= html_debut_ligne("","","","top");
-            $action = html_lien("?action=modif&id=$id&annee=$annee","_top","Modifier");
+            $action = html_lien("?action=modif&id=$id","_top","Modifier");
             $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select * from $base_produits where idproducteur = '$id'");
-            $action .= (!$rep0 || mysqli_num_rows($rep0) == 0 ? " | " . html_lien("?action=suppr&id=$id&annee=$annee","_top","Supprimer") : "");
+            $action .= (!$rep0 || mysqli_num_rows($rep0) == 0 ? " | " . html_lien("?action=suppr&id=$id","_top","Supprimer") : "");
             if($etat == "Actif") {
-                $desactiver = true;
-                if($periode > 0) {
-                    $rep3 = mysqli_query($GLOBALS["___mysqli_ston"], "select * from $base_commandes where idproducteur='$id' and idperiode='$periode'");
-                    $desactiver = mysqli_num_rows($rep3) == 0;
-                }
-                if($desactiver) {
-                    $action .= " | " . html_lien("?action=modifetat&id=$id&etat=Inactif", "_top", "Desactiver");
-                }
+                $action .= " | " . html_lien("?action=modifetat&id=$id&etat=Inactif", "_top", "Desactiver");
             }
             else if($etat == "Inactif") {
                 $action .= " | " .  html_lien("?action=modifetat&id=$id&etat=Actif", "_top", "Activer");
@@ -143,7 +136,7 @@ function afficher_liste_producteurs_et_tous($nomvariable="idproducteur",$defaut=
     return afficher_liste_producteurs($nomvariable, $defaut, True, True);
 }
 
-function afficher_liste_producteurs($nomvariable="idproducteur",$defaut=0,$actifOnly=True,$addAll=False) {
+function afficher_liste_producteurs($nomvariable="idproducteur",$default=0,$actifOnly=True,$addAll=False) {
     global $base_producteurs;
     $texte = "<select size=\"1\" name=\"$nomvariable\">\n";
     if($addAll) {
@@ -152,11 +145,11 @@ function afficher_liste_producteurs($nomvariable="idproducteur",$defaut=0,$actif
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits from $base_producteurs where " . ($actifOnly ? "etat = 'Actif'" : "1") . " order by ordre,nom");
     if(mysqli_num_rows($rep) != 0)
     {
-        if($defaut == 0) $texte .= "<option value=\"0\" selected>Choisissez un producteur...</option>\n";
+        if($default == 0) $texte .= "<option value=\"0\" selected>Choisissez un producteur...</option>\n";
         while (list($id,$nom,$produits) = mysqli_fetch_row($rep))
         {
             $texte .= "<option value=\"" . $id . "\"";
-            if ($id == $defaut) $texte .= " selected";
+            if ($id == $default) $texte .= " selected";
             $texte .= ">" . $nom . " (" . $produits . ") </option>\n";
         }
     }
@@ -198,7 +191,7 @@ function afficher_etats_producteurs($nomvariable, $defaut="Inactif", $addAll = F
     if(count($tab_etats_producteurs) > 1 && $addAll) {
         $texte .= "<option value=\"-1\" " . (($defaut == "" || $defaut == "-1") ? "selected" : "") .">Tous</option>\n";
     }
-    while(list($key,$val) = each($tab_etats_producteurs))
+    foreach($tab_etats_producteurs as $key => $val)
     {
         $texte .= "<option value=\"" . $key . "\"";
         if ($key == $defaut) $texte .= " selected";

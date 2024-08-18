@@ -280,7 +280,7 @@ default: {
     $output .= afficher_titre("Imprimer un bon de commande vierge");
     $output .= html_centre(html_lien("?action=boncommande&export=impression","","Bon de commande vierge"));
 
-    if($idproducteur > 0) {
+    if(isset($idproducteur) && $idproducteur > 0) {
         $producteurtype = "afftext";
         $producteurvalue = retrouver_producteur($idproducteur);
     } else {
@@ -288,7 +288,7 @@ default: {
         $producteurvalue = afficher_liste_producteurs_et_tous();
     }
 
-    if($iddepot > 0) {
+    if(isset($iddepot) && $iddepot > 0) {
         $depottype = "afftext";
         $depotvalue = retrouver_depot($iddepot);
     } else {

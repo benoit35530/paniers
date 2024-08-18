@@ -108,7 +108,7 @@ case "modif":
             echo afficher_message_erreur("Identifiant inconnu !!!");
             echo gerer_liste_avoirs();
         }
-        else if($idboncommande != 0) {
+        else if(isset($idboncommande) && $idboncommande != 0) {
             echo afficher_message_erreur("Cet avoir est déjà réglé !!!");
             echo gerer_liste_avoirs(True);
         }

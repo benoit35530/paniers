@@ -22,11 +22,10 @@ function retrouver_absences($idperiode) {
 }
 
 function formulaire_date($cde="ajout",$id=0,$datelivraison="",$idperiode=0) {
-    global $g_lib_somme_admin, $base_producteurs, $base_absences,$tab_permanences_defauts,$tab_types_permanences,
-        $base_permanences;
+    global $base_producteurs, $base_absences,$tab_permanences_defauts,$tab_types_permanences, $base_permanences;
+    $absences = array();
     if($id != 0)
     {
-        $absences = array();
         $rep2 = mysqli_query($GLOBALS["___mysqli_ston"], "select idproducteur from $base_absences where iddate = '$id'");
         if ($rep2 && mysqli_num_rows($rep2) != 0)
         {
@@ -38,7 +37,6 @@ function formulaire_date($cde="ajout",$id=0,$datelivraison="",$idperiode=0) {
     }
 
     $champs["libelle"] = array(($cde == "ajout" ? "Ajout ": ($cde == "modif" ? "Modification " : ($cde == "detail" ? "Détails " : "Suppression "))) . "d'une date","*Date de livraison","*Période");
-    $fieldtype =
     $champs["type"] = array("",($cde == "modif" || $cde == "ajout" ? "datepicker" : "afftext"),
                                ($cde == "modif" || $cde == "ajout" ? "libre" : "afftext"));
     $champs["lgmax"] = array("","10","");
@@ -52,7 +50,7 @@ function formulaire_date($cde="ajout",$id=0,$datelivraison="",$idperiode=0) {
     while(list($idproducteur,$nom,$produits) = mysqli_fetch_row($rep0))
     {
         $producteurs .= html_checkbox_input("producteurs[$idproducteur]", "1", "$produits ($nom)",
-                                            !$absences[$idproducteur]) . "<br>";
+                                            !array_key_exists($idproducteur, $absences) || !$absences[$idproducteur]) . "<br>";
     }
 
     $champs["libelle"][] = "Producteurs";
@@ -181,8 +179,9 @@ function retrouver_dates_periode($idperiode, $idproducteur = 0) {
         $absences = retrouver_absences($idperiode);
         while(list($id,$datelivraison) = mysqli_fetch_row($rep1))
         {
-            if(!$absences[$id][$idproducteur])
-            {
+            if(!array_key_exists($id, $absences) ||
+               !array_key_exists($idproducteur, $absences[$id]) ||
+               !$absences[$id][$idproducteur]) {
                 $param[$id] = $datelivraison;
             }
         }

@@ -302,7 +302,7 @@ function afficher_etats_periode($nomvariable, $defaut="Preparation") {
     global $tab_etats_periodes;
     reset($tab_etats_periodes);
     $texte = "<select size=\"1\" name=\"$nomvariable\">\n";
-    while(list($key,$val) = each($tab_etats_periodes))
+    foreach($tab_etats_periodes as $key => $val)
     {
         $texte .= "<option value=\"" . $key . "\"";
         if ($key == $defaut) $texte .= " selected";
@@ -319,7 +319,7 @@ function afficher_etats_periode_pour_filtre($nomvariable, $default="-2") {
     $texte .= "<option value=\"-1\" " . ($default == "-1" ? "selected" : "") .">Toutes les périodes</option>\n";
     $texte .= "<option value=\"-2\" " . (($default == "" || $default == "-2") ? "selected" : "") .
         ">Périodes Non closes</option>\n";
-    while(list($key,$val) = each($tab_etats_periodes))
+    foreach($tab_etats_periodes as $key => $val)
     {
         $texte .= "<option value=\"" . $key . "\"";
         if ($key == $default) $texte .= " selected";

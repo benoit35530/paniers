@@ -48,7 +48,7 @@ function obtenir_depot_utilisateur() {
 function afficher_fonctions_utilisateur($fonctions) {
     $tab_fonctions = explode(",",$fonctions);
     $chn = "";
-    while (list($key,$val) = each($tab_fonctions)) {
+    foreach($tab_fonctions as $key => $val) {
         $chn .= $val . ", ";
     }
     return($chn);
@@ -58,7 +58,7 @@ function choisir_fonctions_utilisateur($nomvar,$valeur="") {
     global $tab_fonctions;
     reset($tab_fonctions);
     $chn = "";
-    while (list($key,$val) = each($tab_fonctions)) {
+    foreach($tab_fonctions as $key => $val) {
         $chn .= html_checkbox_input($nomvar,$key,$val,!(strpos($valeur,$key) === false)) . "<br>\n";
     }
     return($chn);

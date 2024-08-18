@@ -29,7 +29,7 @@ function afficher_menu($choixmenu="") {
     $query_url = $_SERVER['QUERY_STRING'];
     $chaine .= html_colonne("","","center","","","","2",$texte);
     $chaine .= html_fin_ligne();
-    while (list($key,$val) = each($tab_menu))
+    foreach($tab_menu as $key => $val)
     {
         $chaine .= html_debut_ligne();
         if ($val["type"] == "princ")

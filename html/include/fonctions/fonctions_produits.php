@@ -85,12 +85,11 @@ function gerer_liste_produits() {
             {
                 $chaine .= html_debut_ligne("","","","top");
                 $action = html_lien("?action=modif&id=$id","_top","Modifier");
-                if($produits_commandes[$id] == "") {
+                if(!array_key_exists($id, $produits_commandes)) {
                     $action .= " | " . html_lien("?action=suppr&id=$id","_top","Supprimer");
                 }
                 if($etat == "Actif") {
-                    $desactiver = true;
-                    if($produits_commande_sur_periode[$id] == "") {
+                    if(!array_key_exists($id, $produits_commande_sur_periode)) {
                         $action .= " | " . html_lien("?action=modifetat&id=$id&etat=Inactif", "_top", "Desactiver");
                     }
                 }

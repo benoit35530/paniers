@@ -6,7 +6,6 @@ require_once("../include/admin/admin_menu_utilisateurs.php");
 
 $titre_page = "Gérer les utilisateurs";
 
-
 if (!isset($action)) $action = "";
 
 switch($action):
@@ -38,15 +37,17 @@ case 'suppr':
     break;
 case 'confajout':
     echo afficher_titre("Ajout d'un utilisateur");
-    if(isset($nomutil) && isset($motpasse) && $nomutil != "" && $motpasse != "" && 
-      isset($nom) && $nom != "" && isset($prenom) && $prenom != "" && isset($email) && $email != "") {
+    if(isset($nomutil) && $nomutil != "" &&
+       isset($motpasse) && $motpasse != "" &&
+       isset($nom) && $nom != "" &&
+       isset($prenom) && $prenom != "" &&
+       isset($email) && $email != "") {
         $err = paniers_insertadmin();
         if($err != '') {
             echo afficher_message_erreur($err);
             echo saisir_parametres_utilisateur("0","ajout");
         } else {
-            //$fonctions = implode(",",$tfonctions);
-            if($superadmin) {
+            if(isset($superadmin) && $superadmin) {
                 $fonctions = $tab_roles["super-administrateur"];
             } else if($idproducteur > 0 && $iddepot > 0) {
                 $fonctions = array_merge($tab_roles["producteur"], $tab_roles["depot"]);
@@ -74,9 +75,11 @@ case 'confajout':
 case 'confmodif':
     echo afficher_titre("Modification d'un utilisateur");
     if (isset($id) && isset($nomutil) && $nomutil != "" &&
-        isset($nom) && $nom != "" && isset($prenom) && $prenom != "" && isset($email) && $email != "")
+        isset($nom) && $nom != "" &&
+        isset($prenom) && $prenom != "" &&
+        isset($email) && $email != "")
     {
-        if($superadmin) {
+        if(isset($superadmin) && $superadmin) {
             $fonctions = $tab_roles["super-administrateur"];
         } else if($idproducteur > 0 && $iddepot > 0) {
             $fonctions = $tab_roles["producteur"] . "," . $tab_roles["depot"];

@@ -18,13 +18,13 @@ if(!isset($filtre_etat)) {
 }
 
 if(obtenir_depot_utilisateur() == -1)  {
-    $depots = afficher_liste_depots_et_tous("iddepot", $iddepot);
+    $depots = afficher_liste_depots_et_tous("iddepot", isset($iddepot) ? $iddepot : 0);
 } else {
     $depots = "";
     $iddepot = obtenir_depot_utilisateur();
 }
 
-echo html_colonne("80%","","center","","","","", 
+echo html_colonne("80%","","center","","","","",
                   afficher_etats_client("filtre_etat", $filtre_etat, True) .
                   $depots .
                   html_bouton_submit("Filtrer"));

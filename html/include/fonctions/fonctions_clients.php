@@ -268,7 +268,7 @@ function retrouver_depot_client($id) {
 function afficher_villes_client($nomvariable,$defaut="Noyal sur Vilaine") {
     global $tab_villes_clients;
     $texte = "<select size=\"1\" name=\"$nomvariable\">\n";
-    while(list($key,$val) = each($tab_villes_clients))
+    foreach($tab_villes_clients as $key => $val)
     {
         $texte .= "<option value=\"" . $val . "\"";
         if ($val == $defaut) $texte .= " selected";
@@ -312,7 +312,7 @@ function afficher_etats_client($nomvariable, $defaut="Inactif", $addAll = False)
     if(count($tab_etats_clients) > 1 && $addAll) {
         $texte .= "<option value=\"-1\" " . (($defaut == "" || $defaut == "-1") ? "selected" : "") .">Tous</option>\n";
     }
-    while(list($key,$val) = each($tab_etats_clients))
+    foreach($tab_etats_clients as $key => $val)
     {
         $texte .= "<option value=\"" . $key . "\"";
         if ($key == $defaut) $texte .= " selected";

@@ -31,7 +31,7 @@ function gerer_liste_permanenciers() {
     if (mysqli_num_rows($rep1) != 0)
     {
 
-        $chaine .= html_debut_tableau("90%","0","2","0");
+        $chaine = html_debut_tableau("90%","0","2","0");
         $chaine .= html_debut_ligne("","","","top");
         $chaine .= html_colonne("","","center","","","","","Permanence","","thliste");
         $chaine .= html_colonne("","","center","","","","","Client","","thliste");
@@ -62,9 +62,7 @@ function gerer_liste_permanenciers() {
     }
     else
     {
-
-        $chaine .= afficher_message_erreur("Aucun permanencier dans la base...");
-
+        $chaine = afficher_message_erreur("Aucun permanencier dans la base...");
     }
 
     return($chaine);

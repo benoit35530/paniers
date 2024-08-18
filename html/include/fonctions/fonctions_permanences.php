@@ -50,7 +50,7 @@ function gerer_liste_permanences() {
             $chaine .= html_colonne("","","center","","","","","$nbinscrits","","tdliste");
             $chaine .= html_colonne("","","center","","","","",$tab_types_permanences[$typepermanence],"","tdliste");
             $chaine .= html_colonne("","","center","","","","",dateheureexterne($datemodif),"","tdliste");
-            $action = html_lien("?action=modif&id=$id&annee=$annee","_top","Modifier");
+            $action = html_lien("?action=modif&id=$id","_top","Modifier");
             $action .= ($nbinscrits == 0 ? " | " . html_lien("?action=suppr&id=$id","_top","Supprimer") : "");
             $chaine .= html_colonne("","","center","","","","",$action,"","tdliste");
             $chaine .= html_fin_ligne();
@@ -130,7 +130,7 @@ function afficher_planning_permanences($admin=true,$idclient=0) {
             $inscrits = "";
             if(count($tab_permanenciers) != 0)
             {
-                while(list($key,$val) = each($tab_permanenciers))
+                foreach($tab_permanenciers as $key => $val)
                 {
                     $inscrits .= $val . "<br>";
                 }
@@ -151,7 +151,7 @@ function afficher_planning_permanences($admin=true,$idclient=0) {
                 }
                 if(!$pas_deja_inscrit)
                 {
-                    $action = html_lien("?action=desinscrire&id=$id","_top","Se désinscrire");                
+                    $action = html_lien("?action=desinscrire&id=$id","_top","Se désinscrire");
                 }
 
             }
@@ -208,7 +208,7 @@ function afficher_liste_types_permanences($nomvariable="idtypepermanence",$defau
 
     global $tab_types_permanences;
     $texte = "<select size=\"1\" name=\"$nomvariable\">\n";
-    while(list($key,$val) = each($tab_types_permanences))
+    foreach($tab_types_permanences as $key => $val)
     {
 
         $texte .= "<option value=\"" . $key . "\"";

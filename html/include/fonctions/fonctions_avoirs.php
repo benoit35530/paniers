@@ -8,8 +8,6 @@ function nombre_avoirs() {
 }
 
 function formulaire_avoir($cde,$id,$idclient,$idproducteur,$montant,$description) {
-    global $g_lib_somme_admin, $base_producteurs, $base_avoirs;
-
     $champs["libelle"] = array(($cde == "modif" ? "Modification " : "Suppression ") . "d'un avoir","*Client","Producteur","*Montant","Description","");
     $fieldtype = $cde == "modif" ? "text" : "afftext";
     $fieldtypelibre = $cde == "modif" ? "libre" : "afftext";
@@ -38,15 +36,15 @@ function formulaire_avoir($cde,$id,$idclient,$idproducteur,$montant,$description
 
 function gerer_liste_avoirs($actifsOnly=True) {
     global $base_avoirs,$base_clients,$base_producteurs,$base_bons_cde;
-    $condition =( $actifsOnly ? "idboncommande = 0" : "1");
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_avoirs.id,$base_clients.nom,$base_clients.prenom,$base_clients.codeclient," . 
-                       "$base_avoirs.datemodif,idboncommande,idproducteur,montant,description" . 
-                       ($actifsOnly ? " " : ",$base_bons_cde.idboncde ") .
-                       "from $base_avoirs " . 
-                       ($actifsOnly ? "" :
+    $condition = $actifsOnly ? "idboncommande = 0" : "1";
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_avoirs.id,$base_clients.nom,$base_clients.prenom,$base_clients.codeclient," .
+                        "$base_avoirs.datemodif,idboncommande,idproducteur,montant,description" .
+                        ($actifsOnly ? " " : ",$base_bons_cde.idboncde ") .
+                        "from $base_avoirs " .
+                        ($actifsOnly ? "" :
                         "inner join $base_bons_cde on $base_avoirs.idboncommande = $base_bons_cde.id " ).
-                       "inner join $base_clients on $base_avoirs.idclient = $base_clients.id " .
-                       "where $condition order by $base_avoirs.datemodif desc");
+                        "inner join $base_clients on $base_avoirs.idclient = $base_clients.id " .
+                        "where $condition order by $base_avoirs.datemodif desc");
 
     $chaine = "";
     if(mysqli_num_rows($rep) != 0)
@@ -64,7 +62,7 @@ function gerer_liste_avoirs($actifsOnly=True) {
             $chaine .= html_colonne("","","center","","","","","Action","","thliste");
         }
         $chaine .= html_fin_ligne();
-        while (list($id,$nom,$prenom,$codeclient,$datemodif,$idboncommande,$idproducteur,$montant,$description, $idboncde) = 
+        while (list($id,$nom,$prenom,$codeclient,$datemodif,$idboncommande,$idproducteur,$montant,$description,$idboncde) =
                mysqli_fetch_row($rep))
         {
             $chaine .= html_debut_ligne("","","","top");
@@ -78,7 +76,7 @@ function gerer_liste_avoirs($actifsOnly=True) {
             $chaine .= html_colonne("","","center","","","","",sprintf("%.02f",$montant),"","tdliste");
             $chaine .= html_colonne("","","left","","","","",$description,"","tdliste");
             if(!$actifsOnly) {
-                $chaine .= html_colonne("","","center","","","","",html_lien("commandes.php?action=detail&id=$idboncommande","_top", $idboncde),"","tdliste");
+                $chaine .= html_colonne("","","center","","","","",html_lien("commandes.php?action=detail&id=$idboncommande","_top",$idboncde),"","tdliste");
             } else {
                 $action = html_lien("?action=modif&id=$id","_top","Modifier");
                 if($idboncommande == 0) {
@@ -106,10 +104,10 @@ function gerer_liste_avoirs_periode($idperiode) {
 
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_avoirs.id,$base_clients.nom,$base_clients.prenom,$base_clients.codeclient," .
                        "datemodif,idboncommande,idproducteur,montant,description,$base_bons_cde.idboncde " .
-                       "from $base_avoirs " . 
+                       "from $base_avoirs " .
                        "inner join $base_bons_cde on $base_avoirs.idboncommande = $base_bons_cde.id " .
                        "inner join $base_clients on $base_avoirs.idclient = $base_clients.id " .
-                       "where $base_bons_cde.idperiode='$idperiode' " . 
+                       "where $base_bons_cde.idperiode='$idperiode' " .
                        "order by $base_clients.nom, $base_clients.prenom desc");
 
     $chaine = "";
@@ -153,7 +151,7 @@ function retrouver_avoirs($idclient,$idboncommande) {
     global $base_avoirs,$base_clients,$base_producteurs,$base_bons_cde;
     $avoirs = array();
     if($idclient > 0) {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,idproducteur,montant,description " . 
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,idproducteur,montant,description " .
                            "from $base_avoirs where idclient='$idclient' and idboncommande=0");
         while(list($id,$idproducteur,$montant,$description) = mysqli_fetch_row($rep))
         {
@@ -163,7 +161,7 @@ function retrouver_avoirs($idclient,$idboncommande) {
     }
 
     if($idboncommande > 0) {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,idproducteur,montant,description " . 
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,idproducteur,montant,description " .
                            "from $base_avoirs where idboncommande='$idboncommande'");
         while(list($id,$idproducteur,$montant,$description) = mysqli_fetch_row($rep)) {
             $avoirs[$idproducteur]["description"][$id] = $description;

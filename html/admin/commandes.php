@@ -117,10 +117,8 @@ case "modifier": {
         if(mysqli_num_rows($rep) != 0) {
             list($idboncde,$idperiode,$idclient,$iddepot) = mysqli_fetch_row($rep);
             $qteproduit = retrouver_quantites_commande($id,$idperiode);
-            echo afficher_titre("Modifier la commande n° : " . $idboncde . " pour " .
-                                retrouver_client($idclient,true)) . "<br>";
-            echo afficher_formulaire_bon_commande($idperiode,$iddepot,$qteproduit,"confmodifier",$id,
-                                                  $idclient);
+            echo afficher_titre("Modifier la commande n° : " . $idboncde . " pour " . retrouver_client($idclient,true)) . "<br>";
+            echo afficher_formulaire_bon_commande($idperiode, $iddepot, $qteproduit, "confmodifier", $id, $idclient);
         }
         else {
             echo afficher_titre("Modification d'une commande");
@@ -295,7 +293,7 @@ case "filtrer":
 
 default: {
     echo afficher_titre("Les commandes pour les périodes non closes");
-    echo gerer_liste_commandes($tri,$idperiode,$iddepot);
+    echo gerer_liste_commandes($tri,$idperiode, isset($iddepot) ? $iddepot : 0);
 }
     break;
 }

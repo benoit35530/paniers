@@ -27,7 +27,7 @@ function formulaire_depot($cde="ajout",$id=0,$nom="",$adresse="",$telephone = ""
 }
 
 function gerer_liste_depots() {
-    global $base_depots,$base_produits,$base_bons_cde;
+    global $base_depots,$base_clients,$base_bons_cde;
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,adresse,telephone,email,datemodif,etat from $base_depots where 1");
     $chaine = "";
     if ($rep && mysqli_num_rows($rep) != 0)

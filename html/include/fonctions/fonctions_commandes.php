@@ -437,7 +437,7 @@ function afficher_recapitulatif_commande_interne($idperiode,$qteproduit,$avoirs,
     $largeur_colonne = ( 40 / $nbdates ) . "%";
     $total_commande = 0.0;
     $chaine = "";
-    while(list($key_producteur, $val_producteur) = each($qteproduit))
+    foreach($qteproduit as $key_producteur => $val_producteur)
     {
         $param_producteur = retrouver_parametres_producteur($key_producteur);
         $total_prix_producteur = 0;
@@ -449,7 +449,7 @@ function afficher_recapitulatif_commande_interne($idperiode,$qteproduit,$avoirs,
         $chaine2 .= html_colonne("10%","","center","","","","","Prix unitaire","","thliste");
 
         reset($dates);
-        while (list($key, $val) = each($dates))
+        foreach($dates as $key => $val)
         {
             $chaine2 .= html_colonne("$largeur_colonne","","center","top","","","",
                                      datelitterale($val["livraison"],false),"","thliste");
@@ -459,7 +459,7 @@ function afficher_recapitulatif_commande_interne($idperiode,$qteproduit,$avoirs,
         $chaine2 .= html_colonne("10%","","center","","","","","Prix<br>total","","thliste");
         $chaine2 .= html_fin_ligne();
 
-        while(list($key_produit, $val_produit) = each($val_producteur))
+        foreach($val_producteur as $key_produit => $val_produit)
         {
             $param_produit = retrouver_parametres_produit($key_produit);
             $total_qte_produit = 0;
@@ -471,7 +471,7 @@ function afficher_recapitulatif_commande_interne($idperiode,$qteproduit,$avoirs,
                                      sprintf($g_lib_somme,$qteproduit[$key_producteur][$key_produit]["prix"]),"",
                                      "tdliste");
             reset($dates);
-            while (list($k, $v) = each($dates))
+            foreach($dates as $k => $v)
             {
                 $key_date = $v["id"];
                 if(isset($absences[$key_date][$key_producteur]) && $absences[$key_date][$key_producteur])
@@ -597,14 +597,16 @@ function enregistrer_commande($idperiode,$qteproduit,$idboncommande,$idclient) {
     $total = 0.0;
     $avoirs = retrouver_avoirs($idclient,$idboncommande);
     $absences = retrouver_absences($idperiode);
-    while(list($key_producteur, $val_producteur) = each($qteproduit))
+    foreach($qteproduit as $key_producteur => $val_producteur)
     {
         $total_producteur = 0.0;
-        while(list($key_produit, $val_produit) = each($val_producteur))
+        foreach($val_producteur as $key_produit => $val_produit)
         {
-            while(list($key_date,$val_date) = each($val_produit))
+            foreach($val_produit as $key_date => $val_date)
             {
-                if($absences[$key_date][$key_producteur]) {
+                if(array_key_exists($key_date, $absences) &&
+                   array_key_exists($key_producteur, $absences[$key_date]) &&
+                   $absences[$key_date][$key_producteur]) {
                     continue;
                 }
 
@@ -807,7 +809,9 @@ function recapitulatif_commandes_clients($idperiode, $iddate, $iddepot) {
                         "group by idproduit");
     while (list($idproducteur,$produit,$quantite) = mysqli_fetch_row($rep2))
     {
-        if(!$absences[$iddate][$idproducteur]) {
+        if(!array_key_exists($iddate, $absences) ||
+           !array_key_exists($idproducteur, $absences[$iddate]) ||
+           !$absences[$iddate][$idproducteur]) {
             $recap_produits_producteurs[$idproducteur][$produit] = $quantite;
         }
     }
@@ -826,7 +830,7 @@ function recapitulatif_commandes_clients($idperiode, $iddate, $iddepot) {
     $chaine .= html_fin_ligne();
 
     reset($tab_producteurs);
-    while(list($key_producteur,$val_producteur) = each($tab_producteurs))
+    foreach($tab_producteurs as $key_producteur => $val_producteur)
     {
         if(isset($recap_produits_producteurs[$key_producteur]))
         {
@@ -869,7 +873,9 @@ function recapitulatif_commandes_clients($idperiode, $iddate, $iddepot) {
         $clients = array();
         while(list($idproduit, $quantite, $idproducteur, $idclient,$nom,$prenom,$codeclient) = mysqli_fetch_row($rep0))
         {
-            if(!$absences[$iddate][$idproducteur]) {
+            if(!array_key_exists($iddate, $absences) ||
+               !array_key_exists($idproducteur, $absences[$iddate]) ||
+               !$absences[$iddate][$idproducteur]) {
                 $clients[$idclient]["client"] = array($idclient,$nom,$prenom,$codeclient);
                 $clients[$idclient][$idproducteur][] = array($idproduit, $quantite);
             }
@@ -943,20 +949,20 @@ function recapituler_par_producteur($idproducteur,$idperiode,$iddepot) {
 
     $chaine .= html_debut_ligne("","","","top");
     $chaine .= html_colonne("40%","","left","","","","","Récapitulatif par semaine","","thliste");
-    while(list($key_date,$val_date) = each($date))
+    foreach($date as $key_date => $val_date)
     {
         $chaine .= html_colonne("","","center","","","","",dateexterne($val_date, $export == "excel"),"","thliste");
     }
     $chaine .= html_fin_ligne();
 
-    while(list($key_produit,$val_produit) = each($recap))
+    foreach($recap as $key_produit => $val_produit)
     {
         $chaine .= html_debut_ligne("","","","top");
         $chaine .= html_colonne("","","left","","","","",retrouver_nom_produit($key_produit),"","tdliste");
         reset($date);
-        while(list($key_date,$val_date) = each($date))
+        foreach($date as $key_date => $val_date)
         {
-            $chaine .= html_colonne("","","center","","","","",$val_produit[$key_date],"","tdliste");
+            $chaine .= html_colonne("","","center","","","","",array_key_exists($key_date, $val_produit) ? $val_produit[$key_date] : "","","tdliste");
         }
         $chaine .= html_fin_ligne();
     }
@@ -977,7 +983,7 @@ function recapituler_par_producteur_client($idproducteur,$idperiode,$iddepot) {
     $chaine .= html_colonne("36%","","center","","","","","Produits","","thliste");
     $chaine .= html_colonne("","","center","","","","","Prix<br>unitaire","","thliste");
     reset($date);
-    while(list($key_date,$val_date) = each($date))
+    foreach($date as $key_date => $val_date)
     {
         $chaine .= html_colonne("","","center","","","","",dateexterne($val_date, $export == "excel"),"","thliste");
     }
@@ -1031,7 +1037,7 @@ function recapituler_par_producteur_client($idproducteur,$idperiode,$iddepot) {
         $chaine .= html_colonne("36%","","left","","","", "","$nom $prenom ($codeclient)","","thliste");
         $chaine .= html_colonne("","","center","","","","","Prix","","thlistenormal");
         reset($date);
-        while(list($key_date,$val_date) = each($date))
+        foreach($date as $key_date => $val_date)
         {
             $chaine .= html_colonne("","","center","","","","",dateexterne($val_date, $export == "excel"),"",
                                     "thlistenormal");
@@ -1049,7 +1055,7 @@ function recapituler_par_producteur_client($idproducteur,$idperiode,$iddepot) {
             $chaine .= html_colonne("","","right","","","","",sprintf($g_lib_somme,$dates["prix"]),"","tdliste");
             reset($date);
 
-            while(list($key_date,$val_date) = each($date))
+            foreach($date as $key_date => $val_date)
             {
                 if(isset($dates[$key_date])) {
                     list($quantite, $prix) = $dates[$key_date];
@@ -1098,7 +1104,7 @@ function recapituler_par_producteur_client($idproducteur,$idperiode,$iddepot) {
         $chaine .= html_colonne("","","","","","","","","","");
         $chaine .= html_colonne("","","","","","","","","","");
         reset($date);
-        while(list($key_date,$val_date) = each($date))
+        foreach($date as $key_date => $val_date)
         {
             $chaine .= html_colonne("","","","","","","","","","");
         }
@@ -1135,9 +1141,17 @@ function recapitulatif_cheques_clients($idperiode,$iddepot) {
                        "group by $base_commandes.idclient,idproducteur,iddatelivraison " .
                        "order by $base_clients.nom,$base_clients.prenom");
     while(list($idproducteur,$idclient,$iddate,$prix,$nom,$prenom,$codeclient) = mysqli_fetch_row($rep)) {
-        if(!$absences[$iddate][$idproducteur]) {
+        if(!array_key_exists($iddate, $absences) ||
+           !array_key_exists($idproducteur, $absences[$iddate]) ||
+           !$absences[$iddate][$idproducteur]) {
+            if(!array_key_exists($idproducteur, $producteurs)) {
+                $producteurs[$idproducteur] = 0;
+            }
             $producteurs[$idproducteur] += $prix;
             $tab_cheques[$idclient]["client"] = array($idclient, $nom, $prenom, $codeclient);
+            if(!array_key_exists($idproducteur, $tab_cheques[$idclient])) {
+                $tab_cheques[$idclient][$idproducteur] = 0;
+            }
             $tab_cheques[$idclient][$idproducteur] += $prix;
         }
     }
@@ -1150,9 +1164,15 @@ function recapitulatif_cheques_clients($idperiode,$iddepot) {
                        "where $base_bons_cde.idperiode='$idperiode' and $base_bons_cde.iddepot='$iddepot' ".
                        "group by $base_avoirs.idclient, idproducteur");
     while(list($idproducteur,$idclient,$montant,$nom,$prenom,$codeclient) = mysqli_fetch_row($rep)) {
+        if(!array_key_exists($idproducteur, $producteurs)) {
+            $producteurs[$idproducteur] = 0;
+        }
         $producteurs[$idproducteur] -= $montant;
         if(!isset($tab_cheques[$idclient]["client"])) {
             $tab_cheques[$idclient]["client"] = array($idclient, $nom, $prenom, $codeclient);
+        }
+        if(!array_key_exists($idproducteur, $tab_cheques[$idclient])) {
+            $tab_cheques[$idclient][$idproducteur] = 0;
         }
         $tab_cheques[$idclient][$idproducteur] -= $montant;
     }
@@ -1189,14 +1209,12 @@ function recapitulatif_cheques_clients($idperiode,$iddepot) {
         $total = 0.0;
         foreach($produits as $idproducteur => $desc) {
             if(isset($producteurs[$idproducteur])) {
-                if($prixParProducteurs[$idproducteur] != 0.0)
-                {
+                if(array_key_exists($idproducteur, $prixParProducteurs) && $prixParProducteurs[$idproducteur] != 0.0) {
                     $v = round($prixParProducteurs[$idproducteur], 2);
                     $total += $v;
                     $chaine .= html_colonne("$largeur","","right","","","","",sprintf($g_lib_somme, $v),"","tdliste");
                 }
-                else
-                {
+                else {
                     $chaine .= html_colonne("$largeur","","right","","","","","","","tdliste");
                 }
             }

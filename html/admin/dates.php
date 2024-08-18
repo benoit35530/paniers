@@ -32,7 +32,7 @@ case "confajout":
         $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_producteurs where 1");
         while(list($idproducteur) = mysqli_fetch_row($rep0))
         {
-            if(!$producteurs["$idproducteur"])
+            if(!array_key_exists($idproducteur, $producteurs) || !$producteurs[$idproducteur])
             {
                 $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_absences (iddate,idproducteur) values ('$last_id','$idproducteur')");
             }
@@ -108,7 +108,7 @@ case "confmodif":
                 $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_producteurs where 1");
                 while(list($idproducteur) = mysqli_fetch_row($rep0))
                 {
-                    if($producteurs["$idproducteur"] != "1")
+                    if(!array_key_exists($idproducteur, $producteurs) || !$producteurs[$idproducteur])
                     {
                         $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_absences (iddate,idproducteur) values ('$id','$idproducteur')");
                     }
@@ -204,10 +204,6 @@ case "confsuppr":
                 list($id,$datelivraison) = mysqli_fetch_row($rep);
                 mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_dates where id='$id' limit 1");
                 mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_absences where iddate='$id'");
-                if($supprpermanences) {
-                    mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_permanenciers where idpermanence=(select id from $base_permanences where date='$datelivraison')");
-                    mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_permanences where date='$datelivraison'");
-                }
                 echo afficher_message_info("La date n° $id est supprimée");
                 ecrire_log_admin("Date n° $id supprimée : $datelivraison");
             }

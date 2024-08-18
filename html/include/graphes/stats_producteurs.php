@@ -10,11 +10,11 @@ $nb_total_commandes = 0;
 $min = 999999999999999;
 $max = 0;
 
-while (list($periode,$nbcommandes) = each($g_tab_valeurs_stats))
+foreach($g_tab_valeurs_stats as $periode => $nbcommandes)
 {
 
-    $min = min( $nbcommandes, $min );
-    $max = max( $nbcommandes, $max );
+    $min = min($nbcommandes, $min);
+    $max = max($nbcommandes, $max);
     $vCht4[] = $nbcommandes;
     $vLabels[] = $periode;
     $nb_points++;
@@ -36,13 +36,13 @@ for ($i = 0; $i < count($vCht4); $i++)
 }
 
 $ochart = new chart(800,400,5,$colfond);
-$ochart->setTitle(sprintf("Commandes par période (moyenne : %2.2f, total : %2.2f, min : %2.2f, max : %2.2f)",$moyenne,$nb_total_commandes,$min,$max),$coltext,3);
+$ochart->setTitle(sprintf("Commandes par pï¿½riode (moyenne : %2.2f, total : %2.2f, min : %2.2f, max : %2.2f)",$moyenne,$nb_total_commandes,$min,$max),$coltext,3);
 $ochart->setPlotArea(SOLID,$colfond,$colchamp);
 $ochart->setFormat(0,'','.');
 $ochart->addSeries($vCht4,'bar','Commandes',SOLID,$coltext,$col_bar);
 $ochart->addSeries($vCht5,'line','Commandes',LARGE_SOLID,$coltext,$col_bar);
 $ochart->addSeries($vmoy,'line','Moyenne',LARGE_SOLID,"#0000FF",$col_bar);
-$ochart->setXAxis($coltext,SOLID,2,"Période");
+$ochart->setXAxis($coltext,SOLID,2,"Pï¿½riode");
 $ochart->setYAxis($coltext,SOLID, 2,"Commandes");
 $ochart->setLabels($vLabels,$coltext,2,VERTICAL);
 $ochart->setGrid($col_grille, SOLID,$col_grille,SOLID);

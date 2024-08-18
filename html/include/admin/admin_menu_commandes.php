@@ -24,8 +24,7 @@ if(!isset($idperiode)) {
 }
 
 if(obtenir_depot_utilisateur() == -1 || obtenir_producteur_utilisateur() > 0)  {
-    $depots = afficher_liste_depots_et_tous("iddepot");
-    $iddepot = -1;
+    $depots = afficher_liste_depots_et_tous("iddepot", isset($iddepot) ? $iddepot : 0);
 } else {
     $depots = "";
     $iddepot = obtenir_depot_utilisateur();

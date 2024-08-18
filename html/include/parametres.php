@@ -8,35 +8,30 @@ global $paniers_dbprefix;
 $paniers_dbprefix = $wpdb->prefix;
 
 $paniers_data = get_option('paniers_data');
-if(!$paniers_data || $paniers_data == "") {
-    $paniers_data = array();
-}
 
-function get_paniers_option($key, $default='') {
-    global $paniers_data;
+function get_paniers_option($paniers_data, $key, $default='') {
     if(array_key_exists($key, $paniers_data)) {
-        return $paniers_data["$key"];
+        return $paniers_data[$key];
+    } else {
+        return $default;
     }
-    $paniers_data[$key] = $default;
-    update_option('paniers_data', $paniers_data);
-    return $default;
 }
 
-$url_page_consommateur     = get_paniers_option('pageconsommateurs');
-$url_page_gestionnaire     = get_paniers_option('pagegestionnaires');
+$url_page_consommateur     = get_paniers_option($paniers_data, 'pageconsommateurs');
+$url_page_gestionnaire     = get_paniers_option($paniers_data, 'pagegestionnaires');
 
-$email_gestionnaires       = get_paniers_option("adressegestionnaires");
+$email_gestionnaires       = get_paniers_option($paniers_data, "adressegestionnaires");
 
-$g_envoyer_relance         = get_paniers_option("envoyerrelance") == "1";
-$g_email_relance           = get_paniers_option("adresserelance");
-$g_delta_date_relance      = intval(get_paniers_option('deltarelance')); // delta  en jours avant envoi rappel
-$g_delta_date_verrouillage = intval(get_paniers_option('deltaverrouillage')); // delta en jours avant verrouillage commandes
+$g_envoyer_relance         = get_paniers_option($paniers_data, "envoyerrelance") == "1";
+$g_email_relance           = get_paniers_option($paniers_data, "adresserelance");
+$g_delta_date_relance      = intval(get_paniers_option($paniers_data, 'deltarelance')); // delta  en jours avant envoi rappel
+$g_delta_date_verrouillage = intval(get_paniers_option($paniers_data, 'deltaverrouillage')); // delta en jours avant verrouillage commandes
 
-$message_commande_verouille     = get_paniers_option("commandeverouille");
-$message_commande_nondisponible = get_paniers_option("commandenondisponible");
+$message_commande_verouille     = get_paniers_option($paniers_data, "commandeverouille");
+$message_commande_nondisponible = get_paniers_option($paniers_data, "commandenondisponible");
 
-$jour_commande           = get_paniers_option("jourcommande");
-$periodicite_commande    = get_paniers_option("periodicite");
+$jour_commande           = get_paniers_option($paniers_data, "jourcommande");
+$periodicite_commande    = get_paniers_option($paniers_data, "periodicite");
 
 // Noms des bases de données
 $base_absences          = $paniers_dbprefix . "paniers_absences";
@@ -54,7 +49,6 @@ $base_bons_cde		    = $paniers_dbprefix . "paniers_bons_cde";
 $base_permanences	    = $paniers_dbprefix . "paniers_permanences";
 $base_permanenciers	    = $paniers_dbprefix . "paniers_permanenciers";
 $base_depots            = $paniers_dbprefix . "paniers_depots";
-
 
 // Liste des mois de l'année
 $liste_mois = array("Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre");
@@ -98,7 +92,7 @@ $g_lib_somme_admin = "%.2f";
 // Table des types de permanences
 $tab_types_permanences = array();
 $tab_permanences_defauts = array();
-foreach(explode(';', get_paniers_option("permanences")) as $id => $permanence) {
+foreach(explode(';', get_paniers_option($paniers_data, "permanences")) as $id => $permanence) {
     $permanence = explode(',', $permanence);
     if(count($permanence) > 1) {
         $tab_types_permanences[trim($permanence[0])] = trim($permanence[1]);
@@ -124,9 +118,9 @@ $tab_etats_periodes = array("Preparation" => "En preparation",
 $tab_etats_producteurs = array("Actif"=>"Actif", "Inactif"=>"Inactif");
 
 
-$tab_villes_clients = explode(";", get_paniers_option("villes"));
+$tab_villes_clients = explode(";", get_paniers_option($paniers_data, "villes"));
 
-$g_ordrecheque = get_paniers_option("ordrecheque");
+$g_ordrecheque = get_paniers_option($paniers_data, "ordrecheque");
 
 // Couleurs des graphiques
 

@@ -197,8 +197,8 @@ misensachets,Mise en sachets des pommes,14:00,14:30,2,0";
         $paniers_data["smtppassword"] = "";
         $paniers_data["smtpserver"] = "";
 
-        foreach ($paniers_data as $key => $value) {
-            if( substr($key, 0, 8) == 'paniers_') {
+        foreach($paniers_data as $key => $value) {
+            if(substr($key, 0, 8) == 'paniers_') {
                 if($value != '') {
                     $paniers_data[substr($key, 8)] = stripslashes($value);
                 }
@@ -896,16 +896,16 @@ function paniers_plugin_menu() {
 }
 
 function paniers_plugin_options() {
-    if ( !current_user_can( 'manage_options' ) )  {
+    if (!current_user_can('manage_options'))  {
         wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
     }
     add_option('paniers_data');
     $paniers_data = array();
-    if( is_admin() && !empty($_POST['panierssubmitted']) ){
+    if(is_admin() && !empty($_POST['panierssubmitted'])) {
         //Build the array of options here
         foreach ($_POST as $postKey => $postValue){
-            if( substr($postKey, 0, 8) == 'paniers_' ){
-                //For now, no validation, since this is in admin area.
+            if(substr($postKey, 0, 8) == 'paniers_') {
+                // For now, no validation, since this is in admin area.
                 $paniers_data[substr($postKey, 8)] = stripslashes($postValue);
             }
         }
@@ -963,7 +963,7 @@ function paniers_plugin_options() {
         </td>
       </tr>
       <tr valign="top">
-        <th scope="row"><label for="smtppassword"><?php _e('Serveur SMTP') ?> </label></th>
+        <th scope="row"><label for="smtppassword"><?php _e('Mot de passe SMTP') ?> </label></th>
         <td><input name="paniers_smtppassword" type="password" id="smtppassword"
           value="<?php echo $paniers_data['smtppassword']; ?>" class="password"
         /> <span class="smtppassword"><?php _e("Mot de passe SMTP.") ?>

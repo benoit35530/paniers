@@ -1370,6 +1370,11 @@ function paniers_permanences() {
         wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
     }
 
+    $userid = get_user_meta($wpUserId, 'paniers_consommateurId', true);
+    if($userid == 0) {
+        wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
+    }
+
     require_once(paniers_dir . "/include/fonctions_include.php");
     error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
@@ -1379,7 +1384,6 @@ function paniers_permanences() {
 
     $action = $wp_query->get("action");
     $id = $wp_query->get("id");
-    $userid = get_user_meta($wpUserId, 'paniers_consommateurId', true);
 
     ob_start();
     echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
@@ -1468,7 +1472,12 @@ function paniers_commande_adherent($atts) {
     }
 
     if(!is_user_logged_in()) {
-        wp_redirect( wp_login_url($_SERVER['REQUEST_URI']) );
+        wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
+    }
+
+    $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
+    if($userid == 0) {
+        wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
     }
 
     require_once(paniers_dir . "/include/fonctions_include.php");
@@ -1484,7 +1493,6 @@ function paniers_commande_adherent($atts) {
     $action = $wp_query->get("action");
     $id = $wp_query->get("id");
     $idperiode = $wp_query->get("idperiode");
-    $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
 
     ob_start();
     echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
@@ -1632,6 +1640,11 @@ function paniers_liste_commandes_adherent($atts) {
         wp_redirect( wp_login_url($_SERVER['REQUEST_URI']) );
     }
 
+    $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
+    if($userid == 0) {
+        wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
+    }
+
     require_once(paniers_dir . "/include/fonctions_include.php");
     error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
@@ -1639,7 +1652,6 @@ function paniers_liste_commandes_adherent($atts) {
 		'page_commande' => '/commande/',
     ), $atts ) );
 
-    $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
 
     ob_start();
     echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');

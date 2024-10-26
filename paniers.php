@@ -1349,6 +1349,7 @@ function paniers_commande_nouveau($atts) {
     echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
     if ($idperiode == 0 || !periode_active($idperiode)) {
         wp_redirect($page_commande_non_disponible);
+        exit;
     } else {
         echo afficher_formulaire_bon_commande_nouveau_client($idperiode,
                                                              $qteproduit,
@@ -1368,11 +1369,13 @@ function paniers_permanences() {
     $wpUserId = get_current_user_id();
     if(!is_user_logged_in() || $wpUserId == 0) {
         wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
+        exit;
     }
 
     $userid = get_user_meta($wpUserId, 'paniers_consommateurId', true);
     if($userid == 0) {
         wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
+        exit;
     }
 
     require_once(paniers_dir . "/include/fonctions_include.php");
@@ -1399,14 +1402,21 @@ function paniers_permanences() {
             }
             if ($userid > 0 && $nbinscrits < $nbparticipants && verifier_non_inscription($id,$userid))
             {
-                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_permanenciers (id,idpermanence,idclient,commentaire,datemodif) values ('','$id','$userid','',now())");
-                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits+1 where id='$id'");
-                afficher_corps_page(
-                    "Merci de vous être inscrit à cette permanence",
-                    "",
-                    afficher_planning_permanences(false,$userid));
-                ecrire_log_public("Inscription à la permanence : " . retrouver_permanence($id));
-                mysqli_commit($GLOBALS["___mysqli_ston"]);
+                if (!mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_permanenciers (id,idpermanence,idclient,commentaire,datemodif) values ('','$id','$userid','',now())")) {
+                    afficher_corps_page(
+                        "Une erreur est survenue",
+                        "Vous êtes déjà inscrit à la permanence.",
+                        afficher_planning_permanences(false,$userid));
+                    mysqli_rollback($GLOBALS["___mysqli_ston"]);
+                } else {
+                    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits+1 where id='$id'");
+                    afficher_corps_page(
+                        "Merci de vous être inscrit à cette permanence",
+                        "",
+                        afficher_planning_permanences(false,$userid));
+                    ecrire_log_public("Inscription à la permanence : " . retrouver_permanence($id));
+                    mysqli_commit($GLOBALS["___mysqli_ston"]);
+                }
             } else {
                 afficher_corps_page(
                     "Une erreur est survenue",
@@ -1473,11 +1483,13 @@ function paniers_commande_adherent($atts) {
 
     if(!is_user_logged_in()) {
         wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
+        exit;
     }
 
     $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
     if($userid == 0) {
         wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
+        exit;
     }
 
     require_once(paniers_dir . "/include/fonctions_include.php");
@@ -1500,11 +1512,9 @@ function paniers_commande_adherent($atts) {
         ($action=="" && !str_starts_with($_SERVER['REQUEST_URI'], "/wp-admin"))) {
         if (!isset($id) || $id == "" || $id == 0) {
             $idperiode = retrouver_periode_courante(true);
-            if($idperiode == -1) {
+            if($idperiode == -1 || $idperiode == 0 || !periode_active($idperiode)) {
                 wp_redirect($page_commande_non_disponible);
-            }
-            else if($idperiode == 0 || !periode_active($idperiode)) {
-                wp_redirect($page_commande_non_disponible);
+                exit;
             } else {
                 $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_bons_cde where idclient = '$userid' and idperiode = '$idperiode'");
                 if (mysqli_num_rows($rep) > 0) {
@@ -1567,6 +1577,11 @@ function paniers_commande_adherent($atts) {
             }
             else {
                 $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,iddepot from $base_bons_cde where idperiode='$idperiode' and idclient='$userid'");
+            }
+
+            if ($userid == 0) {
+                wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
+                exit;
             }
 
             if(mysqli_num_rows($rep) == 0) {
@@ -1638,11 +1653,13 @@ add_shortcode('paniers-commande-adherent', 'paniers_commande_adherent');
 function paniers_liste_commandes_adherent($atts) {
     if(!is_user_logged_in()) {
         wp_redirect( wp_login_url($_SERVER['REQUEST_URI']) );
+        exit;
     }
 
     $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
     if($userid == 0) {
         wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
+        exit;
     }
 
     require_once(paniers_dir . "/include/fonctions_include.php");

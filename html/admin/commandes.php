@@ -78,7 +78,7 @@ case "enregistrer": {
                 echo afficher_titre("Commande enregistrée sous le n° " . $codeclient . "-" . $idboncommande);
                 echo afficher_message_info(retrouver_client($idclient,true) . " - " . retrouver_periode($idperiode)) .
                     "<br>";
-                echo afficher_recapitulatif_commande($idboncommande);
+                echo afficher_recapitulatif_commande_admin($idboncommande);
                 ecrire_log_admin("Commande enregistrée sous le n° " . $codeclient . "-" . $idboncommande);
             }
         }
@@ -160,7 +160,7 @@ case "confmodifier": {
                     enregistrer_commande($idperiode,$qteproduit,$id,$idclient);
                     echo afficher_titre("La commande n° " . $idboncde . " pour " .
                                         retrouver_client($idclient,true) . " a été modifiée");
-                    echo afficher_recapitulatif_commande($id);
+                    echo afficher_recapitulatif_commande_admin($id);
                     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_bons_cde set datemodif=now() where id='$id'");
                     ecrire_log_admin("Commande n° " . $idboncde . " modifiée");
                 }
@@ -266,7 +266,7 @@ case "detail": {
             $qteproduit = retrouver_quantites_commande($id,$idperiode);
             echo afficher_titre("Détails de la commande n° " . $idboncde . " (" .
                                 retrouver_client($idclient) . ")");
-            echo afficher_recapitulatif_commande($id);
+            echo afficher_recapitulatif_commande_admin($id);
         }
         else {
             echo afficher_titre("Toutes les commandes");

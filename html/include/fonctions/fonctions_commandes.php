@@ -335,16 +335,139 @@ function afficher_formulaire_bon_commande_nouveau_client(
     return saisir_enregistrement($champs,"","formcde",95,15,2,2,false, "_blank");
 }
 
-function afficher_recapitulatif_commande($id) {
+function afficher_recapitulatif_livraisons($idclient, $iddate = 0) {
+    global $base_bons_cde,$base_commandes, $base_bons_cde, $base_dates, $jour_commande, $base_clients;
+
+    $chaine = "";
+
+    $chaine = <<<HTML
+<script>
+function datechange() {
+const urlParams = new URLSearchParams(window.location.search);
+urlParams.set('iddate', document.getElementById("date").value);
+window.location.search = urlParams;
+}
+
+function clientchange() {
+const urlParams = new URLSearchParams(window.location.search);
+urlParams.set('idclient', document.getElementById("client").value);
+window.location.search = urlParams;
+}
+</script>
+HTML;
+
+    $chaine .= '<div class="container-fluid">';
+    $chaine .= '<div class="row">';
+
+    $chaine .= "<div class=\"col\"><select id=\"date\" onchange=\"datechange()\">";
+    $datenextlivraison = date("Y-m-d", strtotime("$jour_commande"));
+    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"],
+        "select id,datelivraison from $base_dates " .
+        "where 1 order by datelivraison desc limit 12");
+    while(list($iddatebase,$datelivraison) = mysqli_fetch_row($rep0))
+    {
+        $chaine .= "<option value=\"" . $iddatebase . "\"";
+        if(($iddate == 0 && $datelivraison == $datenextlivraison) || $iddate == $iddatebase)
+        {
+            $chaine .= " selected";
+            if($iddate == 0)
+            {
+                $iddate = $iddatebase;
+            }
+        }
+        $chaine .= ">" . datelitterale($datelivraison) . "</option>";
+    }
+    $chaine .= "</select></div>";
+
+    if(current_user_can('gestionnaire')) {
+        $chaine .= "<div class=\"col\"><select id=\"client\" onchange=\"clientchange()\">\n";
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"],
+            "select distinct $base_clients.id,$base_clients.nom,$base_clients.prenom,$base_clients.codeclient " .
+            "from $base_commandes " .
+            "inner join $base_clients on $base_clients.id=$base_commandes.idclient " .
+            "where $base_commandes.iddatelivraison=$iddate order by $base_clients.nom");
+        while(list($idclientbase, $nom, $prenom,$codeclient) = mysqli_fetch_row($rep))
+        {
+            $chaine .= "<option value=\"" . $idclientbase . "\"";
+            if ($idclientbase == $idclient) $chaine .= " selected";
+            $chaine .= ">$nom $prenom ($codeclient)</option>\n";
+        }
+        $chaine .= "</select></div>";
+    }
+
+    $chaine .= "</div>";
+    $chaine .= "</div>";
+    $qteproduit = array();
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"],
+                        "select quantite,idproducteur,idproduit " .
+                        "from $base_commandes " .
+                        "where iddatelivraison=\"$iddate\" and idclient=\"$idclient\"");
+    if(mysqli_num_rows($rep) == 0) {
+        echo afficher_message_erreur("Pas de commande pour cette personne à cette date...");
+        return;
+    }
+
+    while(list($quantite,$idproducteur,$idproduit) = mysqli_fetch_row($rep)) {
+        $qteproduit[$idproducteur][$idproduit] = $quantite;
+    }
+
+    $chaine .= '<table class="table table-bordered mt-5">';
+    $chaine .= '  <thead class="table-dark" style="position: sticky; top:0;">';
+    $chaine .= '    <tr>';
+    $chaine .= '      <th scope="col"></th>';
+    $chaine .= '      <th scope="col">Quantité</th>';
+    $chaine .= '    </tr>';
+    $chaine .= '  </thead>';
+    $chaine .= '  <tbody>';
+
+    foreach($qteproduit as $key_producteur => $val_producteur)
+    {
+        $param_producteur = retrouver_parametres_producteur($key_producteur);
+        $total_qte_producteur = 0;
+        $chaine2 = "";
+        $chaine2 .= '    <tr class="table-secondary">';
+        $chaine2 .= '      <th colspan="2"><b>' . $param_producteur['produits'] . " (" . $param_producteur['nom'] . ")</b></th>";
+        $chaine2 .= '    </tr>';
+
+        foreach($val_producteur as $key_produit => $quantite)
+        {
+            $param_produit = retrouver_parametres_produit($key_produit);
+            $total_qte_produit = 0;
+
+            $chaine3 = '<tr>';
+            $chaine3 .= '  <td>' . $param_produit['description'] . '</td>';
+            $chaine3 .= '  <td style="text-align: center">' .  $quantite . '</td>';
+            $total_qte_produit += $quantite;
+            $chaine3 .= '</tr>';
+
+            $total_qte_producteur += $total_qte_produit;
+
+            if($total_qte_produit != 0) {
+                $chaine2 .= $chaine3;
+            }
+        }
+
+        if ($total_qte_producteur > 0) {
+            $chaine .= $chaine2;
+        }
+    }
+
+    $chaine .= '  </tbody>';
+    $chaine .= '</table>';
+
+    return '<div class="table-responsive" style="max-height: 600px;">' . $chaine . '</div>';
+}
+
+function afficher_recapitulatif_commande_admin($id) {
     global $base_bons_cde,$base_commandes;
 
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idboncde,idperiode,idclient,iddepot from $base_bons_cde where id='$id'");
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idperiode from $base_bons_cde where id='$id'");
     if (mysqli_num_rows($rep) == 0) {
         echo afficher_message_erreur("Commande introuvable !!!");
         return;
     }
 
-    list($idboncde,$idperiode,$idclient,$iddepot) = mysqli_fetch_row($rep);
+    list($idperiode) = mysqli_fetch_row($rep);
     $qteproduit = array();
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select quantite,prix,idproducteur,idproduit,iddatelivraison " .
                        "from $base_commandes " .
@@ -357,29 +480,188 @@ function afficher_recapitulatif_commande($id) {
     return afficher_recapitulatif_commande_interne($idperiode, $qteproduit,$avoirs);
 }
 
-function afficher_recapitulatif_commande2($idperiode, $iddepot,$qteproduit,$avoirs=array()) {
-    $newqteproduits = array();
-    foreach($qteproduit as $producteur => $produits) {
-        foreach($produits as $produit => $dates) {
-            $params = retrouver_parametres_produit($produit);
-            if(!$params) {
-                continue;
-            }
-            $newqteproduits[$producteur][$produit]["prix"] = $params['prix'];
-            foreach($dates as $date => $quantite) {
-                $newqteproduits[$producteur][$produit][$date]["quantite"] = $quantite;
+function afficher_recapitulatif_commande($id) {
+    global $base_bons_cde,$base_commandes, $base_dates, $g_lib_somme;
+
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idperiode from $base_bons_cde where id='$id'");
+    if (mysqli_num_rows($rep) == 0) {
+        echo afficher_message_erreur("Commande introuvable !!!");
+        return;
+    }
+
+    list($idperiode) = mysqli_fetch_row($rep);
+    $qteproduit = array();
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select quantite,prix,idproducteur,idproduit,iddatelivraison " .
+                       "from $base_commandes " .
+                       "where idboncommande = '$id'");
+    while(list($quantite,$prix,$idproducteur,$idproduit,$iddate) = mysqli_fetch_row($rep)) {
+        $qteproduit[$idproducteur][$idproduit][$iddate]["quantite"] = $quantite;
+        $qteproduit[$idproducteur][$idproduit]["prix"] = $prix;
+    }
+
+    $avoirs = retrouver_avoirs(0, $id);
+
+    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,datelivraison from $base_dates where idperiode='$idperiode' order by datelivraison");
+    $nbdates = 0;
+    while(list($iddate,$datelivraison) = mysqli_fetch_row($rep0))
+    {
+        $dates[$nbdates]["id"] = $iddate;
+        $dates[$nbdates]["livraison"] = $datelivraison;
+        $nbdates++;
+    }
+
+    $absences = retrouver_absences($idperiode);
+
+    if($avoirs != null) {
+        foreach($avoirs as $key_producteur => $avoir) {
+            if($key_producteur != 0 && !isset($qteproduit[$key_producteur])) {
+                foreach($avoir["montant"] as $idavoir => $montant) {
+                    if($montant < 0.0) {
+                        $qteproduit[$key_producteur] = array();
+                        break;
+                    }
+                }
             }
         }
     }
-    return afficher_recapitulatif_commande_interne($idperiode, $newqteproduits,$avoirs);
+
+    $affiche_avoir = function($montant, $description, $nbdates) {
+        global $g_lib_somme;
+        $chaineavoir = "";
+        if($montant < 0.0) {
+            $m = sprintf($g_lib_somme,-$montant);
+            $desc = "Dette de " . $m;
+            $m = '+' . $m;
+        } else {
+            $m = sprintf($g_lib_somme,$montant);
+            $desc = "Avoir de " . $m;
+            $m = '-' . $m;
+        }
+        if($description != "") {
+            $desc .= " (" . $description . ")";
+        }
+        $chaineavoir .= '<tr>';
+        $chaineavoir .= '  <td colspan=' . ($nbdates + 3) . '>'. $desc . '</td>';
+        $chaineavoir .= '  <td style="text-align: right; white-space:nowrap;">' . $m . '</td>';
+        $chaineavoir .= '</tr>';
+        return $chaineavoir;
+    };
+
+    $total_commande = 0.0;
+    $chaine = "";
+
+    $chaine .= '<table class="table table-bordered mt-5">';
+    $chaine .= '  <thead class="table-dark" style="position: sticky; top:0;">';
+    $chaine .= '    <tr>';
+    $chaine .= '      <th scope="col"></th>';
+    $chaine .= '      <th scope="col">Prix</th>';
+    reset($dates);
+    foreach($dates as $key => $val)
+    {
+        $chaine .= '      <th>' . dateexterne($val["livraison"], false) . '</th>';
+    }
+    $chaine .= '      <th scope="col">Quantité</th>';
+    $chaine .= '      <th scope="col">Total</th>';
+    $chaine .= '    </tr>';
+    $chaine .= '  </thead>';
+    $chaine .= '  <tbody>';
+
+    foreach($qteproduit as $key_producteur => $val_producteur)
+    {
+        $param_producteur = retrouver_parametres_producteur($key_producteur);
+        $total_prix_producteur = 0;
+        $total_qte_producteur = 0;
+        $chaine2 = "";
+        $chaine2 .= '    <tr class="table-secondary">';
+        $chaine2 .= '      <th colspan="' . ($nbdates + 4) . '"><b>' . $param_producteur['produits'] . " (" . $param_producteur['nom'] . ")</b></th>";
+        $chaine2 .= '    </tr>';
+
+        foreach($val_producteur as $key_produit => $val_produit)
+        {
+            $param_produit = retrouver_parametres_produit($key_produit);
+            $total_qte_produit = 0;
+            $total_prix_produit = 0.0;
+
+            $chaine3 = '<tr>';
+            $chaine3 .= '  <td>' . $param_produit['description'] . '</td>';
+            $chaine3 .= '  <td class="table-light" style="text-align: right; white-space:nowrap;">' . sprintf($g_lib_somme,$qteproduit[$key_producteur][$key_produit]["prix"]) . '</td>';
+            reset($dates);
+            foreach($dates as $k => $v)
+            {
+                $key_date = $v["id"];
+                if(isset($absences[$key_date][$key_producteur]) && $absences[$key_date][$key_producteur])
+                {
+                    $chaine3 .= '  <td></td>';
+                }
+                else
+                {
+                    $quantite =
+                        array_key_exists($key_producteur, $qteproduit) &&
+                        array_key_exists($key_produit, $qteproduit[$key_producteur]) &&
+                        array_key_exists($key_date, $qteproduit[$key_producteur][$key_produit]) ?
+                            $qteproduit[$key_producteur][$key_produit][$key_date]["quantite"] : 0;
+                    if($quantite == 0) {
+                        $chaine3 .= '  <td></td>';
+                    } else {
+                        $chaine3 .= '  <td style="text-align: center">' .  $quantite . '</td>';
+                        $total_qte_produit += $quantite;
+                        $total_prix_produit += $quantite * $qteproduit[$key_producteur][$key_produit]["prix"];
+                    }
+                }
+            }
+            $chaine3 .= '  <td class="table-light" style="text-align: center">' . $total_qte_produit . '</td>';
+            $chaine3 .= '  <td class="table-light" style="text-align: right; white-space:nowrap;">' . sprintf($g_lib_somme,$total_prix_produit) . '</td>';
+            $chaine3 .= '</tr>';
+
+            $total_prix_producteur += $total_prix_produit;
+            $total_qte_producteur += $total_qte_produit;
+
+            if($total_qte_produit != 0) {
+                $chaine2 .= $chaine3;
+            }
+        }
+
+        if(isset($avoirs[$key_producteur])) {
+            $avoirProducteur = $avoirs[$key_producteur];
+            foreach($avoirProducteur["montant"] as $id => $montant) {
+                $chaine2 .= $affiche_avoir($montant, $avoirProducteur["description"][$id], $nbdates);
+                $total_prix_producteur -= $montant;
+            }
+        }
+
+        if($total_qte_producteur > 0 || $total_prix_producteur > 0.0) {
+            $chaine2 .= '<tr class="table-light">';
+            $chaine2 .= '  <td colspan=' . ($nbdates + 3) . ' style="text-align: right">Sous Total</td>';
+            $chaine2 .= '  <td style="text-align: right; white-space:nowrap">' . sprintf($g_lib_somme,$total_prix_producteur) . '</td>';
+            $chaine2 .= '</tr>';
+            $chaine .= $chaine2;
+        }
+        $total_commande += $total_prix_producteur;
+    }
+
+    if(isset($avoirs[0])) {
+        foreach($avoirs[0]["montant"] as $id => $montant) {
+            $chaine2 .= $affiche_avoir($montant, $avoirs[0]["description"][$id], $nbdates);
+            $total_commande -= $montant;
+        }
+    }
+
+    $chaine .= '    <tr class="table-dark">';
+    $chaine .= '      <td colspan=' . ($nbdates + 3) . ' style="text-align: right">Total</td>';
+    $chaine .= '      <td style="text-align: right; white-space:nowrap">' . sprintf($g_lib_somme,$total_commande) . '</td>';
+    $chaine .= '    </tr>';
+    $chaine .= '  </tbody>';
+    $chaine .= '</table>';
+
+    return '<div class="table-responsive" style="max-height: 600px;">' . $chaine . '</div>';
 }
 
-function afficher_recapitulatif_commande3($idperiode) {
-    global $base_dates,$base_producteurs,$base_produits,$base_dates,$g_lib_somme;
+function afficher_boncommande_vierge($idperiode) {
+    global $base_dates,$base_producteurs,$base_produits,$base_dates;
 
-    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,datelivraison from $base_dates where idperiode = '$idperiode' order by datelivraison");
+    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_dates where idperiode = '$idperiode' order by datelivraison");
     $nbdates = 0;
-    while(list($iddate,$datelivraison) = mysqli_fetch_row($rep0)) {
+    while(list($iddate) = mysqli_fetch_row($rep0)) {
         $dates[$nbdates] = $iddate;
         $nbdates++;
     }
@@ -656,7 +938,7 @@ function enregistrer_commande($idperiode,$qteproduit,$idboncommande,$idclient) {
 }
 
 function lister_commandes($idclient = 0, $path) {
-    global $base_bons_cde,$base_periodes,$g_delta_date_verrouillage,$g_periode_libelle;
+    global $base_bons_cde,$base_periodes,$g_periode_libelle;
     $chaine = "";
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select $base_bons_cde.id,idboncde,idperiode,$base_bons_cde.datemodif," .
                        "$base_periodes.etat,UNIX_TIMESTAMP($base_periodes.datecommande) - UNIX_TIMESTAMP(curdate())," .
@@ -665,35 +947,28 @@ function lister_commandes($idclient = 0, $path) {
                        "inner join $base_periodes on $base_periodes.id=$base_bons_cde.idperiode " .
                        "where $base_bons_cde.idclient = '$idclient' " .
                        "order by $base_bons_cde.datemodif desc");
-    if (mysqli_num_rows($rep) != 0)
-    {
-        $chaine .= html_debut_tableau("100%","0");
-        $chaine .= html_debut_ligne("","","","top");
-        $chaine .= html_colonne("","","center","top","","","","N° commande","","thliste");
-        $chaine .= html_colonne("","","center","top","","","","Période","","thliste");
-        $chaine .= html_colonne("","","center","top","","","","Faite le","","thliste");
-        $chaine .= html_colonne("","","center","top","","","","Actions","","thliste");
-        $chaine .= html_fin_ligne();
+    if (mysqli_num_rows($rep) != 0) {
+        $chaine .= '<table id="liste-des-commandes" class="table table-bordered mt-5">';
+        $chaine .= '  <thead class="table-dark" style="position: sticky; top:0;">';
+        $chaine .= '    <tr>';
+        $chaine .= '      <th scope="col">Commande</th>';
+        $chaine .= '      <th scope="col">Période</th>';
+        $chaine .= '      <th scope="col">Date</th>';
+        $chaine .= '    </tr>';
+        $chaine .= '  </thead>';
+        $chaine .= '  <tbody>';
         while(list($id,$idboncde,$idperiode,$datemodif,$etat,$restant,$periode) = mysqli_fetch_row($rep))
         {
-            $chaine .= html_debut_ligne("","","","top");
-            $chaine .= html_colonne("","","center","top","","","",$idboncde,"","tdliste");
-            $chaine .= html_colonne("","","center","top","","","",$periode,"","tdliste");
-            $chaine .= html_colonne("","","center","top","","","",dateheureexterne($datemodif),"","tdliste");
-            $actions = html_lien("$path?action=affichercde&id=$id","_top","Détails");
-            $actions .= "<br>" . html_lien("/paniers/imprimer.php?id=$id","_blank","Imprimer");
-            if($etat == "Active" && $restant >= ($g_delta_date_verrouillage * 24 * 3600))
-            {
-                $actions .= "<br>" . html_lien("$path?action=editercde&id=$id","_top","Modifier");
-                $actions .= "<br>" . html_lien("$path?action=supprimercde&id=$id","_top","Supprimer");
-            }
-            $chaine .= html_colonne("","","center","top","","","",$actions,"","tdliste");
-            $chaine .= html_fin_ligne();
+            $chaine .= "    <tr>";
+            $chaine .= "      <td><a href='$path?action=affichercde&id=$id'>$idboncde</a></td>";
+            $chaine .= "      <td>$periode</td>";
+            $chaine .= "      <td>$datemodif</td>";
+            $chaine .= "    </tr>";
         }
-        $chaine .= html_fin_tableau();
+        $chaine .= "  </tbody>";
+        $chaine .= "</table>";
     }
-    else
-    {
+    else {
         $chaine .= "Vous n'avez encore fait aucune commande...";
     }
     return("$chaine");
@@ -788,8 +1063,7 @@ function gerer_liste_commandes($tri=0,$idperiode="-2",$iddepot="-1",$action="") 
         }
         $chaine .= html_fin_tableau();
     }
-    else
-    {
+    else {
         $chaine .= afficher_message_erreur("Aucune commande dans la base...");
     }
     return($chaine);

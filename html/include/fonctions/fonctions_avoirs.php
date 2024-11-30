@@ -62,7 +62,7 @@ function gerer_liste_avoirs($actifsOnly=True) {
             $chaine .= html_colonne("","","center","","","","","Action","","thliste");
         }
         $chaine .= html_fin_ligne();
-        while (list($id,$nom,$prenom,$codeclient,$datemodif,$idboncommande,$idproducteur,$montant,$description,$idboncde) =
+        while (list($id,$nom,$prenom,$codeclient,$datemodif,$idboncommande,$idproducteur,$montant,$description) =
                mysqli_fetch_row($rep))
         {
             $chaine .= html_debut_ligne("","","","top");
@@ -148,7 +148,7 @@ function gerer_liste_avoirs_periode($idperiode) {
 }
 
 function retrouver_avoirs($idclient,$idboncommande) {
-    global $base_avoirs,$base_clients,$base_producteurs,$base_bons_cde;
+    global $base_avoirs;
     $avoirs = array();
     if($idclient > 0) {
         $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,idproducteur,montant,description " .

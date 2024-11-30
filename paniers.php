@@ -234,12 +234,29 @@ function paniers_queryvars( $qvars )
     $qvars[] = 'idperiode';
     $qvars[] = 'iddepot';
     $qvars[] = 'idclient';
+    $qvars[] = 'iddate';
     $qvars[] = 'filtre_etat';
     $qvars[] = 'etat';
     $qvars[] = 'filtre_depot';
     $qvars[] = 'tri';
     $qvars[] = 'export';
     return $qvars;
+}
+
+function paniers_checkIfLoggedIn()
+{
+    if(!is_user_logged_in()) {
+        wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
+        exit;
+    }
+
+    $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
+    if($userid == 0) {
+        wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
+        exit;
+    }
+
+    return $userid;
 }
 
 function paniers_check_login($user, $username, $password) {
@@ -844,7 +861,16 @@ function paniers_produits($atts) {
 
 function paniers_add_plugin_stylesheet() {
     wp_register_style('paniers_stylesheet', paniers_plugin_url . '/paniers.css');
-    wp_enqueue_style( 'paniers_stylesheet');
+    wp_enqueue_style('paniers_stylesheet');
+    if(!str_starts_with($_SERVER['REQUEST_URI'], "/paniers/admin")) {
+        wp_enqueue_style('bootstrap-css', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css');
+    }
+}
+
+function paniers_add_plugin_scripts() {
+    if(!str_starts_with($_SERVER['REQUEST_URI'], "/paniers/admin")) {
+        wp_enqueue_script('bootstrap-js', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js', array('jquery'), null, true);
+    }
 }
 
 function paniers_password_reset($user, $password) {
@@ -1320,6 +1346,7 @@ register_deactivation_hook(__FILE__,'paniers_uninstall');
 add_action('controler_date_fin_commande_event', 'controler_date_fin_commande');
 
 add_action('wp_print_styles', 'paniers_add_plugin_stylesheet');
+add_action('wp_enqueue_scripts', 'paniers_add_plugin_scripts');
 add_action('init', 'paniers_rewriteURL');
 
 add_action('register_form','paniers_register_form');
@@ -1336,9 +1363,7 @@ function paniers_commande_nouveau($atts) {
     require_once(paniers_dir . "/include/fonctions_include.php");
     error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
-    extract( shortcode_atts( array(
-		'page_commande_non_disponible' => '',
-    ), $atts ) );
+    extract(shortcode_atts(array('page_commande_non_disponible' => ''), $atts));
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         foreach($_POST as $k=>$v) $$k=$v;
@@ -1366,17 +1391,7 @@ function paniers_commande_nouveau($atts) {
 add_shortcode('paniers-commande-nouveau', 'paniers_commande_nouveau');
 
 function paniers_permanences() {
-    $wpUserId = get_current_user_id();
-    if(!is_user_logged_in() || $wpUserId == 0) {
-        wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
-        exit;
-    }
-
-    $userid = get_user_meta($wpUserId, 'paniers_consommateurId', true);
-    if($userid == 0) {
-        wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
-        exit;
-    }
+    $userid = paniers_checkIfLoggedIn();
 
     require_once(paniers_dir . "/include/fonctions_include.php");
     error_reporting(E_ERROR | E_WARNING | E_PARSE);
@@ -1470,6 +1485,23 @@ function paniers_login_redirect($redirect_to, $request='', $user=null){
 }
 add_filter('login_redirect','paniers_login_redirect',999);
 
+function paniers_livraisons($atts) {
+    $userid = paniers_checkIfLoggedIn();
+    require_once(paniers_dir . "/include/fonctions_include.php");
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
+
+    global $wp_query;
+    $iddate = $wp_query->get("iddate");
+    $idclient = $wp_query->get("idclient");
+
+    ob_start();
+    echo afficher_recapitulatif_livraisons($idclient == 0 ? $userid : $idclient, $iddate);
+    $content = ob_get_contents();
+    ob_clean();
+    return $content;
+}
+add_shortcode('paniers-livraisons', 'paniers_livraisons');
+
 function paniers_commande_adherent($atts) {
 
     if (!function_exists('message_erreur')) {
@@ -1481,23 +1513,12 @@ function paniers_commande_adherent($atts) {
         }
     }
 
-    if(!is_user_logged_in()) {
-        wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
-        exit;
-    }
-
-    $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
-    if($userid == 0) {
-        wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
-        exit;
-    }
+    $userid = paniers_checkIfLoggedIn();
 
     require_once(paniers_dir . "/include/fonctions_include.php");
     error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
-    extract( shortcode_atts( array(
-		'page_commande_non_disponible' => '',
-    ), $atts ) );
+    extract(shortcode_atts(array('page_commande_non_disponible' => ''), $atts));
 
     global $wp_query;
     global $base_bons_cde;
@@ -1508,8 +1529,7 @@ function paniers_commande_adherent($atts) {
 
     ob_start();
     echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
-    if ($action == "editercde" ||
-        ($action=="" && !str_starts_with($_SERVER['REQUEST_URI'], "/wp-admin"))) {
+    if ($action == "editercde" || ($action=="" && !str_starts_with($_SERVER['REQUEST_URI'], "/wp-admin"))) {
         if (!isset($id) || $id == "" || $id == 0) {
             $idperiode = retrouver_periode_courante(true);
             if($idperiode == -1 || $idperiode == 0 || !periode_active($idperiode)) {
@@ -1546,16 +1566,11 @@ function paniers_commande_adherent($atts) {
                 "enregistrercde",
                 $id,
                 $userid));
-
     } else if ($action == "affichercde" && $id != "" && $id != 0) {
         $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idperiode,iddepot from $base_bons_cde where id='$id'");
         if (mysqli_num_rows($rep) != 0) {
             list($idperiode,$iddepot) = mysqli_fetch_row($rep);
-            $qteproduit = retrouver_quantites_commande($id,$idperiode);
-            afficher_corps_page(
-                "",
-                "",
-                afficher_recapitulatif_commande($id));
+            echo afficher_recapitulatif_commande($id);
         }
         else {
             return message_erreur("Commande introuvable");
@@ -1651,16 +1666,7 @@ function paniers_commande_adherent($atts) {
 add_shortcode('paniers-commande-adherent', 'paniers_commande_adherent');
 
 function paniers_liste_commandes_adherent($atts) {
-    if(!is_user_logged_in()) {
-        wp_redirect( wp_login_url($_SERVER['REQUEST_URI']) );
-        exit;
-    }
-
-    $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
-    if($userid == 0) {
-        wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
-        exit;
-    }
+    $userid = paniers_checkIfLoggedIn();
 
     require_once(paniers_dir . "/include/fonctions_include.php");
     error_reporting(E_ERROR | E_WARNING | E_PARSE);

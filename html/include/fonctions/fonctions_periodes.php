@@ -343,18 +343,18 @@ function retrouver_periode_courante($verrouillage = false) {
     global $base_periodes, $g_delta_date_verrouillage;
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id, etat, UNIX_TIMESTAMP(datecommande) - UNIX_TIMESTAMP(curdate()) from ".
                        "$base_periodes where datecommande >= curdate() order by datecommande limit 1");
-    $texte = 0;
+    $id = 0;
     if (mysqli_num_rows($rep) != 0)
     {
-        list($texte, $etat, $restant) = mysqli_fetch_row($rep);
+        list($id, $etat, $restant) = mysqli_fetch_row($rep);
         if($etat == "Close" && $verrouillage) {
-            $texte = 0; // La periode courante est verouillée.
+            $id = 0; // La periode courante est verouillée.
         }
         else if($verrouillage && ($restant < ($g_delta_date_verrouillage * 24 * 3600))) {
-            $texte = -1; // La periode courante est verouillée.
+            $id = -1; // La periode courante est verouillée.
         }
     }
-    return $texte;
+    return $id;
 }
 
 function afficher_date_prochaine_commande() {

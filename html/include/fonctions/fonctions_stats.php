@@ -31,13 +31,6 @@ function stats_producteurs() {
         }
 
         $chaine .= html_fin_tableau() . "<br>";
-
-        $chaine .= html_debut_tableau("95%","0","5","5","","center");
-        $chaine .= html_debut_ligne("","","","","");
-        $chaine .= html_colonne("","","center","top","","","","<img src=\"./graphes/stats_producteurs.php?id=$idproducteur\" border=\"0\">");
-        $chaine .= html_fin_ligne();
-        $chaine .= html_fin_tableau() . "<br>";
-
     }
 
     return($chaine);

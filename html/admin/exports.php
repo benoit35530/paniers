@@ -272,7 +272,7 @@ break;
 
 case "boncommande": {
     $qteproduit = array();
-    $output .= afficher_recapitulatif_commande3(retrouver_periode_derniere());
+    $output .= afficher_boncommande_vierge(retrouver_periode_derniere());
 }
 break;
 

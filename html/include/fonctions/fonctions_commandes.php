@@ -359,7 +359,7 @@ HTML;
     $chaine .= '<div class="container-fluid">';
     $chaine .= '<div class="row">';
 
-    $chaine .= "<div class=\"col\"><select id=\"date\" onchange=\"datechange()\">";
+    $chaine .= "<div class=\"col-sm\"><select id=\"date\" onchange=\"datechange()\">";
     $datenextlivraison = date("Y-m-d", strtotime("$jour_commande"));
     $rep0 = mysqli_query($GLOBALS["___mysqli_ston"],
         "select id,datelivraison from $base_dates " .
@@ -380,7 +380,7 @@ HTML;
     $chaine .= "</select></div>";
 
     if(current_user_can('gestionnaire')) {
-        $chaine .= "<div class=\"col\"><select id=\"client\" onchange=\"clientchange()\">\n";
+        $chaine .= "<div class=\"col-sm\"><select id=\"client\" onchange=\"clientchange()\">\n";
         $rep = mysqli_query($GLOBALS["___mysqli_ston"],
             "select distinct $base_clients.id,$base_clients.nom,$base_clients.prenom,$base_clients.codeclient " .
             "from $base_commandes " .
@@ -455,7 +455,7 @@ HTML;
     $chaine .= '  </tbody>';
     $chaine .= '</table>';
 
-    return '<div class="table-responsive" style="max-height: 600px;">' . $chaine . '</div>';
+    return $chaine;
 }
 
 function afficher_recapitulatif_commande_admin($id) {
@@ -653,7 +653,7 @@ function afficher_recapitulatif_commande($id) {
     $chaine .= '  </tbody>';
     $chaine .= '</table>';
 
-    return '<div class="table-responsive" style="max-height: 600px;">' . $chaine . '</div>';
+    return $chaine;
 }
 
 function afficher_boncommande_vierge($idperiode) {

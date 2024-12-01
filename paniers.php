@@ -1359,6 +1359,13 @@ add_shortcode('paniers-updateprofile', 'paniers_updateprofile');
 add_shortcode('paniers-date-commande', 'paniers_datecommande');
 add_shortcode('paniers-produits', 'paniers_produits');
 
+
+add_filter( 'auth_cookie_expiration', 'paniers_login_expiration' );
+
+function paniers_login_expiration($expirein) {
+    return MONTH_IN_SECONDS * 3;
+}
+
 function paniers_commande_nouveau($atts) {
     require_once(paniers_dir . "/include/fonctions_include.php");
     error_reporting(E_ERROR | E_WARNING | E_PARSE);

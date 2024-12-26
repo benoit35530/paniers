@@ -18,6 +18,236 @@ function nombre_bons_commandes($idclient = 0) {
     return($nb);
 }
 
+function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $qteproduit=array())
+{
+    global $base_dates,$base_producteurs,$base_produits,$base_dates,$g_lib_somme;
+
+    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,datelivraison from $base_dates where idperiode = '$idperiode' order by datelivraison");
+    $nbdates = 0;
+    while(list($iddate,$datelivraison) = mysqli_fetch_row($rep0)) {
+        $dates[$nbdates]['id'] = $iddate;
+        $dates[$nbdates]['datelivraison'] = $datelivraison;
+        $nbdates++;
+    }
+
+    if($nbdates == 0) {
+        return afficher_message_erreur("Aucune date de disponible pour cette commande...");
+    }
+
+    $absences = retrouver_absences($idperiode);
+    $avoirs = retrouver_avoirs($idclient, $idcommande);
+    $colspan = $nbdates + 2;
+
+    $affiche_avoir = function($montant, $description, $colspan) {
+        global $g_lib_somme;
+        $chaineavoir = "";
+        if($montant < 0.0) {
+            $m = sprintf($g_lib_somme,-$montant);
+            $desc = "Dette de " . $m;
+            $m = '+' . $m;
+        } else {
+            $m = sprintf($g_lib_somme,$montant);
+            $desc = "Avoir de " . $m;
+            $m = '-' . $m;
+        }
+        if($description != "") {
+            $desc .= " (" . $description . ")";
+        }
+        $chaineavoir .= '<tr>';
+        $chaineavoir .= '  <td class="table-light" colspan=' . $colspan . '>'. $desc . '</td>';
+        $chaineavoir .= '  <td class="table-light" style="text-align: right; white-space:nowrap;">' . $m . '</td>';
+        $chaineavoir .= '</tr>';
+        return $chaineavoir;
+    };
+
+    $total_commande = 0.0;
+    $chaine = <<<HTML
+        <table class="table table-bordered">
+            <thead class="table" style="position: sticky; top:0;">
+                <tr class="table-dark">
+                    <th scope="col">Producteurs</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td class="p-0" colspan="2">
+    HTML;
+    $chaine .= '<div class="accordion" id="accordionProducteur">';
+
+    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits from $base_producteurs where etat = 'Actif' order by ordre,produits");
+    while(list($idproducteur, $nom, $produits) = mysqli_fetch_row($rep0))
+    {
+        $total_producteur = 0.0;
+
+        $chaine2 = <<<HTML
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" style="font-weight: normal; font-size: 1.5rem" type="button" data-bs-toggle="collapse" data-bs-target="#collapse$idproducteur" aria-expanded="false" aria-controls="collapse$idproducteur">
+                    $produits - $nom
+                </button>
+            </h2>
+            <div id="collapse$idproducteur" class="accordion-collapse collapse" data-bs-parent="#accordionProducteur">
+                <div class="accordion-body p-3">
+                    <table class="table table-bordered m-0">
+                        <thead class="table-secondary" style="position: sticky; top:0;">
+                            <tr>
+                                <th scope="col"></th>
+                                <th scope="col">Prix</th>
+        HTML;
+        reset($dates);
+        foreach($dates as $key => $val)
+        {
+            $chaine2 .= '      <th>' . dateexterne($val["datelivraison"], false) . '</th>';
+        }
+        $chaine2 .= <<<HTML
+                                <th scope="col">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        HTML;
+
+        $rep1 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,description,prix,UNIX_TIMESTAMP(curdate()) - UNIX_TIMESTAMP(datemodif) from $base_produits where idproducteur = '$idproducteur' and etat = 'Actif' order by description");
+        while(list($idproduit,$description,$prix,$sincemodif) = mysqli_fetch_row($rep1))
+        {
+            if ($sincemodif < 24 * 3600 * 30) { // 30 days
+                $description = "&#11088; " . $description;
+            }
+            $total_qte_produit = 0;
+
+            $chaine2 .= '<tr>';
+            $chaine2 .= '  <td>' . $description . '</td>';
+            $chaine2 .= '  <td class="table-light" style="text-align: right; white-space:nowrap;">' . sprintf($g_lib_somme,$prix) . '</td>';
+            reset($dates);
+            foreach($dates as $k => $v)
+            {
+                $iddate = $v["id"];
+
+                $quantite =
+                    array_key_exists($idproducteur, $qteproduit) &&
+                    array_key_exists($idproduit, $qteproduit[$idproducteur]) &&
+                    array_key_exists($iddate, $qteproduit[$idproducteur][$idproduit]) &&
+                    is_numeric($qteproduit[$idproducteur][$idproduit][$iddate]) ?
+                        $qteproduit[$idproducteur][$idproduit][$iddate] : 0;
+
+                $name = "qteproduit[$idproducteur][$idproduit][$iddate]";
+                if(array_key_exists($iddate, $absences) &&
+                   array_key_exists($idproducteur, $absences[$iddate]) &&
+                   $absences[$iddate][$idproducteur])
+                {
+                    $chaine2 .= '  <td><input type="hidden" value="' . $quantite . '" name="' . $name . '"</td>';
+                }
+                else
+                {
+                    $chaine2 .= '  <td style="vertical-align: middle;"><input type="number" size="2" min="0" max="99" value="' . $quantite . '" name="' . $name . '"</td>';
+                }
+                $total_qte_produit += $quantite;
+            }
+            $chaine2 .= '  <td class="table-secondary" style="text-align: right; white-space:nowrap;">' . sprintf($g_lib_somme,$total_qte_produit * $prix) . '</td>';
+            $chaine2 .= '</tr>';
+
+            $total_producteur += $total_qte_produit * $prix;
+        }
+
+
+        if(isset($avoirs[$idproducteur])) {
+            $avoirProducteur = $avoirs[$idproducteur];
+            foreach($avoirProducteur["montant"] as $id => $montant) {
+                $chaine2 .= $affiche_avoir($montant, $avoirProducteur["description"][$id], $colspan);
+                $total_producteur -= $montant;
+            }
+        }
+
+        $chaine2 .= '    <tr class="table-secondary">';
+        $chaine2 .= '      <td colspan=' . $colspan . ' style="text-align: right">Total</td>';
+        $chaine2 .= '      <td style="text-align: right; white-space:nowrap">' . sprintf($g_lib_somme,$total_producteur) . '</td>';
+        $chaine2 .= '    </tr>';
+        $chaine2 .= '  </tbody>';
+        $chaine2 .= '</table>';
+
+        $chaine2 .= <<<HTML
+                    </div>
+                </div>
+            </div>
+        HTML;
+        $chaine .= $chaine2;
+        $total_commande += $total_producteur;
+    }
+    $chaine .= "</div></td></tr>";
+    if(isset($avoirs[0])) {
+        foreach($avoirs[0]["montant"] as $id => $montant) {
+            $chaine .= $affiche_avoir($montant, $avoirs[0]["description"][$id], 1);
+            $total_commande -= $montant;
+        }
+    }
+    $chaine .= '    <tr class="table-dark">';
+    $chaine .= '      <td style="text-align: right">Total</td>';
+    $chaine .= '      <td style="text-align: right; white-space:nowrap">' . sprintf($g_lib_somme,$total_commande) . '</td>';
+    $chaine .= '    </tr>';
+    $chaine .= '  </tbody>';
+    $chaine .= '</table>';
+
+    return $chaine;
+}
+
+function afficher_formulaire_bon_commande_frontend(
+    $idperiode = 0,
+    $iddepot = 0,
+    $qteproduit=array(),
+    $action="enregistrercde",
+    $idcommande = 0,
+    $idclient = 0) {
+
+    $chaine = <<<HTML
+<script>
+</script>
+HTML;
+
+    $chaine .= '<div class="container-fluid">';
+    $chaine .= '<form method="post">';
+
+    $chaine .= '<div class="row py-3">';
+    $chaine .= "  <div class=\"col-sm\">";
+    $chaine .= '    <b>' . retrouver_periode($idperiode) . '</b>';
+    $chaine .= '  </div>';
+    $chaine .= '</div>';
+
+    $chaine .= '<div class="row px-3 py-2">';
+    $chaine .= '  <div class="col-3"></div>';
+    $chaine .= '  <div class="col-sm">';
+    $chaine .= afficher_liste_depots_actifs("iddepot", $iddepot);
+    // if(retrouver_etat_depot($iddepot) != "Actif") {
+    //     $champs["aide"][] = "<b>Votre dépôt habituel est fermé pour cette commande, merci de selectionner un autre dépôt.</b>";
+    // }
+    $chaine .= '  </div>';
+    $chaine .= '  <div class="col-3"></div>';
+    $chaine .= '</div>';
+
+    $chaine .= '<div class="row py-2">';
+    $chaine .= '  <div class="col"><center>&#11088; = Produit récemment ajouté ou modifié</center></div>';
+    $chaine .= '</div>';
+
+    $chaine .= '<div class="row">';
+    $chaine .= '  <div class="col">';
+    $chaine .= formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $qteproduit);
+    $chaine .= '  </div>';
+    $chaine .= '</div>';
+
+    $formaction = "?action=$action&idperiode=$idperiode&id=$idcommande" . ($idclient != 0 ? "&idclient=$idclient" : "");
+
+    $chaine .= '<div class="row">';
+    $chaine .= '  <div class="col"></div>';
+    $chaine .= '  <div class="col-1">';
+    $chaine .= '    <input type="submit" value="Sauvegarder" formaction="' . $formaction . '">';
+    $chaine .= '  </div>';
+    $chaine .= '  <div class="col"></div>';
+    $chaine .= '</div>';
+
+    $chaine .= '</form>';
+    $chaine .= '</div>';
+
+    return $chaine;
+}
+
 function formulaire_bon_commande($idperiode, $champs, $qteproduit=array(),$avoirs=array())
 {
     global $base_dates,$base_producteurs,$base_produits,$base_dates,$g_lib_somme;
@@ -641,7 +871,7 @@ function afficher_recapitulatif_commande($id) {
 
     if(isset($avoirs[0])) {
         foreach($avoirs[0]["montant"] as $id => $montant) {
-            $chaine2 .= $affiche_avoir($montant, $avoirs[0]["description"][$id], $nbdates);
+            $chaine .= $affiche_avoir($montant, $avoirs[0]["description"][$id], $nbdates);
             $total_commande -= $montant;
         }
     }

@@ -1536,7 +1536,7 @@ function paniers_commande_adherent($atts) {
 
     ob_start();
     echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
-    if ($action == "editercde" || ($action=="" && !str_starts_with($_SERVER['REQUEST_URI'], "/wp-admin"))) {
+    if ($action == "editercde" || $action == "editercdenew" || ($action=="" && !str_starts_with($_SERVER['REQUEST_URI'], "/wp-admin"))) {
         if (!isset($id) || $id == "" || $id == 0) {
             $idperiode = retrouver_periode_courante(true);
             if($idperiode == -1 || $idperiode == 0 || !periode_active($idperiode)) {
@@ -1563,16 +1563,29 @@ function paniers_commande_adherent($atts) {
             $qteproduit = array();
         }
 
-        afficher_corps_page(
-            "",
-            "",
-            afficher_formulaire_bon_commande(
-                $idperiode,
-                $iddepot,
-                $qteproduit,
-                "enregistrercde",
-                $id,
-                $userid));
+        if ($action == "editercdenew") {
+            afficher_corps_page(
+                "",
+                "",
+                afficher_formulaire_bon_commande_frontend(
+                    $idperiode,
+                    $iddepot,
+                    $qteproduit,
+                    "enregistrercde",
+                    $id,
+                    $userid));
+        } else {
+            afficher_corps_page(
+                "",
+                "",
+                afficher_formulaire_bon_commande(
+                    $idperiode,
+                    $iddepot,
+                    $qteproduit,
+                    "enregistrercde",
+                    $id,
+                    $userid));
+        }
     } else if ($action == "affichercde" && $id != "" && $id != 0) {
         $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idperiode,iddepot from $base_bons_cde where id='$id'");
         if (mysqli_num_rows($rep) != 0) {

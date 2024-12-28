@@ -38,7 +38,7 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
     $avoirs = retrouver_avoirs($idclient, $idcommande);
     $colspan = $nbdates + 2;
 
-    $affiche_avoir = function($montant, $description, $colspan) {
+    $affiche_avoir = function($montant, $description, $consumed, $idproducteur, $colspan) {
         global $g_lib_somme;
         $chaineavoir = "";
         if($montant < 0.0) {
@@ -55,14 +55,18 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
         }
         $chaineavoir .= '<tr>';
         $chaineavoir .= '  <td class="table-light" colspan=' . $colspan . '>'. $desc . '</td>';
-        $chaineavoir .= '  <td class="table-light" style="text-align: right; white-space:nowrap;">' . $m . '</td>';
+        if($consumed) {
+            $chaineavoir .= '  <td class="table-light" id="avoirproducteur' . $idproducteur . '" data-value="' . $montant . '" style="text-align: right; white-space:nowrap;">' . $m . '</td>';
+        } else {
+            $chaineavoir .= '  <td class="table-light" id="avoirproducteur' . $idproducteur . '" data-value="' . $montant . '" style="text-align: right; white-space:nowrap;"></td>';
+        }
         $chaineavoir .= '</tr>';
         return $chaineavoir;
     };
 
     $total_commande = 0.0;
     $chaine = <<<HTML
-        <table class="table table-bordered">
+        <table class="table table-bordered" id="commande">
             <thead class="table" style="position: sticky; top:0;">
                 <tr class="table-dark">
                     <th scope="col">Producteurs</th>
@@ -78,34 +82,7 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
     while(list($idproducteur, $nom, $produits) = mysqli_fetch_row($rep0))
     {
         $total_producteur = 0.0;
-
-        $chaine2 = <<<HTML
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" style="font-weight: normal; font-size: 1.5rem" type="button" data-bs-toggle="collapse" data-bs-target="#collapse$idproducteur" aria-expanded="false" aria-controls="collapse$idproducteur">
-                    $produits - $nom
-                </button>
-            </h2>
-            <div id="collapse$idproducteur" class="accordion-collapse collapse" data-bs-parent="#accordionProducteur">
-                <div class="accordion-body p-3">
-                    <table class="table table-bordered m-0">
-                        <thead class="table-secondary" style="position: sticky; top:0;">
-                            <tr>
-                                <th scope="col"></th>
-                                <th scope="col">Prix</th>
-        HTML;
-        reset($dates);
-        foreach($dates as $key => $val)
-        {
-            $chaine2 .= '      <th>' . dateexterne($val["datelivraison"], false) . '</th>';
-        }
-        $chaine2 .= <<<HTML
-                                <th scope="col">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-        HTML;
-
+        $chaine2 = "";
         $rep1 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,description,prix,UNIX_TIMESTAMP(curdate()) - UNIX_TIMESTAMP(datemodif) from $base_produits where idproducteur = '$idproducteur' and etat = 'Actif' order by description");
         while(list($idproduit,$description,$prix,$sincemodif) = mysqli_fetch_row($rep1))
         {
@@ -116,7 +93,7 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
 
             $chaine2 .= '<tr>';
             $chaine2 .= '  <td>' . $description . '</td>';
-            $chaine2 .= '  <td class="table-light" style="text-align: right; white-space:nowrap;">' . sprintf($g_lib_somme,$prix) . '</td>';
+            $chaine2 .= '  <td class="table-light" id="prix" data-value="' . $prix . '" style="text-align: right; white-space:nowrap;">' . sprintf($g_lib_somme,$prix) . '</td>';
             reset($dates);
             foreach($dates as $k => $v)
             {
@@ -134,54 +111,97 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
                    array_key_exists($idproducteur, $absences[$iddate]) &&
                    $absences[$iddate][$idproducteur])
                 {
-                    $chaine2 .= '  <td><input type="hidden" value="' . $quantite . '" name="' . $name . '"</td>';
+                    $chaine2 .= '  <td><input type="hidden" value="' . $quantite . '" name="' . $name . '"></input></td>';
                 }
                 else
                 {
-                    $chaine2 .= '  <td style="vertical-align: middle;"><input type="number" size="2" min="0" max="99" value="' . $quantite . '" name="' . $name . '"</td>';
+                    $chaine2 .= '  <td style="vertical-align: middle;"><input type="number" size="2" min="0" max="99" value="' . $quantite . '" name="' . $name . '"></input></td>';
                 }
                 $total_qte_produit += $quantite;
             }
-            $chaine2 .= '  <td class="table-secondary" style="text-align: right; white-space:nowrap;">' . sprintf($g_lib_somme,$total_qte_produit * $prix) . '</td>';
+
+            $totalproduit = $total_qte_produit * $prix;
+            $chaine2 .= '  <td class="table-secondary" id="totalproduit' . $idproducteur . '" data-value="' . $totalproduit . '" style="text-align: right; white-space:nowrap;">' . sprintf($g_lib_somme,$totalproduit) . '</td>';
             $chaine2 .= '</tr>';
 
             $total_producteur += $total_qte_produit * $prix;
         }
 
+        $producteur = "$produits - $nom";
+        if ($total_producteur > 0) {
+            $producteur = "<b>$producteur</b>";
+        }
 
         if(isset($avoirs[$idproducteur])) {
             $avoirProducteur = $avoirs[$idproducteur];
             foreach($avoirProducteur["montant"] as $id => $montant) {
-                $chaine2 .= $affiche_avoir($montant, $avoirProducteur["description"][$id], $colspan);
-                $total_producteur -= $montant;
+                if ($montant < 0 || $montant < $total_producteur) {
+                    $chaine2 .= $affiche_avoir($montant, $avoirProducteur["description"][$id], true, $idproducteur, $colspan);
+                    $total_producteur -= $montant;
+                } else {
+                    $chaine2 .= $affiche_avoir($montant, $avoirProducteur["description"][$id], false, $idproducteur, $colspan);
+                }
             }
         }
 
-        $chaine2 .= '    <tr class="table-secondary">';
-        $chaine2 .= '      <td colspan=' . $colspan . ' style="text-align: right">Total</td>';
-        $chaine2 .= '      <td style="text-align: right; white-space:nowrap">' . sprintf($g_lib_somme,$total_producteur) . '</td>';
-        $chaine2 .= '    </tr>';
-        $chaine2 .= '  </tbody>';
-        $chaine2 .= '</table>';
+        $chaine .= <<<HTML
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" id="producteur$idproducteur" data-producteur="$produits - $nom" style="font-weight: normal; font-size: 1.5rem" type="button" data-bs-toggle="collapse" data-bs-target="#collapse$idproducteur" aria-expanded="false" aria-controls="collapse$idproducteur">
+                    $producteur
+                </button>
+            </h2>
+            <div id="collapse$idproducteur" class="accordion-collapse collapse" data-bs-parent="#accordionProducteur">
+                <div class="accordion-body p-3">
+                    <table class="table table-bordered m-0">
+                        <thead class="table-secondary" style="position: sticky; top:0;">
+                            <tr>
+                                <th scope="col"></th>
+                                <th scope="col">Prix</th>
+        HTML;
 
-        $chaine2 .= <<<HTML
+        reset($dates);
+        foreach($dates as $key => $val)
+        {
+            $chaine .= '      <th>' . dateexterne($val["datelivraison"], false) . '</th>';
+        }
+        $chaine .= <<<HTML
+                                <th scope="col">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        HTML;
+
+        $chaine .= $chaine2;
+
+        $chaine .= '    <tr class="table-secondary">';
+        $chaine .= '      <td colspan=' . $colspan . ' style="text-align: right">Total</td>';
+        $chaine .= '      <td style="text-align: right; white-space:nowrap" id="totalproducteur' . $idproducteur . '" data-value="'. $total_producteur .'">' . sprintf($g_lib_somme,$total_producteur) . '</td>';
+        $chaine .= '    </tr>';
+        $chaine .= '  </tbody>';
+        $chaine .= '</table>';
+
+        $chaine .= <<<HTML
                     </div>
                 </div>
             </div>
         HTML;
-        $chaine .= $chaine2;
         $total_commande += $total_producteur;
     }
     $chaine .= "</div></td></tr>";
     if(isset($avoirs[0])) {
         foreach($avoirs[0]["montant"] as $id => $montant) {
-            $chaine .= $affiche_avoir($montant, $avoirs[0]["description"][$id], 1);
-            $total_commande -= $montant;
+            if ($montant < 0 || $montant < $total_commande) {
+                $total_commande -= $montant;
+                $chaine .= $affiche_avoir($montant, $avoirs[0]["description"][$id], true, 0, 1);
+            } else {
+                $chaine .= $affiche_avoir($montant, $avoirs[0]["description"][$id], false, 0, 1);
+            }
         }
     }
     $chaine .= '    <tr class="table-dark">';
     $chaine .= '      <td style="text-align: right">Total</td>';
-    $chaine .= '      <td style="text-align: right; white-space:nowrap">' . sprintf($g_lib_somme,$total_commande) . '</td>';
+    $chaine .= '      <td id="totalcommande" style="text-align: right; white-space:nowrap">' . sprintf($g_lib_somme,$total_commande) . '</td>';
     $chaine .= '    </tr>';
     $chaine .= '  </tbody>';
     $chaine .= '</table>';
@@ -197,12 +217,7 @@ function afficher_formulaire_bon_commande_frontend(
     $idcommande = 0,
     $idclient = 0) {
 
-    $chaine = <<<HTML
-<script>
-</script>
-HTML;
-
-    $chaine .= '<div class="container-fluid">';
+    $chaine = '<div class="container-fluid">';
     $chaine .= '<form method="post">';
 
     $chaine .= '<div class="row py-3">';
@@ -235,15 +250,92 @@ HTML;
     $formaction = "?action=$action&idperiode=$idperiode&id=$idcommande" . ($idclient != 0 ? "&idclient=$idclient" : "");
 
     $chaine .= '<div class="row">';
-    $chaine .= '  <div class="col"></div>';
-    $chaine .= '  <div class="col-1">';
+    $chaine .= '  <div class="col">';
     $chaine .= '    <input type="submit" value="Sauvegarder" formaction="' . $formaction . '">';
     $chaine .= '  </div>';
-    $chaine .= '  <div class="col"></div>';
     $chaine .= '</div>';
 
     $chaine .= '</form>';
     $chaine .= '</div>';
+
+    $chaine .= <<<HTML
+    <script>
+
+    var totalProducteurs = jQuery('table#commande td[id^="totalproducteur"]');
+    var totalAvoirs = jQuery('table#commande td[id=avoirproducteur0]');
+    var totalCommande = jQuery('table#commande td[id="totalcommande"]')[0];
+
+    jQuery('table#commande input[name^=qteproduit').change(function(event)
+    {
+        var producteurId = event.target.name.substr(11);
+        producteurId = producteurId.substr(0, producteurId.indexOf("]"));
+        var row = event.target.parentElement.parentElement;
+
+        // Total produit
+        var count = 0;
+        var quantites = row.querySelectorAll('input[name^=qteproduit').forEach(function (element)
+        {
+            var c = parseInt(element.value);
+            if(!isNaN(c)) {
+                count += c;
+            }
+        });
+        var totalProduit = row.querySelector('#totalproduit' + producteurId);
+        var prixProduit = row.querySelector("#prix")
+        var prixTotalProduit = parseFloat(prixProduit.dataset.value) * count;
+        totalProduit.dataset.value = prixTotalProduit;
+        totalProduit.innerHTML = prixTotalProduit.toFixed(2) + " €";
+
+        // Total producteur
+        var totalProduitsProducteur = jQuery('table#commande td[id=totalproduit' + producteurId + ']');
+        var avoirsProducteur = jQuery('table#commande td[id=avoirproducteur' + producteurId + ']');
+        var prixTotalProducteur = 0.0;
+        totalProduitsProducteur.each(function ()
+        {
+            prixTotalProducteur += parseFloat(this.dataset.value);
+        });
+
+        var button = jQuery('table#commande button[id=producteur' + producteurId + ']')[0];
+        if(prixTotalProducteur > 0) {
+            button.innerHTML = "<b>" + button.dataset.producteur + "</b>";
+        } else {
+            button.innerHTML = button.dataset.producteur;
+        }
+
+        avoirsProducteur.each(function()
+        {
+            var montant = parseFloat(this.dataset.value);
+            if(montant < 0.0 || montant <= prixTotalProducteur) {
+                prixTotalProducteur -= montant;
+                this.innerHTML = (-montant).toFixed(2) + " €";
+            } else {
+                this.innerHTML = "";
+            }
+        });
+        var totalProducteur = jQuery('table#commande td[id=totalproducteur' + producteurId + ']')[0];
+        totalProducteur.dataset.value = prixTotalProducteur;
+        totalProducteur.innerHTML = prixTotalProducteur.toFixed(2) + " €";
+
+        // Prix total de la commande
+        var prixTotalCommande = 0.0;
+        totalProducteurs.each(function ()
+        {
+            prixTotalCommande += parseFloat(this.dataset.value);
+        });
+        totalAvoirs.each(function()
+        {
+            var montant = parseFloat(this.dataset.value);
+            if(montant < 0.0 || montant < prixTotalCommande) {
+                prixTotalCommande -= montant;
+                this.innerHTML = (-montant).toFixed(2) + " €";
+            } else {
+                this.innerHTML = "";
+            }
+        });
+        totalCommande.innerHTML = prixTotalCommande.toFixed(2) + " €";
+    });
+    </script>
+    HTML;
 
     return $chaine;
 }

@@ -160,6 +160,16 @@ function retrouver_avoirs($idclient,$idboncommande) {
         }
     }
 
+    $cmp = function($a, $b) {
+        if ($a < 0 && $b > 0) {
+            return -1;
+        }
+        if ($a > 0 && $b < 0) {
+            return 1;
+        }
+        return $a > $b ? -1 : 1;
+    };
+
     if($idboncommande > 0) {
         $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,idproducteur,montant,description " .
                            "from $base_avoirs where idboncommande='$idboncommande'");
@@ -167,6 +177,10 @@ function retrouver_avoirs($idclient,$idboncommande) {
             $avoirs[$idproducteur]["description"][$id] = $description;
             $avoirs[$idproducteur]["montant"][$id] = $montant;
         }
+    }
+    foreach($avoirs as $key_producteurs => $avoirs_producteurs) {
+        uasort($avoirs_producteurs["montant"], $cmp);
+        $avoirs[$key_producteurs]["montant"] = $avoirs_producteurs["montant"];
     }
     return $avoirs;
 }

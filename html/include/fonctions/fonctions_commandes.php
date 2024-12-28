@@ -105,16 +105,16 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
                     array_key_exists($iddate, $qteproduit[$idproducteur][$idproduit]) &&
                     is_numeric($qteproduit[$idproducteur][$idproduit][$iddate]) ?
                         $qteproduit[$idproducteur][$idproduit][$iddate] : 0;
-
+                if ($quantite == 0) {
+                    $quantite = "";
+                }
                 $name = "qteproduit[$idproducteur][$idproduit][$iddate]";
                 if(array_key_exists($iddate, $absences) &&
                    array_key_exists($idproducteur, $absences[$iddate]) &&
                    $absences[$iddate][$idproducteur])
                 {
                     $chaine2 .= '  <td><input type="hidden" value="' . $quantite . '" name="' . $name . '"></input></td>';
-                }
-                else
-                {
+                } else {
                     $chaine2 .= '  <td style="vertical-align: middle;"><input type="number" size="2" min="0" max="99" value="' . $quantite . '" name="' . $name . '"></input></td>';
                 }
                 $total_qte_produit += $quantite;

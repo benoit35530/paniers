@@ -106,8 +106,9 @@ function paniers_install()
                     id int(11) NOT NULL auto_increment,
                     nom text NOT NULL,
                     email text NOT NULL,
+                    envoyerrecap bool NOT NULL,
                     telephone text NOT NULL,
-                    ordrecheque text NOT NULL,
+                    paiement text,
                     produits text NOT NULL,
                     datemodif datetime NOT NULL,
                     etat enum('Actif','Inactif') NOT NULL default 'Actif',
@@ -184,10 +185,8 @@ function paniers_install()
         $paniers_data["envoyerrelance"] = "0";
         $paniers_data["adresserelance"] = "";
         $paniers_data["deltarelance"] = "3";
-        $paniers_data["ordrecheque"] = "";
         $paniers_data["commandeverouille"] = False;
         $paniers_data["commandenondisponible"] = "Le bon de commande n'est pas encore disponible, merci de revenir dans quelques jours.";
-        $paniers_data["ordrecheque"] = "";
         $paniers_data["periodicite"] = "mensuel";
         $paniers_data["jourcommande"] = "Wednesday";
         $paniers_data["permanences"] = "reception,Réception des produits;
@@ -1102,13 +1101,6 @@ function paniers_plugin_options() {
         </td>
       </tr>
       <tr valign="top">
-        <th scope="row"><label for="ordrecheque"><?php _e('Ordre du Chèque') ?> </label></th>
-        <td><input name="paniers_ordrecheque" type="text" id="ordrecheque"
-          value="<?php echo $paniers_data['ordrecheque']; ?>" class="regular-text"
-        /> <span class="ordrecheque"><?php _e('L\'ordre pour le chèque consommateur si chèque unique. Laissez ce champ vide si les consommateurs règlent chaque producteur par chèque (l\'ordre pour chaque producteur sera indiqué sur le bon de commande).') ?>
-        </span></td>
-      </tr>
-      <tr valign="top">
         <td><label><?php _e("Permanences", 'permanences'); ?> </label></td>
         <td><textarea name="paniers_permanences" type="text" id="permanences" class="wide"
            style="width: 40%; height: 100px;"><?php echo $paniers_data['permanences']; ?></textarea><span class="permanences"><?php _e('Types de permanences consommateurs (liste de \"id,libellé,heure début,heure fin,nombre de participants,défaut\" séparés par des points virgules)') ?>
@@ -1282,18 +1274,18 @@ mailto: %EMAIL_GESTIONNAIRES%
       <tr valign="top">
         <td colspan="2">
           <h4>
-            <?php _e("Courrier récapitulatif chèques pour dépôt", 'paniers'); ?>
+            <?php _e("Courrier récapitulatif paiement pour dépôt", 'paniers'); ?>
           </h4>
         </td>
       </tr>
       <tr valign="top">
         <td><label><?php _e("Sujet", 'paniers'); ?> </label></td>
         <td><?php
-        $subject = $paniers_data['exportchequessujet'];
+        $subject = $paniers_data['exportpaiementssujet'];
         if(empty($subject)) {
             $subject = __('%BLOGNAME%: Récapitulatif montants des commandes - %PERIODE%', 'paniers');
 		}
-		?> <input type="text" name="paniers_exportchequessujet" value='<?php echo $subject; ?>' style="width: 100%"
+		?> <input type="text" name="paniers_exportpaiementssujet" value='<?php echo $subject; ?>' style="width: 100%"
           class='wide'
         />
         </td>
@@ -1301,7 +1293,7 @@ mailto: %EMAIL_GESTIONNAIRES%
       <tr valign="top">
         <td><label><?php _e("Message", 'message'); ?> </label></td>
         <td><?php
-        $message = $paniers_data['exportchequesmessage'];
+        $message = $paniers_data['exportpaiementsmessage'];
         if(empty($message))
         {
             $message = __("Bonjour,
@@ -1313,7 +1305,7 @@ Cordialement,
 mailto: %EMAIL_GESTIONNAIRES%
 %BLOGURL%", 'paniers');
         }
-        ?> <textarea name="paniers_exportchequesmessage" class='wide' style="width: 100%; height: 250px;"><?php echo esc_textarea($message) ?></textarea>
+        ?> <textarea name="paniers_exportpaiementsmessage" class='wide' style="width: 100%; height: 250px;"><?php echo esc_textarea($message) ?></textarea>
         </td>
       </tr>
       <tr valign="top">

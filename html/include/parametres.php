@@ -120,8 +120,6 @@ $tab_etats_producteurs = array("Actif"=>"Actif", "Inactif"=>"Inactif");
 
 $tab_villes_clients = explode(";", get_paniers_option($paniers_data, "villes"));
 
-$g_ordrecheque = get_paniers_option($paniers_data, "ordrecheque");
-
 // Couleurs des graphiques
 
 $g_col_bar				= "#33CC33";				// couleur des barres des graphes

@@ -156,7 +156,7 @@ function retrouver_parametres_produit($id) {
         $params['description'] = "???";
         $params['prix'] = 0.0;
         $params['idproducteur'] = "0";
-        return $param;
+        return $params;
     }
 }
 

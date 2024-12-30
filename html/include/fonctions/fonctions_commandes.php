@@ -78,8 +78,8 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
     HTML;
     $chaine .= '<div class="accordion" id="accordionProducteur">';
 
-    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits from $base_producteurs where etat = 'Actif' order by ordre,produits");
-    while(list($idproducteur, $nom, $produits) = mysqli_fetch_row($rep0))
+    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits,paiement from $base_producteurs where etat = 'Actif' order by ordre,produits");
+    while(list($idproducteur, $nom, $produits,$paiement) = mysqli_fetch_row($rep0))
     {
         $total_producteur = 0.0;
         $chaine2 = "";
@@ -117,7 +117,9 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
                 } else {
                     $chaine2 .= '  <td style="vertical-align: middle;"><input type="number" size="2" min="0" max="99" value="' . $quantite . '" name="' . $name . '"></input></td>';
                 }
-                $total_qte_produit += $quantite;
+                if ($quantite != "") {
+                    $total_qte_produit += $quantite;
+                }
             }
 
             $totalproduit = $total_qte_produit * $prix;
@@ -153,6 +155,7 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
             </h2>
             <div id="collapse$idproducteur" class="accordion-collapse collapse" data-bs-parent="#accordionProducteur">
                 <div class="accordion-body p-3">
+                    <div class="row"><div class="col" style="text-align: center"><b>&#9888; $paiement</b></div></div>
                     <table class="table table-bordered m-0">
                         <thead class="table-secondary" style="position: sticky; top:0;">
                             <tr>
@@ -1720,13 +1723,13 @@ function recapituler_par_producteur_client($idproducteur,$idperiode,$iddepot) {
     return $chaine;
 }
 
-function recapitulatif_cheques_clients($idperiode,$iddepot) {
+function recapitulatif_paiements_clients($idperiode,$iddepot) {
     global $base_commandes,$base_producteurs,$base_clients,$base_bons_cde,$base_avoirs,$g_lib_somme,$base_clients;
 
     $absences = retrouver_absences($idperiode);
 
     $producteurs = array();
-    $tab_cheques = array();
+    $tab_commandes = array();
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idproducteur,$base_commandes.idclient,iddatelivraison," .
                        "sum(prix * quantite)," .
                        "$base_clients.nom,$base_clients.prenom,$base_clients.codeclient " .
@@ -1744,11 +1747,11 @@ function recapitulatif_cheques_clients($idperiode,$iddepot) {
                 $producteurs[$idproducteur] = 0;
             }
             $producteurs[$idproducteur] += $prix;
-            $tab_cheques[$idclient]["client"] = array($idclient, $nom, $prenom, $codeclient);
-            if(!array_key_exists($idproducteur, $tab_cheques[$idclient])) {
-                $tab_cheques[$idclient][$idproducteur] = 0;
+            $tab_commandes[$idclient]["client"] = array($idclient, $nom, $prenom, $codeclient);
+            if(!array_key_exists($idproducteur, $tab_commandes[$idclient])) {
+                $tab_commandes[$idclient][$idproducteur] = 0;
             }
-            $tab_cheques[$idclient][$idproducteur] += $prix;
+            $tab_commandes[$idclient][$idproducteur] += $prix;
         }
     }
 
@@ -1764,13 +1767,13 @@ function recapitulatif_cheques_clients($idperiode,$iddepot) {
             $producteurs[$idproducteur] = 0;
         }
         $producteurs[$idproducteur] -= $montant;
-        if(!isset($tab_cheques[$idclient]["client"])) {
-            $tab_cheques[$idclient]["client"] = array($idclient, $nom, $prenom, $codeclient);
+        if(!isset($tab_commandes[$idclient]["client"])) {
+            $tab_commandes[$idclient]["client"] = array($idclient, $nom, $prenom, $codeclient);
         }
-        if(!array_key_exists($idproducteur, $tab_cheques[$idclient])) {
-            $tab_cheques[$idclient][$idproducteur] = 0;
+        if(!array_key_exists($idproducteur, $tab_commandes[$idclient])) {
+            $tab_commandes[$idclient][$idproducteur] = 0;
         }
-        $tab_cheques[$idclient][$idproducteur] -= $montant;
+        $tab_commandes[$idclient][$idproducteur] -= $montant;
     }
 
     $largeur = (80 / (count($producteurs) + 1)) . "%";
@@ -1792,8 +1795,8 @@ function recapitulatif_cheques_clients($idperiode,$iddepot) {
     $produits = retrouver_produits_producteurs();
 
     $total_avoirs = 0.0;
-    reset($tab_cheques);
-    foreach($tab_cheques as $nom => $prixParProducteurs) {
+    reset($tab_commandes);
+    foreach($tab_commandes as $nom => $prixParProducteurs) {
         $client = $prixParProducteurs["client"];
         $idclient = $client[0];
         $nom = $client[1];

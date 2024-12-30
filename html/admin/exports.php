@@ -231,16 +231,16 @@ case "recapproducteurs": {
 }
 break;
 
-case "confrecapcheques": {
+case "confrecappaiements": {
     if($export == "email") {
         $output = export_courrier_form("Confirmation envoie de message aux producteurs",
-                "recapcheques", "formconfrecapcheques", "exportchequessujet", "exportchequesmessage");
+                "recappaiements", "formconfrecappaiements", "exportpaiementssujet", "exportpaiementsmessage");
         $export = "";
         break;
     }
 }
 
-case "recapcheques": {
+case "recappaiements": {
     if (isset($idperiode) && $idperiode != "" && $idperiode != 0)
     {
         $pageBreak = False;
@@ -253,8 +253,8 @@ case "recapcheques": {
             {
                 $output .= "<div style=\"page-break-before: always\"/>";
             }
-            $output .= afficher_titre("Chèques clients du dépôt \"". retrouver_depot($depot) . "\" pour la période : " . retrouver_periode($idperiode));
-            $output .= recapitulatif_cheques_clients($idperiode, $depot);
+            $output .= afficher_titre("Paiements clients du dépôt \"". retrouver_depot($depot) . "\" pour la période : " . retrouver_periode($idperiode));
+            $output .= recapitulatif_paiements_clients($idperiode, $depot);
             if($export == "email") {
                 $mail_to = retrouver_depot_email($depot);
                 if(send_export_email($mail_to, $mail_cc, $mail_subject, $mail_message, $output)) {
@@ -265,7 +265,7 @@ case "recapcheques": {
             }
             $pageBreak = True;
         }
-        ecrire_log_admin("Export : recapitulatif des chèques ($export)");
+        ecrire_log_admin("Export : recapitulatif des paiements ($export)");
     }
 }
 break;
@@ -308,7 +308,7 @@ default: {
         $output .= saisir_enregistrement($champs,"?action=confrecapclients","formrecapclients",50,20,5,5,false,"");
         $output .= "<p>";
 
-        $output .= afficher_titre("Montants des chèques clients pour une période");
+        $output .= afficher_titre("Montants des paiements clients pour une période");
         $champs["libelle"] = array("Choisissez la période et le dépôt","Période","Dépôt","Format d'export","");
         $champs["type"] = array("","libre",$depottype, "radio","submit");
         $champs["lgmax"] = array("","","","", "");
@@ -316,7 +316,7 @@ default: {
         $champs["nomvar"] = array("","","","export","");
         $champs["valeur"] = array("",afficher_liste_periodes(),$depotvalue,$exporttype," Valider ");
         $champs["aide"] = array("","","","","");
-        $output .= saisir_enregistrement($champs,"?action=confrecapcheques","formchequesclients",50,20,5,5,false,"");
+        $output .= saisir_enregistrement($champs,"?action=confrecappaiements","formpaiementsclients",50,20,5,5,false,"");
         $output .= "<p>";
     }
 

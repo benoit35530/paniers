@@ -7,18 +7,18 @@ function nombre_producteurs() {
     return($nb);
 }
 
-function formulaire_producteur($cde="ajout",$id=0,$nom="",$email="",$telephone = "", $ordrecheque="",$produits="", $ordre="0") {
+function formulaire_producteur($cde="ajout",$id=0,$nom="",$email="",$telephone = "", $paiement="",$produits="", $ordre="0") {
     $libelle = $cde == "ajout" ? "Ajout ": ($cde == "modif" ? "Modification " : "Suppression ");
     $typetexte = $cde == "modif" || $cde == "ajout" ? "text" : "afftext";
     $button = $cde == "ajout" ? " Ajouter ": ($cde == "modif" ? " Modifier " : " Supprimer ");
 
-    $champs["libelle"] = array($libelle . "d'un producteur","*Nom","*Email", "Telephone", "*Ordre des chèques","*Description produits", "Ordre d'affichage", "");
+    $champs["libelle"] = array($libelle . "d'un producteur","*Nom","*Email", "Telephone", "Paiement","*Description produits", "Ordre d'affichage", "");
     $champs["type"] = array("",$typetexte,$typetexte,$typetexte,$typetexte,$typetexte,$typetexte,"submit");
     $champs["lgmax"] = array("","80","80", "80", "80", "120","10", "");
     $champs["taille"] = array("","40","40", "40","40", "60", "10", "");
-    $champs["nomvar"] = array("","nom","email", "telephone", "ordrecheque","produits","ordre", "");
-    $champs["valeur"] = array("",$nom,$email, $telephone, $ordrecheque,$produits,$ordre,$button);
-    $champs["aide"] = array("","Nom du producteur","Email", "Telephone", "Ordre à mettre sur les chèques","Description des produits vendus","Ordre d'affichage", "");
+    $champs["nomvar"] = array("","nom","email", "telephone", "paiement","produits","ordre", "");
+    $champs["valeur"] = array("",$nom,$email, $telephone, $paiement,$produits,$ordre,$button);
+    $champs["aide"] = array("","Nom du producteur","Email", "Telephone", "Si paiement spécifique","Description des produits vendus","Ordre d'affichage", "");
     return(saisir_enregistrement($champs,"?action=conf" . $cde . "&id=$id","formproducteur","70","20"));
 }
 
@@ -32,7 +32,7 @@ function gerer_liste_producteurs($etat = "Actif") {
         $filter = "etat='$etat'";
     }
 
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,email,telephone,ordrecheque,produits,datemodif,etat,ordre from $base_producteurs where $filter order by ordre,nom");
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,email,telephone,paiement,produits,datemodif,etat,ordre from $base_producteurs where $filter order by ordre,nom");
     $chaine = "";
     if (mysqli_num_rows($rep) != 0)
     {
@@ -42,12 +42,12 @@ function gerer_liste_producteurs($etat = "Actif") {
         $chaine .= html_colonne("","","center","","","","","Nom","","thliste");
         $chaine .= html_colonne("","","center","","","","","Email","","thliste");
         $chaine .= html_colonne("","","center","","","","","Telephone","","thliste");
-        $chaine .= html_colonne("","","center","","","","","Ordre des chèques","","thliste");
+        $chaine .= html_colonne("","","center","","","","","Paiement","","thliste");
         $chaine .= html_colonne("","","center","","","","","Produits","","thliste");
         $chaine .= html_colonne("","","center","","","","","Ordre d'affichage","","thliste");
         $chaine .= html_colonne("","","center","","","","","Modifié le","","thliste");
         $chaine .= html_fin_ligne();
-        while (list($id,$nom,$email,$telephone,$ordrecheque,$produits,$datemodif,$etat, $ordre) = mysqli_fetch_row($rep))
+        while (list($id,$nom,$email,$telephone,$paiement,$produits,$datemodif,$etat, $ordre) = mysqli_fetch_row($rep))
         {
             $chaine .= html_debut_ligne("","","","top");
             $action = html_lien("?action=modif&id=$id","_top","Modifier");
@@ -63,7 +63,7 @@ function gerer_liste_producteurs($etat = "Actif") {
             $chaine .= html_colonne("","","left","","","","","$nom","","tdliste");
             $chaine .= html_colonne("","","left","","","","","<a href=\"mailto:$email\">$email</a>","","tdliste");
             $chaine .= html_colonne("","","left","","","","","$telephone","","tdliste");
-            $chaine .= html_colonne("","","left","","","","","$ordrecheque","","tdliste");
+            $chaine .= html_colonne("","","left","","","","","$paiement","","tdliste");
             $chaine .= html_colonne("","","left","","","","","$produits","","tdliste");
             $chaine .= html_colonne("","","left","","","","","$ordre","","tdliste");
             $chaine .= html_colonne("","","center","","","","",dateheureexterne($datemodif),"","tdliste");
@@ -81,12 +81,12 @@ function gerer_liste_producteurs($etat = "Actif") {
 function liste_producteurs() {
     global $tab_producteurs,$base_producteurs;
     if(!isset($tab_producteurs)) {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits,email,ordrecheque,ordre from $base_producteurs where 1");
-        while(list($id,$nom,$produits,$email,$ordrecheque,$ordre) = mysqli_fetch_row($rep)) {
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits,email,paiement from $base_producteurs where 1");
+        while(list($id,$nom,$produits,$email,$paiement) = mysqli_fetch_row($rep)) {
             $tab_producteurs[$id]["nom"] = $nom;
             $tab_producteurs[$id]["produits"] = $produits;
             $tab_producteurs[$id]['email'] = $email;
-            $tab_producteurs[$id]['ordrecheque'] = $ordrecheque;
+            $tab_producteurs[$id]['paiement'] = $paiement;
         }
     }
     return $tab_producteurs;
@@ -177,7 +177,7 @@ function retrouver_parametres_producteur($id) {
     if(!isset($producteurs[$id])) {
         $params['nom'] = "??? producteur n° $id inconnu ???";
         $params['email'] = "???";
-        $params['ordrecheque'] = "???";
+        $params['paiement'] = "???";
         $params['produits'] = "??? ";
         return $params;
     }

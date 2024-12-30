@@ -70,7 +70,7 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
             <thead class="table" style="position: sticky; top:0;">
                 <tr class="table-dark">
                     <th scope="col">Producteurs</th>
-                    <th scope="col"></th>
+                    <th scope="col" style="text-align:right;"><a role="button" href="#" onclick="jQuery('#accordionProducteur .collapse').collapse('show');" class="btn btn-primary">Tout déplier</a></th>
                 </tr>
             </thead>
             <tbody>
@@ -146,6 +146,12 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
             }
         }
 
+        if ($paiement != '') {
+            $paiementHTML = '<div class="row"><div class="col" style="text-align: center"><b>&#9888; ' . $paiement . '</b></div></div>';
+        } else {
+            $paiementHTML = '';
+        }
+
         $chaine .= <<<HTML
         <div class="accordion-item">
             <h2 class="accordion-header">
@@ -153,9 +159,9 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
                     $producteur
                 </button>
             </h2>
-            <div id="collapse$idproducteur" class="accordion-collapse collapse" data-bs-parent="#accordionProducteur">
+            <div id="collapse$idproducteur" class="accordion-collapse collapse">
                 <div class="accordion-body p-3">
-                    <div class="row"><div class="col" style="text-align: center"><b>&#9888; $paiement</b></div></div>
+                    $paiementHTML
                     <table class="table table-bordered m-0">
                         <thead class="table-secondary" style="position: sticky; top:0;">
                             <tr>

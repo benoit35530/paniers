@@ -5,7 +5,6 @@
 //
 // Fonctions d'affichage HTML
 //
-require_once('../../../../../wp-includes/media.php');
 
 function html_afficher_champ($libelle,$champ,$oblig=false,$aide="",$indent="20") {
 

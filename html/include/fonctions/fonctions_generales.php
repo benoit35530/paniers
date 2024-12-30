@@ -173,6 +173,9 @@ function saisir_enregistrement($champs,$action,$formname,$prc_taille=95,$prc_ind
             case "file":
                 $chaine2 .= html_file_input($champs["nomvar"][$i],$champs["taille"][$i]);
                 break;
+            case "media":
+                $chaine2 .= html_media_input($champs["nomvar"][$i], $champs['valeur'][$i]);
+                break;
             case "libre":
                 $chaine2 .= $champs["valeur"][$i];
                 break;

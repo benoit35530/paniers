@@ -130,6 +130,7 @@ function paniers_install()
                     description text NOT NULL,
                     prix float NOT NULL,
                     idproducteur int(11) NOT NULL,
+                    image int(11),
                     datemodif datetime NOT NULL,
                     etat enum('Inactif','Actif') NOT NULL default 'Actif',
                     KEY id (id)
@@ -827,11 +828,8 @@ function paniers_datecommande() {
     }
 }
 
-function paniers_produits($atts) {
-    extract( shortcode_atts( array(
-		'idproducteur' => '0',
-		'table' => '0'
-    ), $atts ) );
+function paniers_produits_producteur($atts) {
+    extract(shortcode_atts(array('idproducteur' => '0'), $atts));
 
     require_once(paniers_dir . "/include/fonctions/fonctions_produits.php");
     require_once(paniers_dir . "/include/fonctions/fonctions_producteurs.php");
@@ -841,23 +839,42 @@ function paniers_produits($atts) {
     }
 
     $produits = liste_produits($idproducteur);
-    if($table > 0) {
-        $txt = "<table>";
-        $txt .= "<tr><th colspan=\"2\">" . $producteur["produits"] . ": " . $producteur["nom"] . "</th></tr>";
-        foreach($produits as $desc => $prix) {
-            $txt .= "<tr><td>". $desc . "</td><td>" . $prix . "&#8364;</td></tr>";
+    $chaine = "<div class=\"container-fluid\">";
+    $i = 0;
+    $placeholder = paniers_plugin_url . '/placeholder.png';
+    foreach($produits as $nom => list($prix, $image)) {
+        if($image != "") {
+            $image = wp_get_attachment_image_src($image, array(300, 300))[0];
+        } else {
+            $image = $placeholder;
         }
-        $txt .= "</table>";
-    }
-    else {
-        $txt = "<ul>";
-        foreach($produits as $desc => $prix) {
-            $txt .= "<li>". $desc . "</li>";
+
+        if ($i == 0) {
+            $chaine .= "<div class=\"row\">";
         }
-        $txt .= "</ul>";
+        $chaine .= "<div class=\"col-sm\">";
+        $chaine .= "  <ul style=\"list-style:none; \">";
+        $chaine .= "    <li><img src=\"" . $image . "\"/></li>";
+        $chaine .= "    <li><center><b>$nom</b></center></li>";
+        $chaine .= "    <li><center>$prix €</center></li>";
+        $chaine .= "  </ul>";
+        $chaine .= "</div>";
+        $i++;
+        if ($i == 4) {
+            $chaine .= "</div>";
+            $i = 0;
+        }
     }
-    return $txt;
+    if ($i < 4) {
+        for (; $i < 4; $i++) {
+            $chaine .= "<div class=\"col\"></div>";
+        }
+        $chaine .= "</div>";
+    }
+    $chaine .= "</div>";
+    return $chaine;
 }
+add_shortcode('paniers-produits-producteur', 'paniers_produits_producteur');
 
 function paniers_add_plugin_stylesheet() {
     wp_register_style('paniers_stylesheet', paniers_plugin_url . '/paniers.css');
@@ -871,6 +888,57 @@ function paniers_add_plugin_scripts() {
     if(!str_starts_with($_SERVER['REQUEST_URI'], "/paniers/admin")) {
         wp_enqueue_script('bootstrap-js', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js', array('jquery'), null, true);
     }
+}
+
+function paniers_media_library_script($mediaId) {
+    return <<<HTML
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+
+        var mediaBox = $('#mediabox-$mediaId');
+        var uploadLink = mediaBox.find(".uploadLink");
+        var changeLink = mediaBox.find(".changeLink");
+        var imageContainer = mediaBox.find(".imageContainer");
+        var imageInput = mediaBox.find(".imageInput");
+        var frame;
+
+        function openFrame() {
+            if (frame) {
+                frame.open();
+                return;
+            }
+
+            frame = wp.media({
+                title: 'Télécharger un image',
+                multiple: false
+            });
+
+            frame.on('select', function(){
+                var attachment = frame.state().get('selection').first().toJSON();
+                imageContainer.html('');
+                imageContainer.append('<img src="'+ attachment.url +'" alt="" style="max-width:150px; max-height:150px;"/>');
+                imageInput.val(attachment.id);
+                uploadLink.addClass('hidden');
+                changeLink.removeClass('hidden');
+            });
+
+            frame.open();
+        }
+
+        uploadLink.on('click', function(event) {
+            event.preventDefault();
+            openFrame();
+        });
+
+        changeLink.on('click', function(event){
+            event.preventDefault();
+            uploadLink.removeClass('hidden');
+            changeLink.addClass('hidden');
+            openFrame();
+        });
+    });
+    </script>
+    HTML;
 }
 
 function paniers_password_reset($user, $password) {
@@ -1357,10 +1425,8 @@ add_filter('authenticate', 'paniers_check_login', 10, 3);
 
 add_shortcode('paniers-updateprofile', 'paniers_updateprofile');
 add_shortcode('paniers-date-commande', 'paniers_datecommande');
-add_shortcode('paniers-produits', 'paniers_produits');
 
-
-add_filter( 'auth_cookie_expiration', 'paniers_login_expiration' );
+add_filter('auth_cookie_expiration', 'paniers_login_expiration');
 
 function paniers_login_expiration($expirein) {
     return MONTH_IN_SECONDS * 3;

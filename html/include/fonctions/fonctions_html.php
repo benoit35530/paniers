@@ -5,6 +5,7 @@
 //
 // Fonctions d'affichage HTML
 //
+require_once('../../../../../wp-includes/media.php');
 
 function html_afficher_champ($libelle,$champ,$oblig=false,$aide="",$indent="20") {
 
@@ -187,6 +188,29 @@ function html_password_input($nomvar,$taille,$lgmax) {
 
 function html_file_input($nomvar,$taille) {
     return("<input type=\"file\" name=\"$nomvar\" size=\"$taille\" class=\"champinput\">\n");
+}
+
+function html_media_input($nomvar, $value) {
+    ob_start();
+    ?>
+    <div id="mediabox-<?php _e($nomvar) ?>">
+        <div class="imageContainer">
+            <?php if($value != '') : ?>
+                <img src="<?php _e(wp_get_attachment_image_src($value)[0]) ?>" alt="" style="max-width:150px; max-height:150px;"/>
+            <?php endif; ?>
+        </div>
+
+        <a class="uploadLink <?php if ($value != '') { echo 'hidden'; } ?>" href="#">
+            <?php _e('Sélectionner une image') ?>
+        </a>
+        <a class="changeLink <?php if ($value == '') { echo 'hidden'; } ?>" href="#">
+            <?php _e('Choisir une autre image') ?>
+        </a>
+
+        <input class="imageInput" name="image" type="hidden" value="<?php _e($value); ?>" />
+    </div>
+    <?;
+    return ob_get_clean();
 }
 
 function html_textarea_input($nomvar,$valeur="",$rows=4,$cols=80) {

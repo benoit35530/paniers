@@ -7,7 +7,7 @@ function nombre_produits() {
     return($nb);
 }
 
-function formulaire_produit($cde="ajout",$id=0,$nom="",$description="",$prix=0.0,$idproducteur=0) {
+function formulaire_produit($cde="ajout",$id=0,$nom="",$description="",$prix=0.0,$idproducteur=0,$image="") {
     global $g_lib_somme_admin;
     $libelle = $cde == "ajout" ? "Ajout ": ($cde == "modif" ? "Modification " : "Suppression ");
     $type = $cde == "modif" || $cde == "ajout" ? "text" : "afftext";
@@ -27,14 +27,17 @@ function formulaire_produit($cde="ajout",$id=0,$nom="",$description="",$prix=0.0
     $nom = htmlspecialchars($nom,ENT_QUOTES);
     $description = htmlspecialchars($description,ENT_QUOTES);
 
-    $champs["libelle"] = array($libelle . "d'un produit","*Nom", "*Description","*Prix","*Producteur","");
-    $champs["type"] = array("",$type,"textarea",$type,$producteurtype,"submit");
-    $champs["lgmax"] = array("","80","5", "80","","");
-    $champs["taille"] = array("","40","80","40","","");
-    $champs["nomvar"] = array("","nom", "description","prix","idproducteur","");
-    $champs["valeur"] = array("",$nom,$description,sprintf($g_lib_somme_admin,$prix),$producteurval,$button);
-    $champs["aide"] = array("","Nom du produit","Description","Prix du produit (avec un \".\" entre euros et centimes)","Producteur","");
-    return(saisir_enregistrement($champs,"?action=conf" . $cde . "&id=$id","formproduit","70","20"));
+    $champs["libelle"] = array($libelle . "d'un produit", "*Nom", "*Producteur", "*Description","*Prix", "Image","");
+    $champs["type"] = array("",$type,$producteurtype,"textarea",$type,"media","submit");
+    $champs["lgmax"] = array("","80","","5", "80","","");
+    $champs["taille"] = array("","40","","80","40","","");
+    $champs["nomvar"] = array("","nom", "idproducteur", "description","prix","image","");
+    $champs["valeur"] = array("",$nom,$producteurval,$description,sprintf($g_lib_somme_admin,$prix),$image,$button);
+    $champs["aide"] = array("","Nom du produit", "Producteur", "Description","Prix du produit (avec un \".\" entre euros et centimes)","","");
+
+    $chaine = saisir_enregistrement($champs,"?action=conf" . $cde . "&id=$id","formproduit","70","20");
+    $chaine .= paniers_media_library_script("image");
+    return $chaine;
 }
 
 function gerer_liste_produits() {
@@ -159,12 +162,12 @@ function retrouver_parametres_produit($id) {
 
 function liste_produits($idproducteur) {
     global $base_produits;
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select nom,prix from $base_produits where idproducteur = $idproducteur and etat='Actif'");
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select nom,prix,image from $base_produits where idproducteur = $idproducteur and etat='Actif'");
     $produits = array();
     if (mysqli_num_rows($rep) > 0) {
-        while (list($nom, $prix) = mysqli_fetch_row($rep))
+        while (list($nom, $prix, $image) = mysqli_fetch_row($rep))
         {
-            $produits[$nom] = $prix;
+            $produits[$nom] = [$prix, $image];
         }
     }
     return $produits;

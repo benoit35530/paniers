@@ -57,7 +57,7 @@ case "modif":
         if (mysqli_num_rows($rep) != 0)
         {
             list($id,$nom,$email,$telephone,$ordrecheque,$produits,$ordre) = mysqli_fetch_row($rep);
-            echo formulaire_producteur("modif",$id,$nom,$email,$telephone, $ordrecheque,$produits,$ordre);
+            echo formulaire_producteur("modif",$id,$nom,$email,$telephone,$ordrecheque,$produits,$ordre);
         }
         else
         {

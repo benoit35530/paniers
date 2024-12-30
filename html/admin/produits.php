@@ -44,15 +44,15 @@ case "modif":
         echo gerer_liste_produits();
     }
     else {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,description,prix,idproducteur from $base_produits where id = '$id'");
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,description,prix,idproducteur,image from $base_produits where id = '$id'");
         if(mysqli_num_rows($rep) != 0)
         {
-            list($id,$nom,$description,$prix,$idproducteur) = mysqli_fetch_row($rep);
-            echo formulaire_produit("modif",$id,$nom,$description,$prix,$idproducteur);
+            list($id,$nom,$description,$prix,$idproducteur,$image) = mysqli_fetch_row($rep);
+            echo formulaire_produit("modif",$id,$nom,$description,$prix,$idproducteur, $image);
         }
         else
         {
-            echo afficher_message_erreur("Identificateur inconnu !!!");
+            echo afficher_message_erreur("Produit inconnu!");
             echo gerer_liste_produits();
         }
     }
@@ -65,7 +65,7 @@ case "confmodif":
         echo gerer_liste_produits();
     }
     else {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,description,prix,idproducteur from $base_produits where id = '$id'");
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_produits where id = '$id'");
         if(mysqli_num_rows($rep) != 0) {
             $message = "";
             if(!isset($nom) || $nom == "") $message .= "nom du produit manquant, ";
@@ -82,11 +82,11 @@ case "confmodif":
             if($message != "")
             {
                 echo afficher_message_erreur("Le produit n° $id ne peut pas être modifié, erreur : " . $message);
-                echo formulaire_produit("modif",$id,$nom,$description,$prix,$idproducteur);
+                echo formulaire_produit("modif",$id,$nom,$description,$prix,$idproducteur,$image);
             }
             else
             {
-                mysqli_query($GLOBALS["___mysqli_ston"], "update $base_produits set nom='$nom',description='$description',prix='$prix',idproducteur='$idproducteur',datemodif=now() where id='$id'");
+                mysqli_query($GLOBALS["___mysqli_ston"], "update $base_produits set nom='$nom',description='$description',prix='$prix',idproducteur='$idproducteur', image='$image',datemodif=now() where id='$id'");
                 ecrire_log_admin("Produit n° $id modifié : $nom $prix");
                 echo afficher_message_info("Le produit n° $id est modifié");
                 echo gerer_liste_produits();
@@ -94,7 +94,7 @@ case "confmodif":
         }
         else
         {
-            echo afficher_message_erreur("Identificateur inconnu !!!");
+            echo afficher_message_erreur("Produit inconnu!");
             echo gerer_liste_produits();
         }
     }
@@ -109,12 +109,12 @@ case "suppr":
         echo gerer_liste_produits();
     }
     else {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,description,prix,idproducteur from $base_produits where id = '$id'");
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,description,prix,idproducteur,image from $base_produits where id = '$id'");
         if(mysqli_num_rows($rep) != 0) {
             $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select * from $base_commandes where idproduit = '$id'");
             if(mysqli_num_rows($rep0) == 0) {
-                list($id,$nom,$description,$prix,$idproducteur) = mysqli_fetch_row($rep);
-                echo formulaire_produit("suppr",$id,$nom,$description,$prix,$idproducteur);
+                list($id,$nom,$description,$prix,$idproducteur,$image) = mysqli_fetch_row($rep);
+                echo formulaire_produit("suppr",$id,$nom,$description,$prix,$idproducteur,$image);
             }
             else {
                 echo afficher_message_erreur("Le produit n° $id ne peut pas être supprimé : il a encore des commandes !!!");
@@ -159,7 +159,7 @@ case "confsuppr":
 case "modifetat":
     echo afficher_titre("Modification de l'état d'un produit");
     if(!isset($id)) {
-        echo afficher_message_erreur("Identificateur manquant !!!");
+        echo afficher_message_erreur("Produit manquant !!!");
         echo gerer_liste_produits();
     }
     else {

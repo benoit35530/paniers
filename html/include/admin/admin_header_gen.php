@@ -2,13 +2,19 @@
 
 wp_enqueue_script('jquery-ui-datepicker');
 wp_enqueue_style('jquery-style', plugins_url() . '/paniers/html/styles/jquery-ui-1.9.2.custom.min.css');
+wp_enqueue_style('media-css', "/wp-admin/css/common.min.css");
+wp_enqueue_style('media-css', "/wp-admin/css/media.min.css");
+wp_enqueue_media();
 
 echo "<html>\n";
 echo "<head>\n";
 echo "<title>Administration</title>\n";
 echo "<link rel=\"stylesheet\" href=\"../styles/styles_admin.css\" type=\"text/css\">\n";
+
 wp_print_scripts();
 wp_print_styles();
+wp_print_media_templates();
+
 echo "<script type=\"text/javascript\">
 jQuery(document).ready(function() {
     jQuery('.datepicker').datepicker({
@@ -16,6 +22,7 @@ jQuery(document).ready(function() {
     });
 });
 </script>";
+
 echo "</head>\n";
 echo "<body>\n";
 echo html_debut_tableau("100%");

@@ -23,6 +23,7 @@ else {
 if($export == "email") {
     $destsuccess = array();
     $destfailed = array();
+    $destignored = array();
 }
 
 if(!utilisateurIsAdmin()) {
@@ -217,11 +218,15 @@ case "recapproducteurs": {
                     $pageBreak = True;
                 }
                 if($export == "email") {
-                    $mail_to = retrouver_producteur_email($producteur);
-                    if(send_export_email($mail_to, $mail_cc, $mail_subject, $mail_message, $output)) {
-                        $destsuccess[] = $mail_to . " (producteur " . retrouver_producteur($producteur) . ")";
+                    $info = retrouver_producteur_info($producteur);
+                    if ($info["envoyerrecap"]) {
+                        if(send_export_email($info["email"], $mail_cc, $mail_subject, $mail_message, $output)) {
+                            $destsuccess[] = $info["email"] . " (producteur " . $info["nom"] . ")";
+                        } else {
+                            $destfailed[] = $info["email"] . " (producteur " . $info["nom"] . ")";
+                        }
                     } else {
-                        $destfailed[] = $mail_to . " (producteur " . retrouver_producteur($producteur) . ")";
+                        $destignored[] = $info["email"] . " (producteur " . $info["nom"] . ")";
                     }
                 }
             }
@@ -351,17 +356,23 @@ endswitch;
 if($export == "email") {
     $output = "<center>";
     if(count($destsuccess) > 0) {
-        $output .= "<h1>Les emails ont été envoyées avec succès aux destinataires suivant:</h1>";
+        $output .= "<h1>Les emails ont été envoyées avec succès aux destinataires suivants:</h1>";
         foreach($destsuccess as $email) {
             $output .= "<br>" . $email;
         }
-        if(count($destsucess) > 0 && $mail_cc != '') {
+        if($mail_cc != '') {
             $output .= "<br>" . $mail_cc . " (CC:)";
         }
     }
     if(count($destfailed) > 0) {
-        $output .= "<h1>L'envoie a échoué pour les destinataires suivant:</h1>";
+        $output .= "<h1>L'envoi a échoué pour les destinataires suivants:</h1>";
         foreach($destfailed as $email) {
+            $output .= "<br>" . $email;
+        }
+    }
+    if(count($destignored) > 0) {
+        $output .= "<h1>L'envoi du récapitulatif est désactivé pour les destinaires suivants:</h1>";
+        foreach($destignored as $email) {
             $output .= "<br>" . $email;
         }
     }

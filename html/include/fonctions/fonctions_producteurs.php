@@ -7,18 +7,18 @@ function nombre_producteurs() {
     return($nb);
 }
 
-function formulaire_producteur($cde="ajout",$id=0,$nom="",$email="",$telephone = "", $paiement="",$produits="", $ordre="0") {
+function formulaire_producteur($cde="ajout",$id=0,$nom="",$email="",$envoyerrecap=true,$telephone = "", $paiement="",$produits="", $ordre="0") {
     $libelle = $cde == "ajout" ? "Ajout ": ($cde == "modif" ? "Modification " : "Suppression ");
     $typetexte = $cde == "modif" || $cde == "ajout" ? "text" : "afftext";
     $button = $cde == "ajout" ? " Ajouter ": ($cde == "modif" ? " Modifier " : " Supprimer ");
 
-    $champs["libelle"] = array($libelle . "d'un producteur","*Nom","*Email", "Telephone", "Paiement","*Description produits", "Ordre d'affichage", "");
-    $champs["type"] = array("",$typetexte,$typetexte,$typetexte,$typetexte,$typetexte,$typetexte,"submit");
-    $champs["lgmax"] = array("","80","80", "80", "80", "120","10", "");
-    $champs["taille"] = array("","40","40", "40","40", "60", "10", "");
-    $champs["nomvar"] = array("","nom","email", "telephone", "paiement","produits","ordre", "");
-    $champs["valeur"] = array("",$nom,$email, $telephone, $paiement,$produits,$ordre,$button);
-    $champs["aide"] = array("","Nom du producteur","Email", "Telephone", "Si paiement spécifique","Description des produits vendus","Ordre d'affichage", "");
+    $champs["libelle"] = array($libelle . "d'un producteur","*Nom","*Email", "Envoyer récapitulatif", "Telephone", "Paiement","*Description produits", "Ordre d'affichage", "");
+    $champs["type"] = array("",$typetexte,$typetexte,"checkbox",$typetexte,$typetexte,$typetexte,$typetexte,"submit");
+    $champs["lgmax"] = array("","80","80","","80", "80", "120","10", "");
+    $champs["taille"] = array("","40","40","","40","40", "60", "10", "");
+    $champs["nomvar"] = array("","nom","email","envoyerrecap","telephone", "paiement","produits","ordre", "");
+    $champs["valeur"] = array("",$nom,$email, $envoyerrecap, $telephone, $paiement,$produits,$ordre,$button);
+    $champs["aide"] = array("","Nom du producteur","Email", "Si coché, le récapitulatif des commandes sera envoyé par email lors des exports", "Telephone", "Si paiement spécifique","Description des produits vendus","Ordre d'affichage", "");
     return(saisir_enregistrement($champs,"?action=conf" . $cde . "&id=$id","formproducteur","70","20"));
 }
 
@@ -81,11 +81,12 @@ function gerer_liste_producteurs($etat = "Actif") {
 function liste_producteurs() {
     global $tab_producteurs,$base_producteurs;
     if(!isset($tab_producteurs)) {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits,email,paiement from $base_producteurs where 1");
-        while(list($id,$nom,$produits,$email,$paiement) = mysqli_fetch_row($rep)) {
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits,email,envoyerrecap,paiement from $base_producteurs where 1");
+        while(list($id,$nom,$produits,$email,$envoyerrecap,$paiement) = mysqli_fetch_row($rep)) {
             $tab_producteurs[$id]["nom"] = $nom;
             $tab_producteurs[$id]["produits"] = $produits;
             $tab_producteurs[$id]['email'] = $email;
+            $tab_producteurs[$id]['envoyerrecap'] = $envoyerrecap;
             $tab_producteurs[$id]['paiement'] = $paiement;
         }
     }
@@ -119,17 +120,6 @@ function retrouver_produits_producteurs() {
         }
     }
     return $tab_produits_producteurs;
-}
-
-function retrouver_producteur_email($id) {
-    global $base_producteurs;
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select email from $base_producteurs where id='$id'");
-    $texte = '';
-    if (mysqli_num_rows($rep) != 0)
-    {
-        list($texte) = mysqli_fetch_row($rep);
-    }
-    return($texte);
 }
 
 function afficher_liste_producteurs_et_tous($nomvariable="idproducteur",$defaut=-1) {

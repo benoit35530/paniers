@@ -20,6 +20,7 @@ case "confajout":
     if(!isset($email) || $email == "") $message .= "email du producteur manquant, ";
     if(!isset($produits) || $produits == "") $message .= "description des produits manquante";
     if(!isset($ordre) || $ordre == "") $message .= "ordre des producteur manquante";
+    if(!isset($envoyerrecap)) $envoyerrecap = false;
     $nom = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $nom);
     $email = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $email);
     $paiement = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $paiement);
@@ -30,7 +31,7 @@ case "confajout":
     }
     else
     {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_producteurs (id,nom,email,telephone,paiement,produits,ordre,datemodif) values ('','$nom','$email','$telephone', '$paiement','$produits','$ordre', now())");
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_producteurs (id,nom,email,envoyerrecap,telephone,paiement,produits,ordre,datemodif) values ('','$nom','$email','$envoyerrecap','$telephone', '$paiement','$produits','$ordre', now())");
         if(!$rep) {
             echo afficher_message_erreur("Impossible d'ajouter ce producteur : " . ((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
         } else {
@@ -52,11 +53,11 @@ case "modif":
     }
     else
     {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,email,telephone,paiement,produits,ordre from $base_producteurs where id = '$id'");
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,email,envoyerrecap,telephone,paiement,produits,ordre from $base_producteurs where id = '$id'");
         if (mysqli_num_rows($rep) != 0)
         {
-            list($id,$nom,$email,$telephone,$ordrecheque,$produits,$ordre) = mysqli_fetch_row($rep);
-            echo formulaire_producteur("modif",$id,$nom,$email,$telephone,$ordrecheque,$produits,$ordre);
+            list($id,$nom,$email,$envoyerrecap,$telephone,$paiement,$produits,$ordre) = mysqli_fetch_row($rep);
+            echo formulaire_producteur("modif",$id,$nom,$email,$envoyerrecap,$telephone,$paiement,$produits,$ordre);
         }
         else
         {
@@ -76,7 +77,7 @@ case "confmodif":
     }
     else
     {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,email,telephone,ordrecheque,produits,ordre from $base_producteurs where id = '$id'");
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,email,envoyerrecap,telephone,ordrecheque,produits,ordre from $base_producteurs where id = '$id'");
         if (mysqli_num_rows($rep) != 0)
         {
             $message = "";
@@ -84,10 +85,11 @@ case "confmodif":
             if (!isset($email) || $email == "") $message .= "email du producteur manquant, ";
             if (!isset($produits) || $produits == "") $message .= "description des produits manquante";
             if (!isset($ordre) || $ordre == "") $message .= "ordre producteur manquante";
+            if (!isset($envoyerrecap)) $envoyerrecap = false;
             if ($message != "")
             {
                 echo afficher_message_erreur("Le producteur n° $id ne peut pas être modifié, erreur : " . $message);
-                echo formulaire_producteur("modif",$id,$nom,$email,$telephone,$paiement,$produits,$ordre);
+                echo formulaire_producteur("modif",$id,$nom,$email,$envoyerrecap,$telephone,$paiement,$produits,$ordre);
             }
             else
             {
@@ -95,7 +97,7 @@ case "confmodif":
                 $paiement = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $paiement);
                 $produits = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $produits);
 
-                mysqli_query($GLOBALS["___mysqli_ston"], "update $base_producteurs set nom='$nom',email='$email',telephone='$telephone', paiement='$paiement',produits='$produits',ordre='$ordre',datemodif=now() where id='$id'");
+                mysqli_query($GLOBALS["___mysqli_ston"], "update $base_producteurs set nom='$nom',email='$email',envoyerrecap='$envoyerrecap',telephone='$telephone', paiement='$paiement',produits='$produits',ordre='$ordre',datemodif=now() where id='$id'");
                 ecrire_log_admin("Producteur n° $id modifié : $nom");
                 echo afficher_message_info("Le producteur n° $id est modifié");
                 echo gerer_liste_producteurs();
@@ -120,14 +122,14 @@ case "suppr":
     }
     else
     {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,email,telephone,paiement,produits,ordre from $base_producteurs where id = '$id'");
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,email,enoyerrecap,telephone,paiement,produits,ordre from $base_producteurs where id = '$id'");
         if (mysqli_num_rows($rep) != 0)
         {
             $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select * from $base_produits where idproducteur = '$id'");
             if (mysqli_num_rows($rep0) == 0)
             {
-                list($id,$nom,$email,$telephone,$paiement,$produits,$ordre) = mysqli_fetch_row($rep);
-                echo formulaire_producteur("suppr",$id,$nom,$email,$telephone,$paiement,$produits,$ordre);
+                list($id,$nom,$email,$envoyerrecap,$telephone,$paiement,$produits,$ordre) = mysqli_fetch_row($rep);
+                echo formulaire_producteur("suppr",$id,$nom,$email,$envoyerrecap,$telephone,$paiement,$produits,$ordre);
             }
             else
             {

@@ -162,12 +162,12 @@ function retrouver_parametres_produit($id) {
 
 function liste_produits($idproducteur) {
     global $base_produits;
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select nom,prix,image from $base_produits where idproducteur = $idproducteur and etat='Actif'");
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select nom,prix,image,description from $base_produits where idproducteur = $idproducteur and etat='Actif'");
     $produits = array();
     if (mysqli_num_rows($rep) > 0) {
-        while (list($nom, $prix, $image) = mysqli_fetch_row($rep))
+        while (list($nom, $prix, $image, $description) = mysqli_fetch_row($rep))
         {
-            $produits[$nom] = [$prix, $image];
+            $produits[$nom] = [$prix, $image, $description];
         }
     }
     return $produits;

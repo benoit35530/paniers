@@ -841,7 +841,7 @@ function paniers_produits_producteur($atts) {
     $chaine = "<div class=\"container-fluid\">";
     $i = 0;
     $placeholder = paniers_plugin_url . '/placeholder.png';
-    foreach($produits as $nom => list($prix, $image)) {
+    foreach($produits as $nom => list($prix, $image, $description)) {
         if($image != "") {
             $image = wp_get_attachment_image_src($image, array(300, 300))[0];
         } else {
@@ -856,6 +856,7 @@ function paniers_produits_producteur($atts) {
         $chaine .= "    <li><img src=\"" . $image . "\"/></li>";
         $chaine .= "    <li><center><b>$nom</b></center></li>";
         $chaine .= "    <li><center>$prix €</center></li>";
+        $chaine .= "    <li><i><center>$description</center></i></li>";
         $chaine .= "  </ul>";
         $chaine .= "</div>";
         $i++;

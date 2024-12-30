@@ -70,7 +70,7 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
             <thead class="table" style="position: sticky; top:0;">
                 <tr class="table-dark">
                     <th scope="col">Producteurs</th>
-                    <th scope="col" style="text-align:right;"><a role="button" href="#" onclick="jQuery('#accordionProducteur .collapse').collapse('show');" class="btn btn-primary">Tout déplier</a></th>
+                    <th scope="col" style="text-align:right;"><a role="button" href="#" onclick="jQuery('#accordionProducteur .collapse').collapse('toggle');" class="btn btn-primary">Tout déplier</a></th>
                 </tr>
             </thead>
             <tbody>

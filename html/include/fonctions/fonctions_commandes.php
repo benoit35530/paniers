@@ -83,16 +83,14 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
     {
         $total_producteur = 0.0;
         $chaine2 = "";
-        $rep1 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,description,prix,UNIX_TIMESTAMP(curdate()) - UNIX_TIMESTAMP(datemodif) from $base_produits where idproducteur = '$idproducteur' and etat = 'Actif' order by description");
-        while(list($idproduit,$description,$prix,$sincemodif) = mysqli_fetch_row($rep1))
+        $rep1 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,description,prix,image,UNIX_TIMESTAMP(curdate()) - UNIX_TIMESTAMP(datemodif) from $base_produits where idproducteur = '$idproducteur' and etat = 'Actif' order by description");
+        while(list($idproduit, $nomProduit, $description, $prix, $image, $sincemodif) = mysqli_fetch_row($rep1))
         {
-            if ($sincemodif < 24 * 3600 * 30) { // 30 days
-                $description = "&#11088; " . $description;
-            }
             $total_qte_produit = 0;
-
+            $image = wp_get_attachment_image_src($image, array(300, 300))[0];
+            $produit = $sincemodif < 24 * 3600 * 30 ? "&#11088; " . $nomProduit : $nomProduit;
             $chaine2 .= '<tr>';
-            $chaine2 .= '  <td>' . $description . '</td>';
+            $chaine2 .= '  <td><button class="btn btn-lg btn-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $description . '" title="' . $nomProduit . '">' . $produit . '</button></td>';
             $chaine2 .= '  <td class="table-light" id="prix" data-value="' . $prix . '" style="text-align: right; white-space:nowrap;">' . sprintf($g_lib_somme,$prix) . '</td>';
             reset($dates);
             foreach($dates as $k => $v)
@@ -268,7 +266,23 @@ function afficher_formulaire_bon_commande_frontend(
     $chaine .= '</div>';
 
     $chaine .= <<<HTML
-    <script>
+    <script type="module">
+
+    jQuery('[data-bs-toggle="popover"]').each(function () {
+        return new bootstrap.Popover(this, {
+            trigger: 'focus hover',
+            content:
+            this.dataset.image == '' ?
+                this.dataset.description :
+                '<div class="container-fluid"' +
+                '  <div class="row">' +
+                '    <div class="col"><img src="' + this.dataset.image + '"></div>' +
+                '    <div class="col">' + this.dataset.description + '</div>' +
+                '  </div>' +
+                '</div>',
+            html: true
+        });
+    });
 
     var totalProducteurs = jQuery('table#commande td[id^="totalproducteur"]');
     var totalAvoirs = jQuery('table#commande td[id=avoirproducteur0]');

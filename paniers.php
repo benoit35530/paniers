@@ -880,13 +880,13 @@ function paniers_add_plugin_stylesheet() {
     wp_register_style('paniers_stylesheet', paniers_plugin_url . '/paniers.css');
     wp_enqueue_style('paniers_stylesheet');
     if(!str_starts_with($_SERVER['REQUEST_URI'], "/paniers/admin")) {
-        wp_enqueue_style('bootstrap-css', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css');
+        wp_enqueue_style('bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css');
     }
 }
 
 function paniers_add_plugin_scripts() {
     if(!str_starts_with($_SERVER['REQUEST_URI'], "/paniers/admin")) {
-        wp_enqueue_script('bootstrap-js', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js', array('jquery'), null, true);
+        wp_enqueue_script('bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js', array('jquery'), null, true);
     }
 }
 

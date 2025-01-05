@@ -852,7 +852,7 @@ function paniers_produits_producteur($atts) {
             $chaine .= "<div class=\"row\">";
         }
         $chaine .= <<<HTML
-        <div class="col-sm">
+        <div class="col-sm p-4">
             <div class="container-fluid">
                 <div class="row"><div class="col"><img src="$image"/></div></div>
                 <div class="row"><div class="col"><center><b>$nom</b></center></div></div>

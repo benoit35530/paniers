@@ -842,7 +842,7 @@ function paniers_produits_producteur($atts) {
     $i = 0;
     $placeholder = paniers_plugin_url . '/placeholder.png';
     foreach($produits as $nom => list($prix, $image, $description)) {
-        if($image != "") {
+        if($image != 0) {
             $image = wp_get_attachment_image_src($image, array(300, 300))[0];
         } else {
             $image = $placeholder;

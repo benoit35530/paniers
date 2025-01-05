@@ -851,14 +851,17 @@ function paniers_produits_producteur($atts) {
         if ($i == 0) {
             $chaine .= "<div class=\"row\">";
         }
-        $chaine .= "<div class=\"col-sm\">";
-        $chaine .= "  <ul style=\"list-style:none; \">";
-        $chaine .= "    <li><img src=\"" . $image . "\"/></li>";
-        $chaine .= "    <li><center><b>$nom</b></center></li>";
-        $chaine .= "    <li><center>$prix €</center></li>";
-        $chaine .= "    <li><i><center>$description</center></i></li>";
-        $chaine .= "  </ul>";
-        $chaine .= "</div>";
+        $chaine .= <<<HTML
+        <div class="col-sm">
+            <div class="container-fluid">
+                <div class="row"><div class="col"><img src="$image"/></div></div>
+                <div class="row"><div class="col"><center><b>$nom</b></center></div></div>
+                <div class="row"><div class="col"><center>$prix €</center></div></div>
+                <div class="row"><div class="col"><center><i>$description</i></center></div></div>
+            </div>
+        </div>
+        HTML;
+
         $i++;
         if ($i == 4) {
             $chaine .= "</div>";

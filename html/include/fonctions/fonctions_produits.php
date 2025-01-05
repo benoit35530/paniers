@@ -139,12 +139,13 @@ function afficher_liste_produits($nomvariable="idproduit",$defaut=0,$actifOnly =
 function retrouver_parametres_produit($id) {
     global $base_produits, $tab_produits;
     if(!isset($tab_produits)) {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,description,prix,idproducteur from $base_produits where 1");
-        while (list($idproduit,$nom,$description,$prix,$idproducteur) = mysqli_fetch_row($rep))
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,description,prix,image,idproducteur from $base_produits where 1");
+        while (list($idproduit,$nom,$description,$prix,$image,$idproducteur) = mysqli_fetch_row($rep))
         {
             $tab_produits[$idproduit]['nom'] = $nom;
             $tab_produits[$idproduit]['description'] = $description;
             $tab_produits[$idproduit]['prix'] = $prix;
+            $tab_produits[$idproduit]['image'] = $image;
             $tab_produits[$idproduit]['idproducteur'] = $idproducteur;
         }
     }

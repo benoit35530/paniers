@@ -780,7 +780,8 @@ HTML;
             $total_qte_produit = 0;
 
             $chaine3 = '<tr>';
-            $chaine3 .= '  <td>' . $param_produit['description'] . '</td>';
+            $image = wp_get_attachment_image_src($param_produit["image"], array(300, 300))[0];
+            $chaine3 .= '  <td><button class="btn btn-lg btn-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $param_produit["description"] . '" title="' . $param_produit["nom"] . '" style="font-size: 14px;">' . $param_produit["nom"] . '</button></td>';
             $chaine3 .= '  <td style="text-align: center">' .  $quantite . '</td>';
             $total_qte_produit += $quantite;
             $chaine3 .= '</tr>';
@@ -799,6 +800,27 @@ HTML;
 
     $chaine .= '  </tbody>';
     $chaine .= '</table>';
+
+    $chaine .= <<<HTML
+    <script type="module">
+
+    jQuery('[data-bs-toggle="popover"]').each(function () {
+        return new bootstrap.Popover(this, {
+            trigger: 'focus hover',
+            content:
+            this.dataset.image == '' ?
+                this.dataset.description :
+                '<div class="container-fluid"' +
+                '  <div class="row">' +
+                '    <div class="col"><img src="' + this.dataset.image + '"></div>' +
+                '    <div class="col">' + this.dataset.description + '</div>' +
+                '  </div>' +
+                '</div>',
+            html: true
+        });
+    });
+    </script>
+    HTML;
 
     return $chaine;
 }
@@ -928,7 +950,8 @@ function afficher_recapitulatif_commande($id) {
             $total_prix_produit = 0.0;
 
             $chaine3 = '<tr>';
-            $chaine3 .= '  <td>' . $param_produit['description'] . '</td>';
+            $image = wp_get_attachment_image_src($param_produit["image"], array(300, 300))[0];
+            $chaine3 .= '  <td><button class="btn btn-lg btn-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $param_produit["description"] . '" title="' . $param_produit["nom"] . '" style="font-size: 14px;">' . $param_produit["nom"] . '</button></td>';
             $chaine3 .= '  <td class="table-light" style="text-align: right; white-space:nowrap;">' . sprintf($g_lib_somme,$qteproduit[$key_producteur][$key_produit]["prix"]) . '</td>';
             reset($dates);
             foreach($dates as $k => $v)
@@ -997,6 +1020,27 @@ function afficher_recapitulatif_commande($id) {
     $chaine .= '    </tr>';
     $chaine .= '  </tbody>';
     $chaine .= '</table>';
+
+    $chaine .= <<<HTML
+    <script type="module">
+
+    jQuery('[data-bs-toggle="popover"]').each(function () {
+        return new bootstrap.Popover(this, {
+            trigger: 'focus hover',
+            content:
+            this.dataset.image == '' ?
+                this.dataset.description :
+                '<div class="container-fluid"' +
+                '  <div class="row">' +
+                '    <div class="col"><img src="' + this.dataset.image + '"></div>' +
+                '    <div class="col">' + this.dataset.description + '</div>' +
+                '  </div>' +
+                '</div>',
+            html: true
+        });
+    });
+    </script>
+    HTML;
 
     return $chaine;
 }

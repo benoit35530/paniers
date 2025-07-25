@@ -89,6 +89,8 @@ $tab_roles = array("super-administrateur" => "avoirs,utilisateurs,producteurs,pr
 $g_lib_somme = "%.2f &euro;";
 $g_lib_somme_admin = "%.2f";
 
+$g_periode_libelle = "CONCAT($base_periodes.libelle, ' (du ', DATE_FORMAT(datedebut,'%d/%m/%Y'), ' au ', DATE_FORMAT(datefin,'%d/%m/%Y'), ')') ";
+
 // Table des types de permanences
 $tab_types_permanences = array();
 $tab_permanences_defauts = array();

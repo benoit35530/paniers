@@ -13,7 +13,8 @@ define('paniers_dir', paniers_plugin_dir . '/html');
 
 require_once(paniers_dir . "/include/dbconnect.php");
 require_once(paniers_dir . "/include/parametres.php");
-require_once(paniers_dir . "/include/fonctions/fonctions_periodes.php");
+require_once(paniers_dir . "/hooks.php");
+require_once(paniers_dir . "/options.php");
 
 function paniers_install()
 {
@@ -210,15 +211,10 @@ misensachets,Mise en sachets des pommes,14:00,14:30,2,0";
     paniers_rewriteURL();
     flush_rewrite_rules();
 
-    if(!wp_next_scheduled('controler_date_fin_commande_event'))
-    {
-        wp_schedule_event(time(), 'hourly', 'controler_date_fin_commande_event');
-    }
-}
-
-function paniers_rewriteURL()
-{
-    add_rewrite_rule('paniers/(.*)$', substr(paniers_dir, 1) . '/$1','top');
+    // if(!wp_next_scheduled('controler_date_fin_commande_event'))
+    // {
+    //     wp_schedule_event(time(), 'hourly', 'controler_date_fin_commande_event');
+    // }
 }
 
 function paniers_uninstall()
@@ -227,7 +223,12 @@ function paniers_uninstall()
     wp_clear_scheduled_hook('controler_date_fin_commande_event');
 }
 
-function paniers_queryvars( $qvars )
+function paniers_rewriteURL()
+{
+    add_rewrite_rule('paniers/(.*)$', substr(paniers_dir, 1) . '/$1','top');
+}
+
+function paniers_queryvars($qvars)
 {
     $qvars[] = 'action';
     $qvars[] = 'id';
@@ -407,255 +408,94 @@ function paniers_check_login($user, $username, $password) {
     return $user;
 }
 
-function paniers_register_form() {
-    global $base_clients;
-    require_once(paniers_dir . "/include/fonctions/fonctions_depots.php");
-    require_once(paniers_dir . "/include/fonctions/fonctions_clients.php");
 
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select max(cast(substr(codeclient,2) as unsigned))+1 from $base_clients where 1");
-    if($rep) {
-        list($codeclient) = mysqli_fetch_row($rep);
+function paniers_add_plugin_stylesheet() {
+    wp_register_style('paniers_stylesheet', paniers_plugin_url . '/paniers.css');
+    wp_enqueue_style('paniers_stylesheet');
+    if(!str_starts_with($_SERVER['REQUEST_URI'], "/paniers/admin")) {
+        wp_enqueue_style('bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css');
     }
-    if($codeclient == "") {
-        $codeclient = "1";
-    }
-    $codeclient = "C" . $codeclient;
-
-    $first_name = ( isset( $_POST['first_name'] ) ) ? $_POST['first_name']: '';
-    $last_name = ( isset( $_POST['last_name'] ) ) ? $_POST['last_name']: '';
-    $telephone = ( isset( $_POST['telephone'] ) ) ? $_POST['telephone']: '';
-    $depot = ( isset( $_POST['depot'] ) ) ? $_POST['depot']: '';
-    $ville = ( isset( $_POST['ville'] ) ) ? $_POST['ville']: '';
-    ?>
-    <p>
-         <label for="last_name"><?php _e('Nom','mydomain') ?><br />
-         <input type="text" name="last_name" id="last_name" class="input" value="<?php echo esc_attr(stripslashes($last_name)); ?>" size="25" /></label>
-    </p>
-    <p>
-         <label for="first_name"><?php _e('Prénom','mydomain') ?><br />
-         <input type="text" name="first_name" id="first_name" class="input" value="<?php echo esc_attr(stripslashes($first_name)); ?>" size="25" /></label>
-    </p>
-    <p>
-         <label for="telephone"><?php _e('Télephone','mydomain') ?><br />
-         <input type="text" name="telephone" id="telephone" class="input" value="<?php echo esc_attr(stripslashes($telephone)); ?>" size="25" /></label>
-    </p>
-    <p>
-        <label for="ville"><?php _e('Ville','mydomain') ?></label>
-        <?php echo afficher_villes_client("ville", $ville); ?>
-    </p>
-    <p>
-        <label for="depot"><?php _e('Dépôt','mydomain') ?></label>
-        <?php echo afficher_liste_depots("depot", $depot); ?>
-    </p>
-   <?php
-
-   $content = ob_get_contents();
-   $content = preg_replace('/\<label for="user_login"\>(.*?)\<\/label\>/',
-                           'Identifiant: ' . $codeclient . '<br/>',
-                           $content);
-   $content = preg_replace('/\<input type="text" name="user_login" .* \/\>/',
-                           '<input type="hidden" name="user_login" value="' . $codeclient . '"/> ',$content);
-   ob_get_clean();
-   echo $content;
 }
 
-function paniers_registration_errors ($errors, $sanitized_user_login, $user_email) {
-    if(empty( $_POST['first_name']))
-        $errors->add( 'first_name_error', __('<strong>ERROR</strong>: le prénom est obligatoire.','mydomain') );
-    if(empty( $_POST['last_name']))
-        $errors->add( 'last_name_error', __('<strong>ERROR</strong>: le nom est obligatoire.','mydomain') );
-    if(empty( $_POST['telephone']))
-        $errors->add( 'telephone_error', __('<strong>ERROR</strong>: le téléphone est obligatoire.','mydomain') );
-    if(empty($_POST['ville']))
-        $errors->add( 'ville_error', __('<strong>ERROR</strong>: la ville est obligatoire.','mydomain') );
-    if($_POST['depot'] <= 0)
-        $errors->add( 'depot_error', __('<strong>ERROR</strong>: le dépôt est obligatoire.','mydomain') );
-    return $errors;
+function paniers_add_plugin_scripts() {
+    if(!str_starts_with($_SERVER['REQUEST_URI'], "/paniers/admin")) {
+        wp_enqueue_script('bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js', array('jquery'), null, true);
+    }
 }
 
-function paniers_insertclient() {
-    require_once(ABSPATH . "wp-admin/includes/user.php");
+function paniers_media_library_script($mediaId) {
+    return <<<HTML
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
 
-    if(username_exists($_POST["codeclient"])) {
-        return "Ce code client est déja utilisé.";
-    }
+        var mediaBox = $('#mediabox-$mediaId');
+        var uploadLink = mediaBox.find(".uploadLink");
+        var changeLink = mediaBox.find(".changeLink");
+        var imageContainer = mediaBox.find(".imageContainer");
+        var imageInput = mediaBox.find(".imageInput");
+        var frame;
 
-    if($id = email_exists($_POST["email"])) {
-        global $base_utilisateurs;
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_utilisateurs where email='" . $_POST["email"] . "' limit 1");
-        if(mysqli_num_rows($rep) != 0) {
-            $userarray['first_name'] = $_POST['prenom'];
-            $userarray['last_name'] = $_POST['nom'];
-            $userarray['display_name'] = $_POST["prenom"] . " " . $_POST["nom"];
-            $userarray['ID'] = $id;
-            $id = wp_update_user($userarray);
-            if(is_wp_error($id))
-            {
-                return "La mise à jour a échoué: " . $id->get_error_message();
+        function openFrame() {
+            if (frame) {
+                frame.open();
+                return;
             }
 
-            add_user_meta($id, 'show_admin_bar_front', false, true);
+            frame = wp.media({
+                title: 'Télécharger un image',
+                multiple: false
+            });
 
-            $user = new WP_User($id);
-            $user->add_cap("consommateur");
+            frame.on('select', function(){
+                var attachment = frame.state().get('selection').first().toJSON();
+                imageContainer.html('');
+                imageContainer.append('<img src="'+ attachment.url +'" alt="" style="max-width:150px; max-height:150px;"/>');
+                imageInput.val(attachment.id);
+                uploadLink.addClass('hidden');
+                changeLink.removeClass('hidden');
+            });
+
+            frame.open();
         }
-        return "";
-    }
 
-    $userarray['user_login'] =  $_POST["codeclient"];
-    $userarray['user_pass'] = $_POST['motpasse'];
-    $userarray['first_name'] = $_POST['prenom'];
-    $userarray['last_name'] = $_POST['nom'];
-    $userarray['display_name'] = $_POST["prenom"] . " " . $_POST["nom"];
-    $userarray['user_email'] = $_POST["email"];
-    $userarray['show_admin_bar_front'] = false;
-    $id = wp_insert_user($userarray);
-    if(is_wp_error($id))
-    {
-        return "L'ajout a échoué: " . $id->get_error_message();
-    }
+        uploadLink.on('click', function(event) {
+            event.preventDefault();
+            openFrame();
+        });
 
-    $user = new WP_User($id);
-    $user->add_cap("consommateur");
-    add_user_meta($id, 'show_admin_bar_front', false, true);
-
-    wp_new_user_notification($id, '', 'both');
-    return "";
+        changeLink.on('click', function(event){
+            event.preventDefault();
+            uploadLink.removeClass('hidden');
+            changeLink.addClass('hidden');
+            openFrame();
+        });
+    });
+    </script>
+    HTML;
 }
 
-function paniers_updateclient() {
-    require_once(ABSPATH . "wp-admin/includes/user.php");
+register_activation_hook(__FILE__,'paniers_install');
+register_deactivation_hook(__FILE__,'paniers_uninstall');
 
-    global $base_clients;
-    if(!($id = username_exists($_POST["codeclient"])) && !($id = email_exists($_POST['email'])))
-    {
-        return paniers_insertclient();
+add_action('admin_menu', 'paniers_plugin_menu' );
+add_action('wp_print_styles', 'paniers_add_plugin_stylesheet');
+add_action('wp_enqueue_scripts', 'paniers_add_plugin_scripts');
+add_action('init', 'paniers_rewriteURL');
+add_action('password_reset', 'paniers_password_reset', 10, 2);
+add_filter('query_vars', 'paniers_queryvars' );
+add_filter('authenticate', 'paniers_check_login', 10, 3);
+
+// add_action('controler_date_fin_commande_event', 'controler_date_fin_commande');
+
+add_action('get_header', function () {
+    global $url_page_consommateur, $url_page_gestionnaire;
+    if (str_starts_with($_SERVER['REQUEST_URI'], $url_page_consommateur) ||
+        str_starts_with($_SERVER['REQUEST_URI'], $url_page_gestionnaire)) {
+        paniers_checkIfLoggedIn();
     }
+});
 
-    if(username_exists($_POST["codeclient"])) {
-        $userarray['user_login'] =  $_POST["codeclient"];
-        $userarray['user_pass'] = $_POST['motpasse'];
-    }
-    $userarray['first_name'] = $_POST['prenom'];
-    $userarray['last_name'] = $_POST['nom'];
-    $userarray['user_email'] = $_POST['email'];
-    $userarray['display_name'] = $_POST["prenom"] . " " . $_POST["nom"];
-    $userarray['ID'] = $id;
-    $id = wp_update_user($userarray);
-    if(is_wp_error($id))
-    {
-        return "La mise à jour a échoué: " . $id->get_error_message();
-    }
-    return "";
-}
-
-function paniers_removeclient($idclient) {
-    require_once(ABSPATH . "wp-admin/includes/user.php");
-    global $base_clients;
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select email from $base_clients where id='" . $idclient . "' limit 1");
-    if (mysqli_num_rows($rep) != 0) {
-        list($email) = mysqli_fetch_row($rep);
-        if($id = email_exists($email)) {
-            $user = new WP_User($id);
-            if(!$user->has_cap("gestionnaire")) {
-                wp_delete_user($id);
-            } else {
-                $user->remove_cap("consommateur");
-            }
-        }
-    }
-}
-
-function paniers_insertadmin() {
-    require_once(ABSPATH . "wp-admin/includes/user.php");
-    global $base_clients;
-
-    if(username_exists($_POST["nomutil"])) {
-        return "Ce code utilisateur est déja utilisé.";
-    }
-
-    if($id = email_exists($_POST["email"])) {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_clients where email='" . $_POST["email"] . "' limit 1");
-        if (mysqli_num_rows($rep) != 0) {
-            $userarray['user_login'] =  $_POST["nomutil"];
-            $userarray['first_name'] = $_POST['prenom'];
-            $userarray['last_name'] = $_POST['nom'];
-            $userarray['display_name'] = $_POST["prenom"] . " " . $_POST["nom"];
-            $userarray['ID'] = $id;
-            $id = wp_update_user($userarray);
-            if(is_wp_error($id))
-            {
-                return "La mise à jour a échoué: " . $id->get_error_message();
-            }
-
-            $user = new WP_User($id);
-            $user->set_role("editor");
-            $user->add_cap("gestionnaire");
-        }
-        return "";
-    }
-
-    $userarray['user_login'] =  $_POST["nomutil"];
-    $userarray['user_pass'] = $_POST['motpasse'];
-    $userarray['first_name'] = $_POST['prenom'];
-    $userarray['last_name'] = $_POST['nom'];
-    $userarray['user_email'] = $_POST["email"];
-    $userarray['display_name'] = $_POST["prenom"] . " " . $_POST["nom"];
-    $id = wp_insert_user($userarray);
-    if(is_wp_error($id))
-    {
-        return "L'ajout a échoué: " . $id->get_error_message();
-    }
-
-    $user = new WP_User($id);
-    $user->set_role("editor");
-    $user->add_cap("gestionnaire");
-
-    wp_new_user_notification($id, $_POST['motpasse']);
-    return "";
-}
-
-function paniers_updateadmin() {
-    require_once(ABSPATH . "wp-admin/includes/user.php");
-
-    if(!($id = username_exists($_POST["nomutil"])) && !($id = email_exists($_POST["email"])))
-    {
-        return "Cet utilisateur est inconnu de wordpress.";
-    }
-
-    $userarray['user_login'] =  $_POST["nomutil"];
-    $userarray['user_pass'] = $_POST['motpasse'];
-    $userarray['user_email'] = $_POST["email"];
-    $userarray['first_name'] = $_POST['prenom'];
-    $userarray['last_name'] = $_POST['nom'];
-    $userarray['display_name'] = $_POST["prenom"] . " " . $_POST["nom"];
-    $userarray['ID'] = $id;
-    $id = wp_update_user($userarray);
-    if(is_wp_error($id))
-    {
-        return "La mise à jour a échoué: " . $id->get_error_message();
-    }
-    return "";
-}
-
-function paniers_removeadmin() {
-    require_once(ABSPATH . "wp-admin/includes/user.php");
-    global $base_utilisateurs;
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select email from $base_utilisateurs where id='" . $_POST["id"] . "' limit 1");
-    if (mysqli_num_rows($rep) != 0) {
-        list($email) = mysqli_fetch_row($rep);
-        if($id = email_exists($email)) {
-            $user = new WP_User($id);
-            if(!$user->has_cap("consommateur")) {
-                wp_delete_user($id);
-            } else {
-                $user->remove_cap("gestionnaire");
-            }
-        }
-    }
-}
-
-function paniers_updateprofile() {
+add_shortcode('paniers-updateprofile', function() {
     require_once(paniers_dir . "/include/fonctions/fonctions_communes.php");
     require_once(paniers_dir . "/include/fonctions/fonctions_depots.php");
     require_once(ABSPATH . "wp-admin/includes/user.php");
@@ -694,8 +534,8 @@ function paniers_updateprofile() {
 
     $update = false;
     $updateerror = '';
-    if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty( $_POST['action'] ) && $_POST['action'] == 'updateprofile' &&
-    wp_verify_nonce($_POST['edit_nonce_field'], 'verify_edit_user') ) {
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['action']) && $_POST['action'] == 'updateprofile' &&
+        wp_verify_nonce($_POST['edit_nonce_field'], 'verify_edit_user') ) {
         $update = true;
         $nom = $_POST['last_name'];
         $prenom = $_POST['first_name'];
@@ -714,10 +554,7 @@ function paniers_updateprofile() {
                 echo "<br><br><a href=\"";
                 the_permalink();
                 echo "\">Retour au formulaire</a>";
-                $output = ob_get_contents();
-                ob_end_clean();
-                $output = apply_filters ('wppb_edit_profile', $output);
-                return $output;
+                return apply_filters ('wppb_edit_profile', ob_get_clean());;
             }
             $updatemotdepasse = ", motpasse='" . encode_password($motdepasse) . "'";
         }
@@ -812,11 +649,11 @@ function paniers_updateprofile() {
     echo "</div>";
     $output = ob_get_contents();
     ob_end_clean();
-    $output = apply_filters ('wppb_edit_profile', $output);
+    $output = apply_filters('wppb_edit_profile', $output);
     return $output;
-}
+});
 
-function paniers_datecommande() {
+add_shortcode('paniers-date-commande', function() {
     require_once(paniers_dir . "/include/fonctions/fonctions_generales.php");
     require_once(paniers_dir . "/include/fonctions/fonctions_periodes.php");
     $txt = afficher_date_prochaine_commande();
@@ -825,9 +662,9 @@ function paniers_datecommande() {
     } else {
         return datelitterale($txt, true);
     }
-}
+});
 
-function paniers_produits_producteur($atts) {
+add_shortcode('paniers-produits-producteur', function($atts) {
     extract(shortcode_atts(array('idproducteur' => '0'), $atts));
 
     require_once(paniers_dir . "/include/fonctions/fonctions_produits.php");
@@ -876,78 +713,336 @@ function paniers_produits_producteur($atts) {
     }
     $chaine .= "</div>";
     return $chaine;
-}
-add_shortcode('paniers-produits-producteur', 'paniers_produits_producteur');
+});
 
-function paniers_add_plugin_stylesheet() {
-    wp_register_style('paniers_stylesheet', paniers_plugin_url . '/paniers.css');
-    wp_enqueue_style('paniers_stylesheet');
-    if(!str_starts_with($_SERVER['REQUEST_URI'], "/paniers/admin")) {
-        wp_enqueue_style('bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css');
-    }
-}
+add_shortcode('paniers-permanences', function () {
+    $userid = paniers_checkIfLoggedIn();
 
-function paniers_add_plugin_scripts() {
-    if(!str_starts_with($_SERVER['REQUEST_URI'], "/paniers/admin")) {
-        wp_enqueue_script('bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js', array('jquery'), null, true);
-    }
-}
+    require_once(paniers_dir . "/include/fonctions_include.php");
+    require_once(paniers_dir . "/common.php");
 
-function paniers_media_library_script($mediaId) {
-    return <<<HTML
-    <script type="text/javascript">
-    jQuery(document).ready(function($) {
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
-        var mediaBox = $('#mediabox-$mediaId');
-        var uploadLink = mediaBox.find(".uploadLink");
-        var changeLink = mediaBox.find(".changeLink");
-        var imageContainer = mediaBox.find(".imageContainer");
-        var imageInput = mediaBox.find(".imageInput");
-        var frame;
+    global $wp_query;
+    global $base_permanences;
+    global $base_permanenciers;
 
-        function openFrame() {
-            if (frame) {
-                frame.open();
-                return;
+    $action = $wp_query->get("action");
+    $id = $wp_query->get("id");
+
+    ob_start();
+    echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
+
+    if ($action == "") {
+        echo afficher_planning_permanences(false, $userid);
+    } else if ($action == "inscrire") {
+        mysqli_begin_transaction($GLOBALS["___mysqli_ston"], MYSQLI_TRANS_START_READ_WRITE);
+        try {
+            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select nbparticipants,nbinscrits from $base_permanences where id='$id' and date >= curdate()");
+            if (mysqli_num_rows($rep) != 0) {
+                list($nbparticipants,$nbinscrits) = mysqli_fetch_row($rep);
             }
+            if ($userid > 0 && $nbinscrits < $nbparticipants && verifier_non_inscription($id,$userid))
+            {
+                if (!mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_permanenciers (id,idpermanence,idclient,commentaire,datemodif) values ('','$id','$userid','',now())")) {
+                    echo afficher_erreur(
+                        "Une erreur est survenue",
+                        "Vous êtes déjà inscrit à la permanence.",
+                        afficher_planning_permanences(false,$userid));
+                    mysqli_rollback($GLOBALS["___mysqli_ston"]);
+                } else {
+                    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits+1 where id='$id'");
+                    echo afficher_info(
+                        "Merci de vous être inscrit à cette permanence",
+                        "",
+                        afficher_planning_permanences(false,$userid));
+                    ecrire_log_public("Inscription à la permanence : " . retrouver_permanence($id));
+                    mysqli_commit($GLOBALS["___mysqli_ston"]);
+                }
+            } else {
+                echo afficher_erreur(
+                    "Une erreur est survenue",
+                    "Numéro d'utilisateur inconnu, déjà inscrit ou trop d'inscrits.",
+                    afficher_planning_permanences(false,$userid));
+                mysqli_rollback($GLOBALS["___mysqli_ston"]);
+            }
+        } catch (Exception $e) {
+            mysqli_rollback($GLOBALS["___mysqli_ston"]);
+            throw $e;
+        }
+    } else if ($action == "desinscrire") {
+        mysqli_begin_transaction($GLOBALS["___mysqli_ston"], MYSQLI_TRANS_START_READ_WRITE);
+        try {
+            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_permanences where id='$id' and date >= curdate()");
+            if ($userid > 0 && mysqli_num_rows($rep) != 0 && !verifier_non_inscription($id,$userid)) {
+                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_permanenciers where idpermanence='$id' and idclient='" . $userid . "' limit 1");
+                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits-1 where id='$id'");
+                echo afficher_info(
+                    "Vous êtes désinscrit de cette permanence",
+                    "",
+                    afficher_planning_permanences(false,$userid));
+                ecrire_log_public("Désinscription de la permanence : " . retrouver_permanence($id));
+                mysqli_commit($GLOBALS["___mysqli_ston"]);
+            }
+            else
+            {
+                echo afficher_erreur(
+                    "Une erreur est survenue",
+                    "Vous êtes déja désinscrit de la permanence ou votre numéro d'utilisateur est inconnu",
+                    afficher_planning_permanences(false,$userid));
+                mysqli_rollback($GLOBALS["___mysqli_ston"]);
+            }
+        } catch (Exception $e) {
+            mysqli_rollback($GLOBALS["___mysqli_ston"]);
+            throw $e;
+        }
+    }
 
-            frame = wp.media({
-                title: 'Télécharger un image',
-                multiple: false
-            });
+    $content = ob_get_contents();
+    ob_clean();
+    return $content;
+});
 
-            frame.on('select', function(){
-                var attachment = frame.state().get('selection').first().toJSON();
-                imageContainer.html('');
-                imageContainer.append('<img src="'+ attachment.url +'" alt="" style="max-width:150px; max-height:150px;"/>');
-                imageInput.val(attachment.id);
-                uploadLink.addClass('hidden');
-                changeLink.removeClass('hidden');
-            });
+add_shortcode('paniers-livraisons',  function () {
+    $userid = paniers_checkIfLoggedIn();
+    require_once(paniers_dir . "/include/fonctions_include.php");
+    require_once(paniers_dir . "/commandes.php");
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
-            frame.open();
+    global $wp_query;
+    $iddate = $wp_query->get("iddate");
+    $idclient = $wp_query->get("idclient");
+
+    return afficher_recapitulatif_livraisons_frontend($idclient == 0 ? $userid : $idclient, $iddate);
+});
+
+add_shortcode('paniers-commande-adherent', function($atts) {
+
+    $userid = paniers_checkIfLoggedIn();
+
+    require_once(paniers_dir . "/include/fonctions_include.php");
+    require_once(paniers_dir . "/commandes.php");
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
+
+    extract(shortcode_atts(array('page_commande_non_disponible' => ''), $atts));
+
+    global $wp_query;
+    global $base_bons_cde;
+
+    $action = $wp_query->get("action");
+    $id = $wp_query->get("id");
+    $idperiode = $wp_query->get("idperiode");
+
+    if ($action == "editercde" || ($action=="" && !str_starts_with($_SERVER['REQUEST_URI'], "/wp-admin"))) {
+        $idperiode = retrouver_periode_courante(true);
+        if ($idperiode <= 0) {
+            wp_redirect($page_commande_non_disponible);
+            exit;
         }
 
-        uploadLink.on('click', function(event) {
-            event.preventDefault();
-            openFrame();
-        });
+        if (!isset($id) || $id == "" || $id == 0) {
+            $id = retrouver_commande($userid, $idperiode);
+        }
 
-        changeLink.on('click', function(event){
-            event.preventDefault();
-            uploadLink.removeClass('hidden');
-            changeLink.addClass('hidden');
-            openFrame();
-        });
-    });
-    </script>
-    HTML;
-}
+        if ($id == 0) {
+            $qteproduit = array();
+        } else {
+            $qteproduit = retrouver_quantites_commande($id);
+        }
+
+        return afficher_info(
+            afficher_periode($idperiode),
+            "",
+            afficher_formulaire_bon_commande_frontend(
+                $id,
+                $userid,
+                $idperiode,
+                $qteproduit,
+                "enregistrercde"));
+    } else if ($action == "affichercde" && $id != "" && $id != 0) {
+        $idperiode = retrouver_periode_commande_client($id, $userid);
+        if ($idperiode == 0) {
+            return afficher_erreur("", "Commande introuvable");
+        }
+
+        return afficher_info(
+            afficher_periode($idperiode),
+            "",
+            afficher_recapitulatif_bon_commande_frontend($id, $idperiode));
+    } else if ($action == "enregistrercde") {
+        $iddepot = $_POST["iddepot"];
+        $qteproduit = $_POST['qteproduit'];
+        if (!isset($idperiode) || $idperiode == "" || $idperiode == 0) {
+            return afficher_erreur("", "Pas de période définie");
+        }
+        else if (!isset($iddepot) || $iddepot == "" || $iddepot == 0) {
+            return afficher_erreur("", "Pas de dépot selectionné");
+        }
+        else if (isset($idclient) && $idclient != $userid) {
+            return afficher_erreur("", "Identifiant client invalide");
+        }
+
+        $total = 0.0;
+        mysqli_begin_transaction($GLOBALS["___mysqli_ston"], MYSQLI_TRANS_START_READ_WRITE);
+        try {
+            if (!isset($id) || $id == "" || $id == 0) {
+                $id = enregistrer_bon_commande($idperiode, $userid, $iddepot);
+                if($id == 0) {
+                    mysqli_rollback($GLOBALS["___mysqli_ston"]);
+                    return afficher_erreur("", "La commande est déjà enregistrée");
+                }
+            }
+
+            $total = enregistrer_commande($idperiode, $qteproduit, $id, $userid);
+
+            if ($total == 0.0) {
+                $boncde = supprimer_bon_commande($id);
+                ecrire_log_public("Commande supprimé sous le n° $boncde");
+                return afficher_erreur("", "Votre commande ne contient aucun produit, elle n'a pas été enregistrée");
+            }
+
+            mysqli_commit($GLOBALS["___mysqli_ston"]);
+        } catch (Exception $e) {
+            mysqli_rollback($GLOBALS["___mysqli_ston"]);
+            return afficher_erreur($e->getMessage());;
+        }
+
+        if ($total > 0.0) {
+            $boncde = "C$userid-$id";
+            ecrire_log_public("Commande enregistrée sous le n° $boncde");
+            return afficher_info(
+                "Commande enregistrée sous le n° $boncde",
+                "N'oubliez pas pas de faire votre virement ou de déposer votre chèque pour le " . datelitterale(afficher_date_prochaine_commande()),
+                afficher_recapitulatif_bon_commande_frontend($id, $idperiode));
+        } else {
+
+        }
+    } else {
+        return afficher_erreur("", "Action de commande invalide");
+    }
+});
+
+add_shortcode('paniers-liste-commandes-adherent', function() {
+    $userid = paniers_checkIfLoggedIn();
+
+    require_once(paniers_dir . "/include/fonctions_include.php");
+    require_once(paniers_dir . "/commandes.php");
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
+
+    extract( shortcode_atts( array(
+		'page_commande' => '/commande/',
+    ), $atts ) );
+
+    return afficher_liste_bon_commandes_frontend($userid, $page_commande);
+});
+
+add_shortcode('paniers-login-form', function() {
+    return wp_login_form(array(
+        'echo' => false,
+        'value_remember' => true,
+        'required_username' => true,
+        'required_password' => true,
+        'redirect' => home_url()
+    ));
+});
+
+add_shortcode('paniers-register-form', function() {
+    require_once(paniers_dir . "/include/fonctions_include.php");
+
+    global $wp_query;
+    $action = $wp_query->get("action");
+    if ($action == "register") {
+        $user = paniers_insertclient();
+        if (!is_wp_error($user)) {
+            global $base_clients;
+            $telephone = $_POST["telephone"];
+            $ville = $_POST["ville"];
+            $iddepot = $_POST["depot"];
+            $etat = 'Actif';
+            $cotisation = 0;
+            mysqli_query(
+                $GLOBALS["___mysqli_ston"],
+                "insert into $base_clients (codeclient,motpasse,nom,prenom,email,telephone,ville,iddepot,etat,derncnx,datemodif,cotisation) values ('$user->user_login','" . encode_password($user->user_pass) . "','$user->last_name','$user->first_name','$user->user_email','$telephone','$ville','$iddepot','$etat',now(),now(),'$cotisation')");
+            $last_id = ((is_null($___mysqli_res = mysqli_insert_id($GLOBALS["___mysqli_ston"]))) ? false : $___mysqli_res);
+            add_user_meta($user->ID, 'paniers_consommateurId', $last_id, true);
+
+            return afficher_info(
+                "",
+                "Succès de votre inscription",
+                "Vous alez recevoir un message pour confirmer votre inscription et créer un mot de passe");
+        }
+        $error = $user;
+    } else {
+        $error = new WP_Error();
+    }
+
+    $email = (isset( $_POST['email'])) ? wp_unslash($_POST['email']) : '';
+    $prenom = (isset( $_POST['prenom'])) ? wp_unslash($_POST['prenom']) : '';
+    $nom = (isset( $_POST['nom'])) ? wp_unslash($_POST['nom']) : '';
+    $telephone = (isset( $_POST['telephone'])) ? wp_unslash($_POST['telephone']) : '';
+    $depot = (isset( $_POST['depot'])) ? wp_unslash($_POST['depot']) : '';
+    $ville = (isset( $_POST['ville'])) ? wp_unslash($_POST['ville']) : '';
+    ob_start();
+	if ($error->has_errors()) {
+        $error_messages = $error->get_error_messages();
+        if (sizeof($error_messages) > 1) {
+            $errors = '<ul>';
+            foreach ($error_messages as $error_message) {
+                $errors .= '<li>' . $error_message . '</li>';
+            }
+            $errors .= '</ul>';
+        }
+        else {
+            $errors = '<p>' . $error_messages[0] . '</p>';
+        }
+
+        wp_admin_notice(
+            $errors,
+            array(
+                'type' => 'error',
+                'id' => 'login_error',
+                'paragraph_wrap' => false,
+            )
+        );
+	}
+    ?>
+<form name="registerform" action="?action=register" method="post">
+    <p>
+        <label for="email"><?php _e( 'Email' ); ?></label>
+        <input type="email" name="email" id="email" class="input" value="<?php echo esc_attr($email); ?>" autocomplete="email" required="required"/>
+    </p>
+    <p>
+        <label for="nom"><?php _e('Nom','mydomain') ?></label>
+        <input type="text" name="nom" id="nom" class="input" value="<?php echo esc_attr($nom); ?>"/></label>
+    </p>
+    <p>
+        <label for="prenom"><?php _e('Prénom','mydomain') ?></label>
+        <input type="text" name="prenom" id="prenom" class="input" value="<?php echo esc_attr($prenom); ?>"/></label>
+    </p>
+    <p>
+        <label for="telephone"><?php _e('Télephone','mydomain') ?></label>
+        <input type="text" name="telephone" id="telephone" class="input" value="<?php echo esc_attr($telephone); ?>"/></label>
+    </p>
+    <p>
+        <label for="ville"><?php _e('Ville&nbsp','mydomain') ?></label>
+        <?php echo afficher_villes_client("ville", $ville); ?>
+    </p>
+    <p>
+        <label for="depot"><?php _e('Dépôt&nbsp','mydomain') ?></label>
+        <?php echo afficher_liste_depots("depot", $depot); ?>
+    </p>
+    <p class="submit">
+        <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Register' ); ?>" />
+    </p>
+</form>
+    <?php
+    return ob_get_clean();
+});
 
 function paniers_password_reset($user, $password) {
     require_once(paniers_dir . "/include/fonctions/fonctions_communes.php");
 
-    global $base_utilisateurs, $base_clients, $tab_villes_clients;
+    global $base_utilisateurs, $base_clients;
 
     $user = new WP_User($user->ID);
     if ( $user->ID == 0 ) {
@@ -988,768 +1083,3 @@ function paniers_password_reset($user, $password) {
     }
 }
 
-function paniers_plugin_menu() {
-    add_options_page( 'Paniers Options', 'Paniers', 'manage_options', 'paniers-id', 'paniers_plugin_options' );
-}
-
-function paniers_plugin_options() {
-    if (!current_user_can('manage_options'))  {
-        wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
-    }
-    add_option('paniers_data');
-    $paniers_data = array();
-    if(is_admin() && !empty($_POST['panierssubmitted'])) {
-        //Build the array of options here
-        foreach ($_POST as $postKey => $postValue){
-            if(substr($postKey, 0, 8) == 'paniers_') {
-                // For now, no validation, since this is in admin area.
-                $paniers_data[substr($postKey, 8)] = stripslashes($postValue);
-            }
-        }
-        update_option('paniers_data', $paniers_data);
-        ?>
-<div class="updated">
-  <p>
-    <strong><?php _e('Changes saved.'); ?> </strong>
-  </p>
-</div>
-<?php
-    } else {
-	    $paniers_data = get_option('paniers_data');
-    }
-    ?>
-<div class="wrap">
-  <h2>Paniers Options</h2>
-  <form method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>" class="form-table">
-    <!-- Ajoute 2 champs cachés pour savoir comment rediriger l'utilisateur -->
-    <table width="90%">
-      <tr valign="top">
-        <th scope="row"><label for="pageconsommateurs"><?php _e('Page Consommateurs') ?> </label></th>
-        <td><input name="paniers_pageconsommateurs" type="text" id="pageconsommateurs"
-          value="<?php echo $paniers_data['pageconsommateurs']; ?>" class="regular-text"
-        /></td>
-      </tr>
-      <tr valign="top">
-        <th scope="row"><label for="pagegestionnaires"><?php _e('Page Gestionnaires') ?> </label></th>
-        <td><input name="paniers_pagegestionnaires" type="text" id="pagegestionnaires"
-          value="<?php echo $paniers_data['pagegestionnaires']; ?>" class="regular-text"
-        /></td>
-      </tr>
-      <tr valign="top">
-        <th scope="row"><label for="adressegestionnaires"><?php _e('Adresse gestionnaires') ?> </label></th>
-        <td><input name="paniers_adressegestionnaires" type="text" id="adressegestionnaires"
-          value="<?php echo $paniers_data['adressegestionnaires']; ?>" class="regular-text"
-        /> <span class="adressegestionnaires"><?php _e("Adresse email des gestionnaires, utilisée pour l'envoie de courriers aux producteurs et dépôts.") ?>
-        </span>
-        </td>
-      </tr>
-      <tr valign="top">
-        <th scope="row"><label for="smtpserver"><?php _e('Serveur SMTP') ?> </label></th>
-        <td><input name="paniers_smtpserver" type="text" id="smtpserver"
-          value="<?php echo $paniers_data['smtpserver']; ?>" class="regular-text"
-        /> <span class="smtpserver"><?php _e("Serveur SMTP.") ?>
-        </span>
-        </td>
-      </tr>
-      <tr valign="top">
-        <th scope="row"><label for="smtpuser"><?php _e('Utilisateur SMTP') ?> </label></th>
-        <td><input name="paniers_smtpuser" type="text" id="smtpuser"
-          value="<?php echo $paniers_data['smtpuser']; ?>" class="regular-text"
-        /> <span class="smtpuser"><?php _e("Utilisateur SMTP.") ?>
-        </span>
-        </td>
-      </tr>
-      <tr valign="top">
-        <th scope="row"><label for="smtppassword"><?php _e('Mot de passe SMTP') ?> </label></th>
-        <td><input name="paniers_smtppassword" type="password" id="smtppassword"
-          value="<?php echo $paniers_data['smtppassword']; ?>" class="password"
-        /> <span class="smtppassword"><?php _e("Mot de passe SMTP.") ?>
-        </span>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Villes", 'villes'); ?> </label></td>
-        <td><?php
-        $villes = $paniers_data['villes'];
-        if(empty($villes))
-        {
-            $villes = __("Ville1;Ville2;Autre", 'villes');
-        }
-        ?><input name="paniers_villes" type="text" id="villes"
-          value="<?php echo $villes; ?>" style="width: 40%;" class="wide"/><span class="villes"><?php _e('Liste des villes des consommateurs (séparés par des points virgules)') ?>
-        </span>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td colspan="2">
-          <h3>
-            <?php _e("Commandes commandes", 'paniers'); ?>
-          </h3>
-          <h4>
-            <?php _e("Vérouillage des commandes", 'paniers'); ?>
-          </h4>
-        </td>
-      </tr>
-      <tr valign="top">
-        <th scope="row"><label for="deltaverrouillage"><?php _e('Delta verouillage') ?> </label></th>
-        <td><input name="paniers_deltaverrouillage" type="text" id="deltaverrouillage"
-          value="<?php echo $paniers_data['deltaverrouillage']; ?>" class="regular-text"
-        /> <span class="deltaverrouillage"><?php _e('Le nombre de jours avant la date de commande pour verouiller les commandes.') ?>
-        </span></td>
-      </tr>
-      <tr valign="top">
-        <td colspan="2">
-          <h4>
-            <?php _e("Configuration bon de commandes", 'paniers'); ?>
-          </h4>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Permanences", 'permanences'); ?> </label></td>
-        <td><textarea name="paniers_permanences" type="text" id="permanences" class="wide"
-           style="width: 40%; height: 100px;"><?php echo $paniers_data['permanences']; ?></textarea><span class="permanences"><?php _e('Types de permanences consommateurs (liste de \"id,libellé,heure début,heure fin,nombre de participants,défaut\" séparés par des points virgules)') ?>
-        </span>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Periodicité", 'periodicite'); ?> </label></td>
-        <td><select size="1" name="paniers_periodicite">
-<option value="hebdomadaire" <?php if($paniers_data['periodicite'] == "hebdomadaire") echo "selected"; ?>>Hebdomadaire</option>
-<option value="mensuel" <?php if($paniers_data['periodicite'] == "mensuel") echo "selected"; ?>>Mensuel</option>
-</select><span class="periodicite">  <?php _e('Périodicité des commandes, une fois par semaine ou bien une fois par mois.') ?>
-        </span>
-        </td>
-      </tr>
-      <tr>
-        <td/>
-        <td><select size="1" name="paniers_jourcommande">
-<?php
-    global $liste_jours;
-    foreach($liste_jours as $id => $jour) {
-        $selected = $id == $paniers_data['jourcommande'] ? "selected" : "";
-?>
-        <option value="<?php echo $id; ?>" <?php echo $selected; ?>><?php echo $jour; ?></option>
-<?php
-    }
-?>
-</select><span class="periodicite">  <?php _e('Jour de la commande.') ?>
-        </span>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td colspan="2">
-          <h3>
-            <?php _e("Réglages de notifications", 'paniers'); ?>
-          </h3>
-          <h4>
-            <?php _e("Notification de relance", 'paniers'); ?>
-          </h4>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Envoyer un email de relance ?", 'paniers'); ?> </label>
-        </td>
-        <td><input style="margin: 0px; padding: 0px; width: auto;" type="checkbox" name="paniers_envoyerrelance"
-          value="1" <?php echo $paniers_data["envoyerrelance"] == "1" ? 'checked="checked"' : ''; ?>
-        /> <span><?php _e('Le courrier de relance est envoyé avant la date de commande.') ?> </span>
-        </td>
-      </tr>
-      <tr valign="top">
-        <th scope="row"><label for="adresserelance"><?php _e('Adresse relance') ?> </label></th>
-        <td><input name="paniers_adresserelance" type="text" id="adresserelance"
-          value='<?php echo $paniers_data['adresserelance']; ?>' class="regular-text"
-        /> <span><?php _e('L\'adresse où envoyer le mail de relance, laisser vide pour envoyer la relance individuellement à chaque consommateur.') ?> </span>
-        </td>
-      </tr>
-      <tr valign="top">
-        <th scope="row"><label for="deltarelance"><?php _e('Delta relance') ?> </label></th>
-        <td><input name="paniers_deltarelance" type="text" id="deltarelance"
-          value='<?php echo $paniers_data['deltarelance']; ?>' class="regular-text"
-        /> <span><?php _e('Le nombre de jours avant la date de commande pour envoyer le mail de relance.') ?> </span>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Sujet", 'paniers'); ?> </label></td>
-        <td><?php
-        $subject = $paniers_data['relancesujet'];
-        if(empty($subject)) {
-            $subject = __('Pensez à faire votre commande au %BLOGNAME%', 'paniers');
-		}
-		?> <input type="text" name="paniers_relancesujet" value='<?php echo $subject; ?>' style="width: 100%" class='wide' />
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Message", 'message'); ?> </label></td>
-        <td><?php
-        $message = $paniers_data['relancemessage'];
-        if(empty($message))
-        {
-            $message = __("Bonjour,
-
-Il est temps de penser à faire votre commande pour les Paniers d'Eden !
-
-Les commandes seront closes le %DATE_VERROUILLAGE% à minuit.
-
-Pour passer votre commande, connectez-vous ici :
-   %BLOGURL%
-
-Cordialement,
---
-mailto: %EMAIL_GESTIONNAIRES%
-%BLOGURL%", 'paniers');
-        }
-        ?> <textarea name="paniers_relancemessage" class='wide' style="width: 100%; height: 250px;"><?php echo esc_textarea($message) ?></textarea>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td colspan="2">
-          <h4>
-            <?php _e("Courrier commandes producteurs", 'paniers'); ?>
-          </h4>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Sujet", 'paniers'); ?> </label></td>
-        <td><?php
-        $subject = $paniers_data['exportcommandessujet'];
-        if(empty($subject)) {
-            $subject = __('%BLOGNAME%: Commandes - %PERIODE%', 'paniers');
-		}
-		?> <input type="text" name="paniers_exportcommandessujet" value='<?php echo $subject; ?>' style="width: 100%"
-          class='wide'
-        />
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Message", 'message'); ?> </label></td>
-        <td><?php
-        $message = $paniers_data['exportcommandesmessage'];
-        if(empty($message))
-        {
-            $message = __("Bonjour,
-
-Voici les commandes au format Excel et PDF pour la période de %PERIODE%.
-
-Cordialement,
---
-mailto: %EMAIL_GESTIONNAIRES%
-%BLOGURL%", 'paniers');
-        }
-        ?> <textarea name="paniers_exportcommandesmessage" class='wide' style="width: 100%; height: 250px;"><?php echo esc_textarea($message) ?></textarea>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td colspan="2">
-          <h4>
-            <?php _e("Courrier récapitulatif commandes pour dépôt", 'paniers'); ?>
-          </h4>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Sujet", 'paniers'); ?> </label></td>
-        <td><?php
-        $subject = $paniers_data['exportrecapcommandessujet'];
-        if(empty($subject)) {
-            $subject = __('%BLOGNAME%: Récapitulatif des commandes - %PERIODE%', 'paniers');
-		}
-		?> <input type="text" name="paniers_exportrecapcommandessujet" value='<?php echo $subject; ?>' style="width: 100%"
-          class='wide'
-        />
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Message", 'message'); ?> </label></td>
-        <td><?php
-        $message = $paniers_data['exportrecapcommandesmessage'];
-        if(empty($message))
-        {
-            $message = __("Bonjour,
-
-Voici le récapitulatif des commandes consommateurs pour votre dépôt et la période de %PERIODE%.
-
-Cordialement,
---
-mailto: %EMAIL_GESTIONNAIRES%
-%BLOGURL%", 'paniers');
-        }
-        ?> <textarea name="paniers_exportrecapcommandesmessage" class='wide' style="width: 100%; height: 250px;"><?php echo esc_textarea($message) ?></textarea>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td colspan="2">
-          <h4>
-            <?php _e("Courrier récapitulatif paiement pour dépôt", 'paniers'); ?>
-          </h4>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Sujet", 'paniers'); ?> </label></td>
-        <td><?php
-        $subject = $paniers_data['exportpaiementssujet'];
-        if(empty($subject)) {
-            $subject = __('%BLOGNAME%: Récapitulatif montants des commandes - %PERIODE%', 'paniers');
-		}
-		?> <input type="text" name="paniers_exportpaiementssujet" value='<?php echo $subject; ?>' style="width: 100%"
-          class='wide'
-        />
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Message", 'message'); ?> </label></td>
-        <td><?php
-        $message = $paniers_data['exportpaiementsmessage'];
-        if(empty($message))
-        {
-            $message = __("Bonjour,
-
-Voici le récapitulatif des montants de commandes pour la période de %PERIODE%.
-
-Cordialement,
---
-mailto: %EMAIL_GESTIONNAIRES%
-%BLOGURL%", 'paniers');
-        }
-        ?> <textarea name="paniers_exportpaiementsmessage" class='wide' style="width: 100%; height: 250px;"><?php echo esc_textarea($message) ?></textarea>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td colspan="2">
-          <h4>
-            <?php _e("Courrier liste clients pour dépôt", 'paniers'); ?>
-          </h4>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Sujet", 'paniers'); ?> </label></td>
-        <td><?php
-        $subject = $paniers_data['exportclientssujet'];
-        if(empty($subject)) {
-            $subject = __('%BLOGNAME%: Liste des consommateurs', 'paniers');
-		}
-		?> <input type="text" name="paniers_exportclientssujet" value='<?php echo $subject; ?>' style="width: 100%"
-          class='wide'
-        />
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Message", 'message'); ?> </label></td>
-        <td><?php
-        $message = $paniers_data['exportclientsmessage'];
-        if(empty($message))
-        {
-            $message = __("Bonjour,
-
-Voici la liste des consommateurs pour votre dépôt.
-
-Cordialement,
---
-mailto: %EMAIL_GESTIONNAIRES%
-%BLOGURL%", 'paniers');
-        }
-        ?> <textarea name="paniers_exportclientsmessage" class='wide' style="width: 100%; height: 250px;"><?php echo esc_textarea($message) ?></textarea>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td colspan="2">
-          <h4>
-            <?php _e("Notification dates de livraisons producteurs", 'paniers'); ?>
-          </h4>
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Sujet", 'paniers'); ?> </label></td>
-        <td><?php
-        $subject = $paniers_data['notificationproducteurssujet'];
-        if(empty($subject)) {
-            $subject = __('%BLOGNAME%: Dates de livraisons pour %PERIODE%', 'paniers');
-		}
-		?> <input type="text" name="paniers_notificationproducteurssujet" value='<?php echo $subject; ?>' style="width: 100%"
-          class='wide'
-        />
-        </td>
-      </tr>
-      <tr valign="top">
-        <td><label><?php _e("Message", 'message'); ?> </label></td>
-        <td><?php
-        $message = $paniers_data['notificationproducteursmessage'];
-        if(empty($message))
-        {
-            $message = __("Bonjour,
-
-Voici les dates de livraisons prévues pour la commande de la période %PERIODE%:
-
-%LISTE_DATES%
-
-Merci de nous signaler si vous ne pourrez pas assurer l'une de ces livraisons. Le bon de commande sera mis en ligne dans quelques jours.
-
-Cordialement,
---
-mailto: %EMAIL_GESTIONNAIRES%
-%BLOGURL%", 'paniers');
-        }
-        ?> <textarea name="paniers_notificationproducteursmessage" class='wide' style="width: 100%; height: 250px;"><?php echo esc_textarea($message) ?></textarea>
-        </td>
-      </tr>
-    </table>
-    <!-- Mise à jour des valeurs -->
-    <input type="hidden" name="panierssubmitted" value="1" />
-    <!-- Bouton de sauvegarde -->
-    <p>
-      <input type="submit" value="<?php _e('Save Changes'); ?>" />
-    </p>
-  </form>
-</div>
-<?php
-}
-
-add_action( 'admin_menu', 'paniers_plugin_menu' );
-
-register_activation_hook(__FILE__,'paniers_install');
-register_deactivation_hook(__FILE__,'paniers_uninstall');
-
-add_action('controler_date_fin_commande_event', 'controler_date_fin_commande');
-
-add_action('wp_print_styles', 'paniers_add_plugin_stylesheet');
-add_action('wp_enqueue_scripts', 'paniers_add_plugin_scripts');
-add_action('init', 'paniers_rewriteURL');
-
-add_action('register_form','paniers_register_form');
-add_filter('registration_errors', 'paniers_registration_errors', 10, 3);
-add_action('password_reset', 'paniers_password_reset', 10, 2);
-add_filter('query_vars', 'paniers_queryvars' );
-add_filter('authenticate', 'paniers_check_login', 10, 3);
-
-add_shortcode('paniers-updateprofile', 'paniers_updateprofile');
-add_shortcode('paniers-date-commande', 'paniers_datecommande');
-
-add_filter('auth_cookie_expiration', 'paniers_login_expiration');
-
-function paniers_login_expiration($expirein) {
-    return MONTH_IN_SECONDS * 3;
-}
-
-function paniers_commande_nouveau($atts) {
-    require_once(paniers_dir . "/include/fonctions_include.php");
-    error_reporting(E_ERROR | E_WARNING | E_PARSE);
-
-    extract(shortcode_atts(array('page_commande_non_disponible' => ''), $atts));
-
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        foreach($_POST as $k=>$v) $$k=$v;
-    }
-    $idperiode = retrouver_periode_courante();
-
-    ob_start();
-    echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
-    if ($idperiode == 0 || !periode_active($idperiode)) {
-        wp_redirect($page_commande_non_disponible);
-        exit;
-    } else {
-        echo afficher_formulaire_bon_commande_nouveau_client($idperiode,
-                                                             $qteproduit,
-                                                             $nom,
-                                                             $prenom,
-                                                             $email,
-                                                             $telephone,
-                                                             $ville);
-    }
-    $content = ob_get_contents();
-    ob_clean();
-    return $content;
-}
-add_shortcode('paniers-commande-nouveau', 'paniers_commande_nouveau');
-
-function paniers_permanences() {
-    $userid = paniers_checkIfLoggedIn();
-
-    require_once(paniers_dir . "/include/fonctions_include.php");
-    error_reporting(E_ERROR | E_WARNING | E_PARSE);
-
-    global $wp_query;
-    global $base_permanences;
-    global $base_permanenciers;
-
-    $action = $wp_query->get("action");
-    $id = $wp_query->get("id");
-
-    ob_start();
-    echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
-
-    if ($action == "") {
-        echo afficher_planning_permanences(false, $userid);
-    } else if ($action == "inscrire") {
-        mysqli_begin_transaction($GLOBALS["___mysqli_ston"], MYSQLI_TRANS_START_READ_WRITE);
-        try {
-            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select nbparticipants,nbinscrits from $base_permanences where id='$id' and date >= curdate()");
-            if (mysqli_num_rows($rep) != 0) {
-                list($nbparticipants,$nbinscrits) = mysqli_fetch_row($rep);
-            }
-            if ($userid > 0 && $nbinscrits < $nbparticipants && verifier_non_inscription($id,$userid))
-            {
-                if (!mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_permanenciers (id,idpermanence,idclient,commentaire,datemodif) values ('','$id','$userid','',now())")) {
-                    afficher_corps_page(
-                        "Une erreur est survenue",
-                        "Vous êtes déjà inscrit à la permanence.",
-                        afficher_planning_permanences(false,$userid));
-                    mysqli_rollback($GLOBALS["___mysqli_ston"]);
-                } else {
-                    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits+1 where id='$id'");
-                    afficher_corps_page(
-                        "Merci de vous être inscrit à cette permanence",
-                        "",
-                        afficher_planning_permanences(false,$userid));
-                    ecrire_log_public("Inscription à la permanence : " . retrouver_permanence($id));
-                    mysqli_commit($GLOBALS["___mysqli_ston"]);
-                }
-            } else {
-                afficher_corps_page(
-                    "Une erreur est survenue",
-                    "Numéro d'utilisateur inconnu, déjà inscrit ou trop d'inscrits.",
-                    afficher_planning_permanences(false,$userid));
-                mysqli_rollback($GLOBALS["___mysqli_ston"]);
-            }
-        } catch (Exception $e) {
-            mysqli_rollback($GLOBALS["___mysqli_ston"]);
-            throw $e;
-        }
-    } else if ($action == "desinscrire") {
-        mysqli_begin_transaction($GLOBALS["___mysqli_ston"], MYSQLI_TRANS_START_READ_WRITE);
-        try {
-            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_permanences where id='$id' and date >= curdate()");
-            if ($userid > 0 && mysqli_num_rows($rep) != 0 && !verifier_non_inscription($id,$userid)) {
-                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_permanenciers where idpermanence='$id' and idclient='" . $userid . "' limit 1");
-                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits-1 where id='$id'");
-                afficher_corps_page(
-                    "Vous êtes désinscrit de cette permanence",
-                    "",
-                    afficher_planning_permanences(false,$userid));
-                ecrire_log_public("Désinscription de la permanence : " . retrouver_permanence($id));
-                mysqli_commit($GLOBALS["___mysqli_ston"]);
-            }
-            else
-            {
-                afficher_corps_page(
-                    "Une erreur est survenue",
-                    "Vous êtes déja désinscrit de la permanence ou votre numéro d'utilisateur est inconnu",
-                    afficher_planning_permanences(false,$userid));
-                mysqli_rollback($GLOBALS["___mysqli_ston"]);
-            }
-        } catch (Exception $e) {
-            mysqli_rollback($GLOBALS["___mysqli_ston"]);
-            throw $e;
-        }
-    }
-
-    $content = ob_get_contents();
-    ob_clean();
-    return $content;
-}
-add_shortcode('paniers-permanences', 'paniers_permanences');
-
-function paniers_login_redirect($redirect_to, $request='', $user=null){
-    if(isset($_REQUEST['redirect_to'])){
-        $redirect_to = $_REQUEST['redirect_to'];
-    }
-    return $redirect_to;
-}
-add_filter('login_redirect','paniers_login_redirect',999);
-
-function paniers_livraisons($atts) {
-    $userid = paniers_checkIfLoggedIn();
-    require_once(paniers_dir . "/include/fonctions_include.php");
-    error_reporting(E_ERROR | E_WARNING | E_PARSE);
-
-    global $wp_query;
-    $iddate = $wp_query->get("iddate");
-    $idclient = $wp_query->get("idclient");
-
-    ob_start();
-    echo afficher_recapitulatif_livraisons($idclient == 0 ? $userid : $idclient, $iddate);
-    $content = ob_get_contents();
-    ob_clean();
-    return $content;
-}
-add_shortcode('paniers-livraisons', 'paniers_livraisons');
-
-function paniers_commande_adherent($atts) {
-
-    if (!function_exists('message_erreur')) {
-        function message_erreur($message) {
-            echo afficher_message_erreur($message);
-            $content = ob_get_contents();
-            ob_clean();
-            return $content;
-        }
-    }
-
-    $userid = paniers_checkIfLoggedIn();
-
-    require_once(paniers_dir . "/include/fonctions_include.php");
-    error_reporting(E_ERROR | E_WARNING | E_PARSE);
-
-    extract(shortcode_atts(array('page_commande_non_disponible' => ''), $atts));
-
-    global $wp_query;
-    global $base_bons_cde;
-
-    $action = $wp_query->get("action");
-    $id = $wp_query->get("id");
-    $idperiode = $wp_query->get("idperiode");
-
-    ob_start();
-    echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
-    if ($action == "editercde" || ($action=="" && !str_starts_with($_SERVER['REQUEST_URI'], "/wp-admin"))) {
-        if (!isset($id) || $id == "" || $id == 0) {
-            $idperiode = retrouver_periode_courante(true);
-            if($idperiode == -1 || $idperiode == 0 || !periode_active($idperiode)) {
-                wp_redirect($page_commande_non_disponible);
-                exit;
-            } else {
-                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_bons_cde where idclient = '$userid' and idperiode = '$idperiode'");
-                if (mysqli_num_rows($rep) > 0) {
-                    list($id) = mysqli_fetch_row($rep);
-                }
-            }
-        }
-
-        if (isset($id) && $id != "" && $id != 0) {
-            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idperiode,iddepot from $base_bons_cde where id = '$id'");
-            if(mysqli_num_rows($rep) == 0) {
-                return message_erreur("Commande introuvable");
-            }
-            list($idperiode,$iddepot) = mysqli_fetch_row($rep);
-            $qteproduit = retrouver_quantites_commande($id,$idperiode);
-        } else {
-            $id = 0;
-            $iddepot = retrouver_depot_client($userid);
-            $qteproduit = array();
-        }
-
-        afficher_corps_page(
-            "",
-            "",
-            afficher_formulaire_bon_commande_frontend(
-                $idperiode,
-                $iddepot,
-                $qteproduit,
-                "enregistrercde",
-                $id,
-                $userid));
-    } else if ($action == "affichercde" && $id != "" && $id != 0) {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idperiode,iddepot from $base_bons_cde where id='$id'");
-        if (mysqli_num_rows($rep) != 0) {
-            list($idperiode,$iddepot) = mysqli_fetch_row($rep);
-            echo afficher_recapitulatif_commande($id);
-        }
-        else {
-            return message_erreur("Commande introuvable");
-        }
-    } else if ($action == "enregistrercde") {
-        $iddepot = $_POST["iddepot"];
-        if (!isset($idperiode) || $idperiode == "" || $idperiode == 0) {
-            return message_erreur("Pas de période définie");
-        }
-        else if (!isset($iddepot) || $iddepot == "" || $iddepot == 0) {
-            return message_erreur("Pas de dépot selectionné");
-        }
-        else {
-            if (isset($id) && $id != "" && $id != 0) {
-                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,iddepot from $base_bons_cde where id='$id'");
-                if(mysqli_num_rows($rep) == 0) {
-                    return message_erreur("Commande introuvable!");
-                }
-            }
-            else {
-                $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,iddepot from $base_bons_cde where idperiode='$idperiode' and idclient='$userid'");
-            }
-
-            if ($userid == 0) {
-                wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
-                exit;
-            }
-
-            if(mysqli_num_rows($rep) == 0) {
-                $id = enregistrer_bon_commande($idperiode,$userid,$iddepot);
-                if($id < 0) {
-                    return message_erreur("La commande a déjà été enregistrée!");
-                }
-            } else {
-                list($id, $iddepotorig) = mysqli_fetch_row($rep);
-                if($iddepotorig != $iddepot) {
-                    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_bons_cde set iddepot=$iddepot where id='$id'");
-                }
-            }
-
-            mysqli_begin_transaction($GLOBALS["___mysqli_ston"], MYSQLI_TRANS_START_READ_WRITE);
-            try {
-                enregistrer_commande($idperiode,$_POST['qteproduit'],$id,$userid);
-                mysqli_commit($GLOBALS["___mysqli_ston"]);
-            } catch (Exception $e) {
-                mysqli_rollback($GLOBALS["___mysqli_ston"]);
-                throw $e;
-            }
-
-            afficher_corps_page(
-                "Commande enregistrée sous le n° C$userid-$id (" . html_lien("/paniers/imprimer.php?id=$id","_blank","l'imprimer") . ")",
-                "N'oubliez pas pas de faire votre virement ou de déposer votre chèque pour le " . strtolower(paniers_datecommande()),
-                afficher_recapitulatif_commande($id));
-            ecrire_log_public("Commande enregistrée sous le n° C$userid-$id");
-        }
-    } else if ($action == "supprimercde" && $id > 0) {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idperiode,etat,datemodif from $base_bons_cde where id='$id'");
-        if(mysqli_num_rows($rep) != 0) {
-            list($idperiode,$datemodif) = mysqli_fetch_row($rep);
-            $champs["libelle"] = array("Commande n° C$userid-$id","Période","Créée le","","");
-            $champs["type"] = array("","afftext","afftext","submit","submit");
-            $champs["lgmax"] = array("","","","","");
-            $champs["taille"] = array("","","","","");
-            $champs["nomvar"] = array("","","","valider","valider");
-            $champs["valeur"] = array("",retrouver_periode($idperiode),dateheureexterne($datemodif)," Annuler "," Valider ");
-            $champs["aide"] = array("","","");
-            afficher_corps_page(
-                "Suppression de la commande n° C$userid-$id",
-                "",
-                saisir_enregistrement($champs,"?action=confsupprimercde&id=$id","formsupprimer",70,20,2,2,false));
-        }
-        else {
-            return message_erreur("Commande introuvable");
-        }
-    } else if ($action == "confsupprimercde" && $id > 0) {
-        if ($_POST["valider"] == " Valider ") {
-            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_bons_cde where id='$id'");
-            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_commandes where idboncommande='$id'");
-            $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_avoirs set idboncommande=0 where idboncommande='$id'");
-            ecrire_log_public("Commande n° C$userid-$id supprimée");
-        }
-        else {
-            echo(lister_commandes($userid, $page_commande));
-        }
-    } else {
-        return message_erreur("Action de commande invalide");
-    }
-
-    $content = ob_get_contents();
-    ob_clean();
-    return $content;
-}
-add_shortcode('paniers-commande-adherent', 'paniers_commande_adherent');
-
-function paniers_liste_commandes_adherent($atts) {
-    $userid = paniers_checkIfLoggedIn();
-
-    require_once(paniers_dir . "/include/fonctions_include.php");
-    error_reporting(E_ERROR | E_WARNING | E_PARSE);
-
-    extract( shortcode_atts( array(
-		'page_commande' => '/commande/',
-    ), $atts ) );
-
-
-    ob_start();
-    echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
-    echo(lister_commandes($userid, $page_commande));
-    $content = ob_get_contents();
-    ob_clean();
-    return $content;
-}
-add_shortcode('paniers-liste-commandes-adherent', 'paniers_liste_commandes_adherent');

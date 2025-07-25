@@ -1,7 +1,5 @@
 <?php
 
-$g_periode_libelle = "CONCAT($base_periodes.libelle, ' (du ', DATE_FORMAT(datedebut,'%d/%m/%Y'), ' au ', DATE_FORMAT(datefin,'%d/%m/%Y'), ')') ";
-
 function nombre_periodes() {
     global $base_periodes;
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select count(*) from $base_periodes where 1");
@@ -11,7 +9,7 @@ function nombre_periodes() {
 
 function formulaire_periode_et_dates() {
 
-    global $g_lib_somme_admin,$tab_types_permanences,$tab_permanences_defauts,$base_producteurs,$liste_mois,
+    global $tab_types_permanences,$tab_permanences_defauts,$base_producteurs,$liste_mois,
         $jour_commande, $periodicite_commande,$base_periodes;
 
     $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select datedebut,datefin,datecommande from $base_periodes where 1 order by datefin desc limit 1");
@@ -93,8 +91,7 @@ function formulaire_periode_et_dates() {
         $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id,nom,produits from $base_producteurs where etat='Actif' order by produits");
         $producteurs = "";
         while(list($idproducteur,$nom,$produits) = mysqli_fetch_row($rep0)) {
-            $producteurs .= html_checkbox_input("producteurs[$i][$idproducteur]", "1", "$produits ($nom)",
-                                                !$absences[$idproducteur]) . "<br>";
+            $producteurs .= html_checkbox_input("producteurs[$i][$idproducteur]", "1", "$produits ($nom)", true) . "<br>";
         }
 
         $champs["libelle"][] = "Producteurs";
@@ -245,7 +242,7 @@ function gerer_liste_periodes($filtre_etat = "-2") {
     return($chaine);
 }
 
-function retrouver_periode($id,$short=false) {
+function afficher_periode($id,$short=false) {
     global $base_periodes;
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select libelle,datedebut,datefin from $base_periodes where id='$id'");
     $texte = "??? periode n° $id ???";
@@ -257,8 +254,8 @@ function retrouver_periode($id,$short=false) {
     return($texte);
 }
 
-function periode_active($idperiode) {
-    global $base_periodes;
+function is_periode_active($idperiode) {
+    global $base_periodes, $g_delta_date_verrouillage;
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select etat, UNIX_TIMESTAMP(datecommande) - UNIX_TIMESTAMP(curdate()) " .
                        "from $base_periodes where id='$idperiode'");
     if($rep && mysqli_num_rows($rep) != 0) {
@@ -357,6 +354,16 @@ function retrouver_periode_courante($verrouillage = false) {
     return $id;
 }
 
+function retrouver_periode_commande_client($idcommande, $idclient) {
+    global $base_bons_cde;
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idperiode from $base_bons_cde where id='$idcommande' and idclient='$idclient'");
+    if (mysqli_num_rows($rep) == 0) {
+        return 0;
+    }
+    list($idperiode) = mysqli_fetch_row($rep);
+    return $idperiode;
+}
+
 function afficher_date_prochaine_commande() {
     global $base_periodes;
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select datecommande from $base_periodes where datecommande >= curdate() and etat='Active' ".
@@ -430,7 +437,7 @@ function controler_date_fin_commande() {
 function notification_producteurs_form($idperiode) {
     global $email_gestionnaires;
     $vars = array(
-        "%PERIODE%" => retrouver_periode($idperiode),
+        "%PERIODE%" => afficher_periode($idperiode),
     );
     $subject = message_courrier("notificationproducteurssujet", $vars);
     $message = message_courrier("notificationproducteursmessage", $vars);

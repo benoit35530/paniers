@@ -41,7 +41,6 @@ function afficher_bouton_moyen($libelle,$lien="",$target="_top",$style="boutonmo
 }
 
 function afficher_bouton($libelle,$lien="",$target="_top",$style="boutonpetit") {
-    global $idxmenu_petit;
     $chaine = ($lien == "" ? html_span_class(stripslashes($libelle),"$style") : html_lien("$lien","$target",stripslashes($libelle),"$style"));
     return("$chaine");
 }
@@ -264,12 +263,6 @@ function afficher_enregistrement($champs,$prc_taille=95,$prc_indent=20,$spacing=
     return("$texte");
 }
 
-function remplacer_car_speciaux($chaine) {
-
-    return(str_replace(array("\x0a","\x0d"),array('\n','\r'),$chaine));
-
-}
-
 function email($sender,$dest,$objet,$body) {
 
     $sender .= ($sender == "webmaster" ? "@webazar.org" : "");
@@ -310,11 +303,9 @@ function afficher_corps_page($PAGE_Titre="",$PAGE_Message="",$PAGE_Contenu="") {
         echo html_debut_ligne("","","","top");
         echo html_colonne("100%","","center","","","","",$PAGE_Contenu);
         echo html_fin_ligne();
-
     }
 
     echo html_fin_tableau();
-
 }
 
 function export_as_pdf_email($output)
@@ -381,7 +372,6 @@ function send_email($mail_to,$mail_cc,$mail_subject, $mail_message)
     return true;
 }
 
-
 function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $output = "")
 {
     $paniers_data = get_option("paniers_data");
@@ -422,59 +412,6 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
         return false;
     }
     return true;
-}
-
-function send_export_email2($mail_to,$mail_cc,$mail_subject, $mail_message, $output = "")
-{
-    global $email_gestionnaires;
-    // $mail_subject = utf8_decode(stripslashes($mail_subject));
-    $mail_to = "foucher.benoit@neuf.fr";
-    $mail_subject = '=?UTF-8?Q?'.quoted_printable_encode($mail_subject).'?=';
-    // $mail_message = utf8_decode(stripslashes($mail_message));
-    $mail_boundary = md5(uniqid(time()));
-    $mail_headers = "MIME-Version: 1.0\r\n";
-    $mail_headers .= "Content-Type: multipart/mixed; boundary=\"$mail_boundary\"\r\n";
-    $user = wp_get_current_user();
-    // $mail_headers .= "From: " . $user->display_name . " <". $user->user_email . ">\r\n";
-    $mail_headers .= "From: Paniers d'EDEN <contact@panierseden.fr>\r\n";
-    if($mail_cc != "") {
-        $mail_headers .= "Reply-To: $user->user_email\r\n";
-    }
-    if($mail_cc != "") {
-        $mail_headers .= "Cc: $mail_cc\r\n";
-    }
-
-    $mail_body = "--$mail_boundary\r\n";
-    $mail_body .= "Content-Type: text/plain; charset=\"UTF-8\"\r\n";
-    $mail_body .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
-    $mail_body .= $mail_message . "\r\n\r\n";
-    $mail_body .= "--$mail_boundary\r\n";
-
-    if($output != "") {
-        // // // $excel_output = "<html>";
-        // // // $excel_output .= "<header>";
-        // // // $excel_output .= "<meta http-equiv=\"Content-Type\" content=\"application/vnd.ms-excel; charset=utf-8\" />";
-        // // // $excel_output .= "</header>";
-        // // // $excel_output .= "<body>";
-        // // // $excel_output .= $output;
-        // // // $excel_output .= "</body>";
-        // // // $excel_output .= "</html>";
-
-        // // $mail_body .= "Content-type: application/vnd.ms-excel; name=export.xls\r\n";
-        // // $mail_body .= "Content-transfer-encoding: base64\r\n";
-        // // $mail_body .= "Content-Disposition: attachment; filename=export.xls\r\n\r\n";
-        // // $mail_body .= chunk_split(base64_encode($excel_output))  . " \r\n";
-
-        // $mail_body .= "--$mail_boundary\r\n";
-
-        $mail_body .= "Content-Type: application/pdf; name=export.pdf\r\n";
-        $mail_body .= "Content-Transfer-Encoding: base64\r\n";
-        $mail_body .= "Content-Disposition: attachment; filename=export.pdf\r\n\r\n";
-        $mail_body .= chunk_split(base64_encode(export_as_pdf($output)))  . "\r\n\r\n";
-
-        $mail_body .= "--$mail_boundary--\r\n";
-    }
-    return wp_mail($mail_to, $mail_subject, $mail_body, $mail_headers);
 }
 
 function message_courrier($id, $vars = array())

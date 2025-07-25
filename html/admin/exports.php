@@ -74,26 +74,6 @@ if(isset($idproducteur)) {
     }
 }
 
-function export_courrier_form($titre, $action, $formid, $subjectid, $messageid) {
-    global $email_gestionnaires, $idperiode, $iddepot, $idproducteur, $export;
-    $vars = array(
-            "%PERIODE%" => retrouver_periode($idperiode),
-            "%DEPOT%" => retrouver_depot($iddepot)
-    );
-    $subject = message_courrier($subjectid, $vars);
-    $message = message_courrier($messageid, $vars);
-
-    $texte = afficher_titre($titre);
-    $champs["libelle"] = array("Message","CC / Répondre A", "Sujet", "Message", "", "", "", "", "");
-    $champs["type"] = array("", "text","text", "textarea", "hidden", "hidden", "hidden", "hidden", "submit");
-    $champs["lgmax"] = array("", "80", "80", "15","","","","");
-    $champs["taille"] = array("","80", "80","80","","","");
-    $champs["nomvar"] = array("","mail_cc","mail_subject", "mail_message","idperiode", "iddepot","idproducteur", "export", "");
-    $champs["valeur"] = array("",$email_gestionnaires,$subject,$message,$idperiode,$iddepot,$idproducteur,$export, "Valider");
-    $champs["aide"] = array("","","","","","","","","");
-    $texte .= saisir_enregistrement($champs,"?action=$action",$formid,50,20,5,5,false,"");
-    return $texte;
-}
 
 $output = "";
 
@@ -212,7 +192,7 @@ case "recapproducteurs": {
                     }
                     $output .= afficher_titre("Commandes du dépôt \"". retrouver_depot($depot) . "\" pour " .
                                               retrouver_producteur($producteur) . ", période : " .
-                                              retrouver_periode($idperiode));
+                                              afficher_periode($idperiode));
                     $output .= recapituler_par_producteur($producteur,$idperiode,$depot) . "<br><br>";
                     $output .= recapituler_par_producteur_client($producteur,$idperiode,$depot);
                     $pageBreak = True;
@@ -258,7 +238,7 @@ case "recappaiements": {
             {
                 $output .= "<div style=\"page-break-before: always\"/>";
             }
-            $output .= afficher_titre("Paiements clients du dépôt \"". retrouver_depot($depot) . "\" pour la période : " . retrouver_periode($idperiode));
+            $output .= afficher_titre("Paiements clients du dépôt \"". retrouver_depot($depot) . "\" pour la période : " . afficher_periode($idperiode));
             $output .= recapitulatif_paiements_clients($idperiode, $depot);
             if($export == "email") {
                 $mail_to = retrouver_depot_email($depot);
@@ -393,4 +373,27 @@ if (!isset($export) || ($export != "excel" && $export != "impression" && $export
 else if ($export != "pdf") {
     require_once("../include/admin/admin_footer_exports.php");
 }
+
+
+function export_courrier_form($titre, $action, $formid, $subjectid, $messageid) {
+    global $email_gestionnaires, $idperiode, $iddepot, $idproducteur, $export;
+    $vars = array(
+            "%PERIODE%" => afficher_periode($idperiode),
+            "%DEPOT%" => retrouver_depot($iddepot)
+    );
+    $subject = message_courrier($subjectid, $vars);
+    $message = message_courrier($messageid, $vars);
+
+    $texte = afficher_titre($titre);
+    $champs["libelle"] = array("Message","CC / Répondre A", "Sujet", "Message", "", "", "", "", "");
+    $champs["type"] = array("", "text","text", "textarea", "hidden", "hidden", "hidden", "hidden", "submit");
+    $champs["lgmax"] = array("", "80", "80", "15","","","","");
+    $champs["taille"] = array("","80", "80","80","","","");
+    $champs["nomvar"] = array("","mail_cc","mail_subject", "mail_message","idperiode", "iddepot","idproducteur", "export", "");
+    $champs["valeur"] = array("",$email_gestionnaires,$subject,$message,$idperiode,$iddepot,$idproducteur,$export, "Valider");
+    $champs["aide"] = array("","","","","","","","","");
+    $texte .= saisir_enregistrement($champs,"?action=$action",$formid,50,20,5,5,false,"");
+    return $texte;
+}
+
 ?>

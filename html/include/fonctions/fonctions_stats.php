@@ -24,7 +24,7 @@ function stats_producteurs() {
         {
 
             $chaine .= html_debut_ligne("","","","top");
-            $chaine .= html_colonne("","","left","","","","",retrouver_periode($idperiode,true),"","tdliste");
+            $chaine .= html_colonne("","","left","","","","",afficher_periode($idperiode,true),"","tdliste");
             $chaine .= html_colonne("","","center","","","","",$nbcommandes,"","tdliste");
             $chaine .= html_fin_ligne();
 

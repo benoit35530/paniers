@@ -56,8 +56,8 @@ case 'confajout':
     if(isset($codeclient,$motpasse,$nom,$prenom) && $codeclient != "" && $motpasse != "" && $nom != "" && $prenom != "")
     {
         $err = paniers_insertclient();
-        if($err != "") {
-            echo afficher_message_erreur($err);
+        if(is_wp_error($err)) {
+            echo afficher_message_erreur($err->get_error_message());
             echo saisir_parametres_client("0","ajout");
         } else {
             mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_clients (codeclient,motpasse,nom,prenom,email,telephone,ville,iddepot,etat,derncnx,datemodif,cotisation) values ('$codeclient','" . encode_password($motpasse) . "','$nom','$prenom','$email','$telephone','$ville','$iddepot','$etat',now(),now(),'$cotisation')");

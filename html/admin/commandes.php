@@ -32,7 +32,7 @@ case "preparer": {
             $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idboncde,idperiode,idclient,iddepot from $base_bons_cde where id='$id'");
             if(mysqli_num_rows($rep) != 0) {
                 list($idboncde,$idperiode,$idclient,$iddepot) = mysqli_fetch_row($rep);
-                $qteproduit = retrouver_quantites_commande($id,$idperiode);
+                $qteproduit = retrouver_quantites_commande($id);
                 echo afficher_titre("Modifier la commande n° : " . $idboncde . " pour " .
                                     retrouver_client($idclient,true)) . "<br>";
                 echo afficher_formulaire_bon_commande($idperiode,$iddepot,$qteproduit,"confmodifier",$id, $idclient);
@@ -40,7 +40,7 @@ case "preparer": {
         }
         else {
             echo afficher_titre("Remplir un bon de commande pour " . retrouver_client($idclient,true));
-            echo afficher_message_info(retrouver_periode($idperiode)) . "<br>";
+            echo afficher_message_info(afficher_periode($idperiode)) . "<br>";
             echo afficher_formulaire_bon_commande($idperiode,retrouver_depot_client($idclient),array(), "enregistrer",
                                                   0, $idclient);
         }
@@ -76,7 +76,7 @@ case "enregistrer": {
                 enregistrer_commande($idperiode,$qteproduit,$idboncommande,$idclient);
                 $codeclient = retrouver_code_client($idclient);
                 echo afficher_titre("Commande enregistrée sous le n° " . $codeclient . "-" . $idboncommande);
-                echo afficher_message_info(retrouver_client($idclient,true) . " - " . retrouver_periode($idperiode)) .
+                echo afficher_message_info(retrouver_client($idclient,true) . " - " . afficher_periode($idperiode)) .
                     "<br>";
                 echo afficher_recapitulatif_commande_admin($idboncommande);
                 ecrire_log_admin("Commande enregistrée sous le n° " . $codeclient . "-" . $idboncommande);
@@ -98,7 +98,7 @@ case "enregistrer": {
         if(isset($idperiode) && $idperiode != "" && $idperiode != 0 &&
            isset($idclient) && $idclient != "" && $idclient != 0) {
             echo afficher_titre("Remplir un bon de commande pour " . retrouver_client($idclient,true));
-            echo afficher_message_info(retrouver_periode($idperiode)) . "<br>";
+            echo afficher_message_info(afficher_periode($idperiode)) . "<br>";
             echo afficher_formulaire_bon_commande($idperiode,$iddepot,$qteproduit,"enregistrer", 0,
                                                   $idclient);
         }
@@ -116,7 +116,7 @@ case "modifier": {
         $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idboncde,idperiode,idclient,iddepot from $base_bons_cde where id='$id'");
         if(mysqli_num_rows($rep) != 0) {
             list($idboncde,$idperiode,$idclient,$iddepot) = mysqli_fetch_row($rep);
-            $qteproduit = retrouver_quantites_commande($id,$idperiode);
+            $qteproduit = retrouver_quantites_commande($id);
             echo afficher_titre("Modifier la commande n° : " . $idboncde . " pour " . retrouver_client($idclient,true)) . "<br>";
             echo afficher_formulaire_bon_commande($idperiode, $iddepot, $qteproduit, "confmodifier", $id, $idclient);
         }
@@ -179,7 +179,7 @@ case "confmodifier": {
             else {
                 if(isset($idperiode) && $idperiode != "" && $idperiode != 0) {
                     echo afficher_titre("Modifier un bon de commande pour " . retrouver_client($idclient,true));
-                    echo afficher_message_info(retrouver_periode($idperiode)) . "<br>";
+                    echo afficher_message_info(afficher_periode($idperiode)) . "<br>";
                     echo afficher_formulaire_bon_commande($idperiode,$iddepot,$qteproduit,"confmodifier",$id,
                                                           $idclient);
                 }
@@ -214,7 +214,7 @@ case "supprimer": {
             $champs["lgmax"] = array("","","","","","");
             $champs["taille"] = array("","","","","","");
             $champs["nomvar"] = array("","","","","valider","valider");
-            $champs["valeur"] = array("",retrouver_client($idclient,true),retrouver_periode($idperiode),dateheureexterne($datemodif)," Annuler "," Valider ");
+            $champs["valeur"] = array("",retrouver_client($idclient,true),afficher_periode($idperiode),dateheureexterne($datemodif)," Annuler "," Valider ");
             $champs["aide"] = array("","","","","","");
             echo afficher_titre("Suppression de la commande n° $idboncde");
             echo saisir_enregistrement($champs,"?action=confsupprimer&id=$id","formsupprimer",70,20,2,2,false);
@@ -234,24 +234,17 @@ case "confsupprimer": {
         echo afficher_message_erreur("Il manque le n° de commande !!!");
     }
     else {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idboncde from $base_bons_cde where id='$id'");
-        if(mysqli_num_rows($rep) != 0) {
-            list($idboncde) = mysqli_fetch_row($rep);
-            if($valider == " Valider ")
-                {
-                    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_bons_cde where id='$id'");
-                    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_commandes where idboncommande='$id'");
-                    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_avoirs set idboncommande=0 where idboncommande='$id'");
-                    echo afficher_titre("La commande n° $idboncde a été supprimée");
-                    ecrire_log_admin("Commande n° $idboncde supprimée");
-                }
-            else {
-                echo afficher_titre("Toutes les commandes");
+        if ($valider == " Valider ") {
+            $idboncde = supprimer_bon_commande($id);
+            if ($idboncde != "") {
+                echo afficher_titre("La commande n° $idboncde a été supprimée");
+                ecrire_log_admin("Commande n° $idboncde supprimée");
+            } else {
+                echo afficher_titre("Suppression d'une commande");
+                echo afficher_message_erreur("Commande introuvable");
             }
-        }
-        else {
-            echo afficher_titre("Suppression d'une commande");
-            echo afficher_message_erreur("Commande introuvable !!!");
+        } else {
+            echo afficher_titre("Toutes les commandes");
         }
     }
     echo gerer_liste_commandes();
@@ -263,7 +256,7 @@ case "detail": {
         $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select idboncde,idclient from $base_bons_cde where id='$id'");
         if(mysqli_num_rows($rep) != 0) {
             list($idboncde,$idclient) = mysqli_fetch_row($rep);
-            $qteproduit = retrouver_quantites_commande($id,$idperiode);
+            $qteproduit = retrouver_quantites_commande($id);
             echo afficher_titre("Détails de la commande n° " . $idboncde . " (" .
                                 retrouver_client($idclient) . ")");
             echo afficher_recapitulatif_commande_admin($id);
@@ -284,7 +277,7 @@ case "detail": {
 
 case "filtrer":
     if($idperiode > 0) {
-        echo afficher_titre("Les commandes pour la période : " . retrouver_periode($idperiode));
+        echo afficher_titre("Les commandes pour la période : " . afficher_periode($idperiode));
     } else {
         echo afficher_titre("Liste des commandes");
     }

@@ -224,7 +224,7 @@ case "confsuppr":
 
 case "filtrer":
     if($idperiode > 0) {
-        echo afficher_titre("Les dates pour la période : " . retrouver_periode($idperiode));
+        echo afficher_titre("Les dates pour la période : " . afficher_periode($idperiode));
     } else {
         echo afficher_titre("Liste des dates");
     }

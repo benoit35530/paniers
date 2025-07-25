@@ -48,7 +48,7 @@ case "confajoutboncde":
             $last_id = ((is_null($___mysqli_res = mysqli_insert_id($GLOBALS["___mysqli_ston"]))) ? false : $___mysqli_res);
             ecrire_log_admin("Date n° $last_id ajoutée : $date");
 
-            $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_producteurs where 1");
+            $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_producteurs where etat='Actif'");
             while(list($idproducteur) = mysqli_fetch_row($rep0)) {
                 if(!$producteurs[$i][$idproducteur]) {
                     mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_absences (iddate,idproducteur) values ('$last_id','$idproducteur')");

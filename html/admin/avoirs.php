@@ -216,7 +216,7 @@ case "confsuppr":
     break;
 
 case "filtrer":
-    echo afficher_titre("Avoirs période : " . retrouver_periode($idperiode));
+    echo afficher_titre("Avoirs période : " . afficher_periode($idperiode));
     echo gerer_liste_avoirs_periode($idperiode);
     break;
 

@@ -336,7 +336,7 @@ function retrouver_periode_derniere() {
     return($texte);
 }
 
-function retrouver_periode_courante($verrouillage = false) {
+function retrouver_periode_courante($verifierverrouillage = false) {
     global $base_periodes, $g_delta_date_verrouillage;
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id, etat, UNIX_TIMESTAMP(datecommande) - UNIX_TIMESTAMP(curdate()) from ".
                        "$base_periodes where datecommande >= curdate() order by datecommande limit 1");
@@ -344,10 +344,10 @@ function retrouver_periode_courante($verrouillage = false) {
     if (mysqli_num_rows($rep) != 0)
     {
         list($id, $etat, $restant) = mysqli_fetch_row($rep);
-        if($etat == "Close" && $verrouillage) {
-            $id = 0; // La periode courante est verouillée.
+        if($etat != "Active") {
+            $id = 0; // La periode courante n'est pas active (soit close ou en préparation).
         }
-        else if($verrouillage && ($restant < ($g_delta_date_verrouillage * 24 * 3600))) {
+        else if($verifierverrouillage && ($restant < ($g_delta_date_verrouillage * 24 * 3600))) {
             $id = -1; // La periode courante est verouillée.
         }
     }
@@ -435,7 +435,6 @@ function controler_date_fin_commande() {
 }
 
 function notification_producteurs_form($idperiode) {
-    global $email_gestionnaires;
     $vars = array(
         "%PERIODE%" => afficher_periode($idperiode),
     );

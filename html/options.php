@@ -38,14 +38,17 @@ function paniers_plugin_options() {
       <tr valign="top">
         <th scope="row"><label for="pageconsommateurs"><?php _e('Page Consommateurs') ?> </label></th>
         <td><input name="paniers_pageconsommateurs" type="text" id="pageconsommateurs"
-          value="<?php echo $paniers_data['pageconsommateurs']; ?>" class="regular-text"
-        /></td>
+          value="<?php echo $paniers_data['pageconsommateurs']; ?>" class="regular-text"/></td>
       </tr>
       <tr valign="top">
         <th scope="row"><label for="pagegestionnaires"><?php _e('Page Gestionnaires') ?> </label></th>
         <td><input name="paniers_pagegestionnaires" type="text" id="pagegestionnaires"
-          value="<?php echo $paniers_data['pagegestionnaires']; ?>" class="regular-text"
-        /></td>
+          value="<?php echo $paniers_data['pagegestionnaires']; ?>" class="regular-text"/></td>
+      </tr>
+      <tr valign="top">
+        <th scope="row"><label for="pageconnexion"><?php _e('Page Connexion') ?> </label></th>
+        <td><input name="paniers_pageconnexion" type="text" id="pageconnexion"
+          value="<?php echo $paniers_data['pageconnexion']; ?>" class="regular-text"/></td>
       </tr>
       <tr valign="top">
         <th scope="row"><label for="adressegestionnaires"><?php _e('Adresse gestionnaires') ?> </label></th>
@@ -400,6 +403,24 @@ mailto: %EMAIL_GESTIONNAIRES%
 %BLOGURL%", 'paniers');
         }
         ?> <textarea name="paniers_notificationproducteursmessage" class='wide' style="width: 100%; height: 250px;"><?php echo esc_textarea($message) ?></textarea>
+        </td>
+      </tr>
+      <tr valign="top">
+        <td colspan="2">
+          <h4>
+            <?php _e("Message confirmation de sauvegarde de commande", 'paniers'); ?>
+          </h4>
+        </td>
+      </tr>
+      <tr valign="top">
+        <td><label><?php _e("Message", 'message'); ?> </label></td>
+        <td><?php
+        $message = $paniers_data['messagesauvegardecommande'];
+        if(empty($message))
+        {
+            $message = __("N'oubliez pas pas de faire votre virement pour le %DATECOMMANDE%", 'paniers');
+        }
+        ?> <textarea name="paniers_messagesauvegardecommande" class='wide' style="width: 100%; height: 250px;"><?php echo esc_textarea($message) ?></textarea>
         </td>
       </tr>
     </table>

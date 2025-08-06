@@ -176,14 +176,10 @@ function retrouver_permanences_disponibles($nomvariable,$idclient) {
 
     while (list($id,$date,$heuredebut,$heurefin,$nbparticipants,$nbinscrits,$typepermanence) = mysqli_fetch_row($rep))
     {
-
         if($nbinscrits < $nbparticipants && verifier_non_inscription($id,$idclient))
         {
-
             $texte .= "<option value=\"" . $id . "\">" . dateexterne($date) . " [" . heures_minutes($heuredebut) . " - " . heures_minutes($heurefin) . "] " . $tab_types_permanences[$typepermanence]. "</option>\n";
-
         }
-
     }
 
     $texte .= "</select>\n";

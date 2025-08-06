@@ -178,8 +178,9 @@ function paniers_install()
 
     $paniers_data = get_option('paniers_data');
     if(!$paniers_data || $paniers_data == "") {
-        $paniers_data["pageconsommateurs"] = "/index.php";
-        $paniers_data["pagegestionnaires"] = "/index.php";
+        $paniers_data["pageconsommateurs"] = "/adherents";
+        $paniers_data["pagegestionnaires"] = "/administrateurs";
+        $paniers_data["pageconnextion"] = "";
         $paniers_data["adressegestionnaires"] = get_option("admin_email");
         $paniers_data["villes"] = "Ville1;Ville2;etc";
         $paniers_data["deltaverrouillage"] = "1";
@@ -210,26 +211,17 @@ misensachets,Mise en sachets des pommes,14:00,14:30,2,0";
 
     paniers_rewriteURL();
     flush_rewrite_rules();
-
-    // if(!wp_next_scheduled('controler_date_fin_commande_event'))
-    // {
-    //     wp_schedule_event(time(), 'hourly', 'controler_date_fin_commande_event');
-    // }
 }
 
-function paniers_uninstall()
-{
+function paniers_uninstall() {
     flush_rewrite_rules();
-    wp_clear_scheduled_hook('controler_date_fin_commande_event');
 }
 
-function paniers_rewriteURL()
-{
+function paniers_rewriteURL() {
     add_rewrite_rule('paniers/(.*)$', substr(paniers_dir, 1) . '/$1','top');
 }
 
-function paniers_queryvars($qvars)
-{
+function paniers_queryvars($qvars) {
     $qvars[] = 'action';
     $qvars[] = 'id';
     $qvars[] = 'idperiode';
@@ -244,20 +236,18 @@ function paniers_queryvars($qvars)
     return $qvars;
 }
 
-function paniers_checkIfLoggedIn()
-{
-    if(!is_user_logged_in()) {
-        wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
-        exit;
+function paniers_checkIfLoggedIn() {
+    global $url_page_connexion;
+    if (is_user_logged_in())
+    {
+        $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
+        if ($userid > 0) {
+            return $userid;
+        }
     }
-
-    $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
-    if($userid == 0) {
-        wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
-        exit;
-    }
-
-    return $userid;
+    $loginurl = $url_page_connexion == "" ? wp_login_url($_SERVER['REQUEST_URI']) : $url_page_connexion;
+    wp_redirect($loginurl);
+    exit;
 }
 
 function paniers_check_login($user, $username, $password) {
@@ -408,7 +398,6 @@ function paniers_check_login($user, $username, $password) {
     return $user;
 }
 
-
 function paniers_add_plugin_stylesheet() {
     wp_register_style('paniers_stylesheet', paniers_plugin_url . '/paniers.css');
     wp_enqueue_style('paniers_stylesheet');
@@ -485,8 +474,6 @@ add_action('password_reset', 'paniers_password_reset', 10, 2);
 add_filter('query_vars', 'paniers_queryvars' );
 add_filter('authenticate', 'paniers_check_login', 10, 3);
 
-// add_action('controler_date_fin_commande_event', 'controler_date_fin_commande');
-
 add_action('get_header', function () {
     global $url_page_consommateur, $url_page_gestionnaire;
     if (str_starts_with($_SERVER['REQUEST_URI'], $url_page_consommateur) ||
@@ -498,6 +485,7 @@ add_action('get_header', function () {
 add_shortcode('paniers-updateprofile', function() {
     require_once(paniers_dir . "/include/fonctions/fonctions_communes.php");
     require_once(paniers_dir . "/include/fonctions/fonctions_depots.php");
+    require_once(paniers_dir . "/common.php");
     require_once(ABSPATH . "wp-admin/includes/user.php");
 
     global $base_utilisateurs, $base_clients, $tab_villes_clients;
@@ -581,7 +569,7 @@ add_shortcode('paniers-updateprofile', function() {
     echo "<div class=\"paniers_holder\" id=\"paniers_updateprofile\">";
 
     if($update) {
-        echo "<b>Votre profil a été mis à jour avec succès.</b><br><br> ";
+        echo afficher_info("", "Votre profil a été mis à jour avec succès");
     }
 
     echo "<form method=\"post\" id=\"updateprofile\" action=\"";
@@ -720,6 +708,7 @@ add_shortcode('paniers-permanences', function () {
 
     require_once(paniers_dir . "/include/fonctions_include.php");
     require_once(paniers_dir . "/common.php");
+    require_once(paniers_dir . "/permanences.php");
 
     error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
@@ -731,10 +720,9 @@ add_shortcode('paniers-permanences', function () {
     $id = $wp_query->get("id");
 
     ob_start();
-    echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
 
     if ($action == "") {
-        echo afficher_planning_permanences(false, $userid);
+        echo afficher_planning_permanences_frontend($userid);
     } else if ($action == "inscrire") {
         mysqli_begin_transaction($GLOBALS["___mysqli_ston"], MYSQLI_TRANS_START_READ_WRITE);
         try {
@@ -746,24 +734,22 @@ add_shortcode('paniers-permanences', function () {
             {
                 if (!mysqli_query($GLOBALS["___mysqli_ston"], "insert into $base_permanenciers (id,idpermanence,idclient,commentaire,datemodif) values ('','$id','$userid','',now())")) {
                     echo afficher_erreur(
-                        "Une erreur est survenue",
                         "Vous êtes déjà inscrit à la permanence.",
-                        afficher_planning_permanences(false,$userid));
+                        afficher_planning_permanences_frontend($userid));
                     mysqli_rollback($GLOBALS["___mysqli_ston"]);
                 } else {
                     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits+1 where id='$id'");
                     echo afficher_info(
-                        "Merci de vous être inscrit à cette permanence",
                         "",
-                        afficher_planning_permanences(false,$userid));
+                        "Merci de vous être inscrit à cette permanence",
+                        afficher_planning_permanences_frontend($userid));
                     ecrire_log_public("Inscription à la permanence : " . retrouver_permanence($id));
                     mysqli_commit($GLOBALS["___mysqli_ston"]);
                 }
             } else {
                 echo afficher_erreur(
-                    "Une erreur est survenue",
-                    "Numéro d'utilisateur inconnu, déjà inscrit ou trop d'inscrits.",
-                    afficher_planning_permanences(false,$userid));
+                    "Numéro d'utilisateur inconnu, déjà inscrit ou trop d'inscrits",
+                    afficher_planning_permanences_frontend($userid));
                 mysqli_rollback($GLOBALS["___mysqli_ston"]);
             }
         } catch (Exception $e) {
@@ -778,18 +764,17 @@ add_shortcode('paniers-permanences', function () {
                 $rep = mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_permanenciers where idpermanence='$id' and idclient='" . $userid . "' limit 1");
                 $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_permanences set nbinscrits=nbinscrits-1 where id='$id'");
                 echo afficher_info(
-                    "Vous êtes désinscrit de cette permanence",
                     "",
-                    afficher_planning_permanences(false,$userid));
+                    "Vous êtes désinscrit de cette permanence",
+                    afficher_planning_permanences_frontend($userid));
                 ecrire_log_public("Désinscription de la permanence : " . retrouver_permanence($id));
                 mysqli_commit($GLOBALS["___mysqli_ston"]);
             }
             else
             {
                 echo afficher_erreur(
-                    "Une erreur est survenue",
                     "Vous êtes déja désinscrit de la permanence ou votre numéro d'utilisateur est inconnu",
-                    afficher_planning_permanences(false,$userid));
+                    afficher_planning_permanences_frontend($userid));
                 mysqli_rollback($GLOBALS["___mysqli_ston"]);
             }
         } catch (Exception $e) {
@@ -817,17 +802,18 @@ add_shortcode('paniers-livraisons',  function () {
 });
 
 add_shortcode('paniers-commande-adherent', function($atts) {
-
     $userid = paniers_checkIfLoggedIn();
 
     require_once(paniers_dir . "/include/fonctions_include.php");
     require_once(paniers_dir . "/commandes.php");
     error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
-    extract(shortcode_atts(array('page_commande_non_disponible' => ''), $atts));
+    extract(shortcode_atts(array(
+        'page_commande_non_disponible' => '',
+        'page_commande_verrouille' => ''
+    ), $atts));
 
     global $wp_query;
-    global $base_bons_cde;
 
     $action = $wp_query->get("action");
     $id = $wp_query->get("id");
@@ -835,9 +821,11 @@ add_shortcode('paniers-commande-adherent', function($atts) {
 
     if ($action == "editercde" || ($action=="" && !str_starts_with($_SERVER['REQUEST_URI'], "/wp-admin"))) {
         $idperiode = retrouver_periode_courante(true);
-        if ($idperiode <= 0) {
+        if ($idperiode == 0) {
             wp_redirect($page_commande_non_disponible);
             exit;
+        } else if ($idperiode == -1) {
+            wp_redirect($page_commande_verouille == "" ? $page_commande_non_disponible : $page_commande_verouille);
         }
 
         if (!isset($id) || $id == "" || $id == 0) {
@@ -862,7 +850,7 @@ add_shortcode('paniers-commande-adherent', function($atts) {
     } else if ($action == "affichercde" && $id != "" && $id != 0) {
         $idperiode = retrouver_periode_commande_client($id, $userid);
         if ($idperiode == 0) {
-            return afficher_erreur("", "Commande introuvable");
+            return afficher_erreur("Commande introuvable");
         }
 
         return afficher_info(
@@ -873,32 +861,40 @@ add_shortcode('paniers-commande-adherent', function($atts) {
         $iddepot = $_POST["iddepot"];
         $qteproduit = $_POST['qteproduit'];
         if (!isset($idperiode) || $idperiode == "" || $idperiode == 0) {
-            return afficher_erreur("", "Pas de période définie");
+            return afficher_erreur("Pas de période définie");
         }
         else if (!isset($iddepot) || $iddepot == "" || $iddepot == 0) {
-            return afficher_erreur("", "Pas de dépot selectionné");
+            return afficher_erreur("Pas de dépot selectionné");
         }
         else if (isset($idclient) && $idclient != $userid) {
-            return afficher_erreur("", "Identifiant client invalide");
+            return afficher_erreur("Identifiant client invalide");
         }
 
         $total = 0.0;
         mysqli_begin_transaction($GLOBALS["___mysqli_ston"], MYSQLI_TRANS_START_READ_WRITE);
         try {
+            $nouvellecommande = false;
             if (!isset($id) || $id == "" || $id == 0) {
                 $id = enregistrer_bon_commande($idperiode, $userid, $iddepot);
                 if($id == 0) {
                     mysqli_rollback($GLOBALS["___mysqli_ston"]);
-                    return afficher_erreur("", "La commande est déjà enregistrée");
+                    return afficher_erreur("La commande est déjà enregistrée");
                 }
+                $nouvellecommande = true;
             }
 
             $total = enregistrer_commande($idperiode, $qteproduit, $id, $userid);
 
             if ($total == 0.0) {
-                $boncde = supprimer_bon_commande($id);
-                ecrire_log_public("Commande supprimé sous le n° $boncde");
-                return afficher_erreur("", "Votre commande ne contient aucun produit, elle n'a pas été enregistrée");
+                if ($nouvellecommande) {
+                    mysqli_rollback($GLOBALS["___mysqli_ston"]);
+                    return afficher_info("Commande non sauvegardée", "Votre commande étant vide, elle n'a pas été enregistrée");
+                } else {
+                    $boncde = supprimer_bon_commande($id);
+                    ecrire_log_public("Commande supprimé sous le n° $boncde");
+                    mysqli_commit($GLOBALS["___mysqli_ston"]);
+                    return afficher_info("Commande n° $boncde supprimée", "Votre commande étant vide, elle a été supprimée");
+                }
             }
 
             mysqli_commit($GLOBALS["___mysqli_ston"]);
@@ -907,18 +903,18 @@ add_shortcode('paniers-commande-adherent', function($atts) {
             return afficher_erreur($e->getMessage());;
         }
 
-        if ($total > 0.0) {
-            $boncde = "C$userid-$id";
-            ecrire_log_public("Commande enregistrée sous le n° $boncde");
-            return afficher_info(
-                "Commande enregistrée sous le n° $boncde",
-                "N'oubliez pas pas de faire votre virement ou de déposer votre chèque pour le " . datelitterale(afficher_date_prochaine_commande()),
-                afficher_recapitulatif_bon_commande_frontend($id, $idperiode));
-        } else {
-
-        }
+        $boncde = "C$userid-$id";
+        ecrire_log_public("Commande n° $boncde entregistrée");
+        $vars = array(
+            "%PERIODE%" => afficher_periode($idperiode),
+            "%DATECOMMANDE%" => datelitterale(afficher_date_prochaine_commande())
+        );
+        return afficher_info(
+            "Commande n° $boncde entregistrée",
+            message_courrier("messagesauvegardecommande", $vars),
+            afficher_recapitulatif_bon_commande_frontend($id, $idperiode));
     } else {
-        return afficher_erreur("", "Action de commande invalide");
+        return afficher_erreur("Action invalide");
     }
 });
 
@@ -948,6 +944,7 @@ add_shortcode('paniers-login-form', function() {
 
 add_shortcode('paniers-register-form', function() {
     require_once(paniers_dir . "/include/fonctions_include.php");
+    require_once(paniers_dir . "/common.php");
 
     global $wp_query;
     $action = $wp_query->get("action");
@@ -967,9 +964,8 @@ add_shortcode('paniers-register-form', function() {
             add_user_meta($user->ID, 'paniers_consommateurId', $last_id, true);
 
             return afficher_info(
-                "",
                 "Succès de votre inscription",
-                "Vous alez recevoir un message pour confirmer votre inscription et créer un mot de passe");
+                "Vous allez recevoir un message pour confirmer votre inscription et créer un mot de passe");
         }
         $error = $user;
     } else {
@@ -1013,15 +1009,15 @@ add_shortcode('paniers-register-form', function() {
     </p>
     <p>
         <label for="nom"><?php _e('Nom','mydomain') ?></label>
-        <input type="text" name="nom" id="nom" class="input" value="<?php echo esc_attr($nom); ?>"/></label>
+        <input type="text" name="nom" id="nom" class="input" value="<?php echo esc_attr($nom); ?>" required="required"/></label>
     </p>
     <p>
         <label for="prenom"><?php _e('Prénom','mydomain') ?></label>
-        <input type="text" name="prenom" id="prenom" class="input" value="<?php echo esc_attr($prenom); ?>"/></label>
+        <input type="text" name="prenom" id="prenom" class="input" value="<?php echo esc_attr($prenom); ?>" required="required"/></label>
     </p>
     <p>
         <label for="telephone"><?php _e('Télephone','mydomain') ?></label>
-        <input type="text" name="telephone" id="telephone" class="input" value="<?php echo esc_attr($telephone); ?>"/></label>
+        <input type="text" name="telephone" id="telephone" class="input" value="<?php echo esc_attr($telephone); ?>" required="required"/></label>
     </p>
     <p>
         <label for="ville"><?php _e('Ville&nbsp','mydomain') ?></label>
@@ -1082,4 +1078,3 @@ function paniers_password_reset($user, $password) {
         $rep = mysqli_query($GLOBALS["___mysqli_ston"], "update $base_utilisateurs set $updatemotdepasse where id='" . $admin_id . "'");
     }
 }
-

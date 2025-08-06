@@ -417,7 +417,6 @@ function send_export_email($mail_to,$mail_cc,$mail_subject, $mail_message, $outp
 function message_courrier($id, $vars = array())
 {
     $paniers_data = get_option("paniers_data");
-    $msg = $paniers_data[$id];
     $search = array("%BLOGURL%", "%BLOGNAME%", "%EMAIL_GESTIONNAIRES%");
     $replace = array(get_bloginfo('wpurl'), get_bloginfo('name'), $paniers_data["adressegestionnaires"]);
     foreach($vars as $s => $r) {

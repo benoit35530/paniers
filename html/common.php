@@ -2,31 +2,31 @@
 
 function afficher_info($titre="", $message="", $contenu="") {
     ob_start();
-    echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
+    echo '<div>';
     if ($titre != "") {
-        echo "<h2>$titre</h2><br>";
+        echo "<center><h2>$titre</h2></center>";
     }
     if ($message != "") {
-        echo "<div class=\"textemsginfo\">$message</div><br>";
+        echo "<div class=\"alert alert-primary\"><center>$message</center></div>";
     }
     if ($contenu != "") {
         echo "<div>$contenu</div>";
     }
+    echo '</div>';
     return ob_get_clean();
 }
 
-function afficher_erreur($titre="", $message="", $contenu="") {
+function afficher_erreur($message="", $contenu="") {
     ob_start();
-    echo('<link rel="stylesheet" href="/paniers/styles/styles.css" type="text/css">');
-    if ($titre != "") {
-        echo "<h2>$titre</h2><br>";
-    }
+    echo '<div>';
+    echo "<center><h2>Erreur</h2><center>";
     if ($message != "") {
-        echo "<div class=\"textemsgerreur\">$message</div><br>";
+        echo "<div class=\"alert alert-danger\"><center>$message</center></div>";
     }
     if ($contenu != "") {
         echo "<div>$contenu</div>";
     }
+    echo '</div>';
     return ob_get_clean();
 }
 

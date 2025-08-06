@@ -232,7 +232,7 @@ function afficher_formulaire_bon_commande_frontend($idcommande, $idclient, $idpe
 
     $chaine .= '<div class="row">';
     $chaine .= '  <div class="col">';
-    $chaine .= '    <input type="submit" value="Sauvegarder" formaction="' . $formaction . '">';
+    $chaine .= '    <input type="submit" id="save" value="Sauvegarder" formaction="' . $formaction . '">';
     $chaine .= '  </div>';
     $chaine .= '</div>';
 
@@ -261,9 +261,23 @@ function afficher_formulaire_bon_commande_frontend($idcommande, $idclient, $idpe
     var totalProducteurs = jQuery('table#commande td[id^="totalproducteur"]');
     var totalAvoirs = jQuery('table#commande td[id=avoirproducteur0]');
     var totalCommande = jQuery('table#commande td[id="totalcommande"]')[0];
+    var updated = false;
+
+    jQuery(window).bind('beforeunload', function()
+    {
+        if (updated) {
+            return true;
+        }
+    });
+
+    jQuery('input[id=save]').on('click', function() {
+        jQuery(window).off('beforeunload');
+    });
 
     jQuery('table#commande input[name^=qteproduit').change(function(event)
     {
+        updated = true;
+
         var producteurId = event.target.name.substr(11);
         producteurId = producteurId.substr(0, producteurId.indexOf("]"));
         var row = event.target.parentElement.parentElement;
@@ -563,7 +577,7 @@ function afficher_liste_bon_commandes_frontend($idclient, $path) {
         $chaine .= "</table>";
     }
     else {
-        $chaine .= afficher_erreur("", "Vous n'avez pas de commandes");
+        $chaine .= afficher_info("Commandes", "Vous n'avez encore aucune commande enregistrée");
     }
     return $chaine;
 }
@@ -584,6 +598,7 @@ window.location.search = urlParams;
 function clientchange() {
 const urlParams = new URLSearchParams(window.location.search);
 urlParams.set('idclient', document.getElementById("client").value);
+urlParams.delete('iddate');
 window.location.search = urlParams;
 }
 </script>
@@ -592,99 +607,131 @@ HTML;
     $chaine .= '<div class="container-fluid">';
     $chaine .= '<div class="row">';
 
-    $chaine .= "<div class=\"col-sm\"><select id=\"date\" onchange=\"datechange()\">";
-    $datenextlivraison = date("Y-m-d", strtotime("$jour_commande"));
+
+    $idpremieredatelivraison = 0;
     $rep0 = mysqli_query($GLOBALS["___mysqli_ston"],
-        "select id,datelivraison from $base_dates " .
-        "where 1 order by datelivraison desc limit 12");
-    while(list($iddatebase,$datelivraison) = mysqli_fetch_row($rep0)) {
-        $chaine .= "<option value=\"" . $iddatebase . "\"";
-        if(($iddate == 0 && $datelivraison == $datenextlivraison) || $iddate == $iddatebase) {
-            $chaine .= " selected";
-            if($iddate == 0) {
-                $iddate = $iddatebase;
-            }
-        }
-        $chaine .= ">" . datelitterale($datelivraison) . "</option>";
+        "select id from $base_dates where 1 order by id desc limit 12");
+    while(list($iddatebase) = mysqli_fetch_row($rep0)) {
+        $idpremieredatelivraison = $iddatebase;
     }
-    $chaine .= "</select></div>";
+    if ($idpremieredatelivraison == 0) {
+        return afficher_info("Livraisons", "Il n'y a aucune livraison à venir");
+    }
 
     if(current_user_can('gestionnaire')) {
-        $chaine .= "<div class=\"col-sm\"><select id=\"client\" onchange=\"clientchange()\">\n";
         $rep = mysqli_query($GLOBALS["___mysqli_ston"],
             "select distinct $base_clients.id,$base_clients.nom,$base_clients.prenom,$base_clients.codeclient " .
             "from $base_commandes " .
             "inner join $base_clients on $base_clients.id=$base_commandes.idclient " .
-            "where $base_commandes.iddatelivraison=$iddate order by $base_clients.nom");
+            "inner join $base_dates on $base_commandes.iddatelivraison=$base_dates.id " .
+            "where $base_commandes.iddatelivraison>=$idpremieredatelivraison order by $base_clients.nom");
         if($rep && mysqli_num_rows($rep) > 0) {
+            $chaine .= "<div class=\"col-sm\"><select id=\"client\" onchange=\"clientchange()\">\n";
             while(list($idclientbase, $nom, $prenom,$codeclient) = mysqli_fetch_row($rep))
             {
                 $chaine .= "<option value=\"" . $idclientbase . "\"";
                 if ($idclientbase == $idclient) $chaine .= " selected";
                 $chaine .= ">$nom $prenom ($codeclient)</option>\n";
             }
+            $chaine .= "</select></div>";
+        } else {
+            return afficher_info("Livraisons", "Il n'y a aucune livraison à venir");
+        }
+    }
+
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"],
+        "select distinct $base_dates.id, $base_dates.datelivraison " .
+        "from $base_dates " .
+        "inner join $base_commandes on $base_commandes.iddatelivraison=$base_dates.id " .
+        "where $base_dates.id>=$idpremieredatelivraison and $base_commandes.idclient=$idclient " .
+        "order by $base_dates.id");
+    $nrows = mysqli_num_rows($rep);
+    if ($rep && $nrows > 0) {
+        $chaine .= "<div class=\"col-sm\"><select id=\"date\" onchange=\"datechange()\">";
+        $datenextlivraisontime = strtotime(date("Y-m-d", strtotime("$jour_commande")));
+        $selected = false;
+        while(list($iddatebase,$datelivraison) = mysqli_fetch_row($rep)) {
+            $chaine .= "<option value=\"" . $iddatebase . "\"";
+            $datelivraisontime = strtotime($datelivraison);
+            if(($iddate == 0 && $datelivraisontime >= $datenextlivraisontime && !$selected) || $iddate == $iddatebase) {
+                $selected = true;
+                $chaine .= " selected";
+                if($iddate == 0) {
+                    $iddate = $iddatebase;
+                }
+            }
+            if (!$selected && --$nrows == 0) {
+                $chaine .= " selected";
+                $iddate = $iddatebase;
+            }
+            $chaine .= ">" . datelitterale($datelivraison) . "</option>";
         }
         $chaine .= "</select></div>";
+    } else {
+        return afficher_info("Livraisons", "Il n'y a aucune livraison à venir");
     }
 
     $chaine .= "</div>";
     $chaine .= "</div>";
-    $qteproduit = array();
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"],
-                        "select quantite,idproducteur,idproduit " .
-                        "from $base_commandes " .
-                        "where iddatelivraison=\"$iddate\" and idclient=\"$idclient\"");
-    if ($rep && mysqli_num_rows($rep) > 0) {
-        while(list($quantite,$idproducteur,$idproduit) = mysqli_fetch_row($rep)) {
-            $qteproduit[$idproducteur][$idproduit] = $quantite;
-        }
 
-        $chaine .= '<table class="table table-bordered mt-5">';
-        $chaine .= '  <thead class="table-dark" style="position: sticky; top:0;">';
-        $chaine .= '    <tr>';
-        $chaine .= '      <th scope="col"></th>';
-        $chaine .= '      <th scope="col">Quantité</th>';
-        $chaine .= '    </tr>';
-        $chaine .= '  </thead>';
-        $chaine .= '  <tbody>';
+    if ($iddate > 0) {
+        $qteproduit = array();
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"],
+                            "select quantite,idproducteur,idproduit " .
+                            "from $base_commandes " .
+                            "where iddatelivraison=\"$iddate\" and idclient=\"$idclient\"");
+        if ($rep && mysqli_num_rows($rep) > 0) {
+            while(list($quantite,$idproducteur,$idproduit) = mysqli_fetch_row($rep)) {
+                $qteproduit[$idproducteur][$idproduit] = $quantite;
+            }
 
-        foreach($qteproduit as $key_producteur => $val_producteur)
-        {
-            $param_producteur = retrouver_parametres_producteur($key_producteur);
-            $total_qte_producteur = 0;
-            $chaine2 = "";
-            $chaine2 .= '    <tr class="table-secondary">';
-            $chaine2 .= '      <th colspan="2"><b>' . $param_producteur['produits'] . " (" . $param_producteur['nom'] . ")</b></th>";
-            $chaine2 .= '    </tr>';
+            $chaine .= '<table class="table table-bordered mt-5">';
+            $chaine .= '  <thead class="table-dark" style="position: sticky; top:0;">';
+            $chaine .= '    <tr>';
+            $chaine .= '      <th scope="col"></th>';
+            $chaine .= '      <th scope="col">Quantité</th>';
+            $chaine .= '    </tr>';
+            $chaine .= '  </thead>';
+            $chaine .= '  <tbody>';
 
-            foreach($val_producteur as $key_produit => $quantite)
+            foreach($qteproduit as $key_producteur => $val_producteur)
             {
-                $param_produit = retrouver_parametres_produit($key_produit);
-                $total_qte_produit = 0;
+                $param_producteur = retrouver_parametres_producteur($key_producteur);
+                $total_qte_producteur = 0;
+                $chaine2 = "";
+                $chaine2 .= '    <tr class="table-secondary">';
+                $chaine2 .= '      <th colspan="2"><b>' . $param_producteur['produits'] . " (" . $param_producteur['nom'] . ")</b></th>";
+                $chaine2 .= '    </tr>';
 
-                $chaine3 = '<tr>';
-                $image = wp_get_attachment_image_src($param_produit["image"], array(300, 300))[0];
-                $chaine3 .= '  <td><button class="btn btn-lg btn-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $param_produit["description"] . '" title="' . $param_produit["nom"] . '" style="font-size: 14px;">' . $param_produit["nom"] . '</button></td>';
-                $chaine3 .= '  <td style="text-align: center">' .  $quantite . '</td>';
-                $total_qte_produit += $quantite;
-                $chaine3 .= '</tr>';
+                foreach($val_producteur as $key_produit => $quantite)
+                {
+                    $param_produit = retrouver_parametres_produit($key_produit);
+                    $total_qte_produit = 0;
 
-                $total_qte_producteur += $total_qte_produit;
+                    $chaine3 = '<tr>';
+                    $image = wp_get_attachment_image_src($param_produit["image"], array(300, 300))[0];
+                    $chaine3 .= '  <td><button class="btn btn-lg btn-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $param_produit["description"] . '" title="' . $param_produit["nom"] . '" style="font-size: 14px;">' . $param_produit["nom"] . '</button></td>';
+                    $chaine3 .= '  <td style="text-align: center">' .  $quantite . '</td>';
+                    $total_qte_produit += $quantite;
+                    $chaine3 .= '</tr>';
 
-                if($total_qte_produit != 0) {
-                    $chaine2 .= $chaine3;
+                    $total_qte_producteur += $total_qte_produit;
+
+                    if($total_qte_produit != 0) {
+                        $chaine2 .= $chaine3;
+                    }
+                }
+
+                if ($total_qte_producteur > 0) {
+                    $chaine .= $chaine2;
                 }
             }
 
-            if ($total_qte_producteur > 0) {
-                $chaine .= $chaine2;
-            }
+            $chaine .= '  </tbody>';
+            $chaine .= '</table>';
+        } else {
+            $chaine .= afficher_info("Vous n'avez pas de commandes");
         }
-
-        $chaine .= '  </tbody>';
-        $chaine .= '</table>';
-    } else {
-        $chaine .= afficher_erreur("", "Vous n'avez pas de commandes");
     }
     $chaine .= <<<HTML
     <script type="module">

@@ -19,6 +19,7 @@ function get_paniers_option($paniers_data, $key, $default='') {
 
 $url_page_consommateur     = get_paniers_option($paniers_data, 'pageconsommateurs');
 $url_page_gestionnaire     = get_paniers_option($paniers_data, 'pagegestionnaires');
+$url_page_connexion       = get_paniers_option($paniers_data, 'pageconnexion');
 
 $email_gestionnaires       = get_paniers_option($paniers_data, "adressegestionnaires");
 
@@ -51,7 +52,7 @@ $base_permanenciers	    = $paniers_dbprefix . "paniers_permanenciers";
 $base_depots            = $paniers_dbprefix . "paniers_depots";
 
 // Liste des mois de l'année
-$liste_mois = array("Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre");
+$liste_mois = array("Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre");
 
 // Liste des jours de la semaine
 $liste_jours = array("monday" => "Lundi",

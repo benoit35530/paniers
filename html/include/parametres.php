@@ -7,7 +7,7 @@ global $wpdb;
 global $paniers_dbprefix;
 $paniers_dbprefix = $wpdb->prefix;
 
-$paniers_data = get_option('paniers_data');
+$paniers_data = get_option('paniers_data', array());
 
 function get_paniers_option($paniers_data, $key, $default='') {
     if(array_key_exists($key, $paniers_data)) {
@@ -17,10 +17,7 @@ function get_paniers_option($paniers_data, $key, $default='') {
     }
 }
 
-$url_page_consommateur     = get_paniers_option($paniers_data, 'pageconsommateurs');
-$url_page_gestionnaire     = get_paniers_option($paniers_data, 'pagegestionnaires');
-$url_page_connexion       = get_paniers_option($paniers_data, 'pageconnexion');
-
+$url_page_connexion        = get_paniers_option($paniers_data, "pageconnexion");
 $email_gestionnaires       = get_paniers_option($paniers_data, "adressegestionnaires");
 
 $g_envoyer_relance         = get_paniers_option($paniers_data, "envoyerrelance") == "1";

@@ -5,7 +5,7 @@ require_once("http_header_exports.php");
 
 if(!is_user_logged_in())
 {
-    header("Location: $url_page_consommateur");
+    header("Location: " . wp_login_url($_SERVER['PHP_SELF']));
     exit;
 }
 

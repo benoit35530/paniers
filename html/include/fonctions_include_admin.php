@@ -9,8 +9,7 @@ require_once("fonctions/fonctions_stats.php");
 $action = $wp_query->get("action");
 
 if(!is_user_logged_in()) {
-    $loginurl = wp_login_url($_SERVER['PHP_SELF']);
-    header("Location: $loginurl");
+    header("Location: " . wp_login_url($_SERVER['PHP_SELF']));
     exit;
 }
 

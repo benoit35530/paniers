@@ -237,7 +237,6 @@ function paniers_queryvars($qvars) {
 }
 
 function paniers_checkIfLoggedIn() {
-    global $url_page_connexion;
     if (is_user_logged_in())
     {
         $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
@@ -245,8 +244,7 @@ function paniers_checkIfLoggedIn() {
             return $userid;
         }
     }
-    $loginurl = $url_page_connexion == "" ? wp_login_url($_SERVER['REQUEST_URI']) : $url_page_connexion;
-    wp_redirect($loginurl);
+    wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
     exit;
 }
 
@@ -398,6 +396,22 @@ function paniers_check_login($user, $username, $password) {
     return $user;
 }
 
+function paniers_login_url($login_url, $redirect, $force_reauth) {
+    global $url_page_connexion;
+    if ($url_page_connexion == "") {
+        return site_url($login_url, $redirect, $force_reauth);
+    }
+
+	$login_url = site_url("$url_page_connexion", "login");
+	if (!empty($redirect)) {
+		$login_url = add_query_arg('redirect_to', urlencode($redirect), $login_url);
+	}
+	if ($force_reauth) {
+		$login_url = add_query_arg('reauth', '1', $login_url);
+	}
+	return $login_url;
+}
+
 function paniers_add_plugin_stylesheet() {
     wp_register_style('paniers_stylesheet', paniers_plugin_url . '/paniers.css');
     wp_enqueue_style('paniers_stylesheet');
@@ -473,14 +487,7 @@ add_action('init', 'paniers_rewriteURL');
 add_action('password_reset', 'paniers_password_reset', 10, 2);
 add_filter('query_vars', 'paniers_queryvars' );
 add_filter('authenticate', 'paniers_check_login', 10, 3);
-
-add_action('get_header', function () {
-    global $url_page_consommateur, $url_page_gestionnaire;
-    if (str_starts_with($_SERVER['REQUEST_URI'], $url_page_consommateur) ||
-        str_starts_with($_SERVER['REQUEST_URI'], $url_page_gestionnaire)) {
-        paniers_checkIfLoggedIn();
-    }
-});
+add_filter('login_url', 'paniers_login_url', 10, 3);
 
 add_shortcode('paniers-updateprofile', function() {
     require_once(paniers_dir . "/include/fonctions/fonctions_communes.php");

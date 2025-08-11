@@ -1,7 +1,7 @@
 <?php
 
 function paniers_plugin_menu() {
-    add_options_page( 'Paniers Options', 'Paniers', 'manage_options', 'paniers-id', 'paniers_plugin_options' );
+    add_options_page( 'Réglages des Paniers', 'Paniers', 'manage_options', 'paniers-id', 'paniers_plugin_options' );
 }
 
 function paniers_plugin_options() {
@@ -36,19 +36,12 @@ function paniers_plugin_options() {
     <!-- Ajoute 2 champs cachés pour savoir comment rediriger l'utilisateur -->
     <table width="90%">
       <tr valign="top">
-        <th scope="row"><label for="pageconsommateurs"><?php _e('Page Consommateurs') ?> </label></th>
-        <td><input name="paniers_pageconsommateurs" type="text" id="pageconsommateurs"
-          value="<?php echo $paniers_data['pageconsommateurs']; ?>" class="regular-text"/></td>
-      </tr>
-      <tr valign="top">
-        <th scope="row"><label for="pagegestionnaires"><?php _e('Page Gestionnaires') ?> </label></th>
-        <td><input name="paniers_pagegestionnaires" type="text" id="pagegestionnaires"
-          value="<?php echo $paniers_data['pagegestionnaires']; ?>" class="regular-text"/></td>
-      </tr>
-      <tr valign="top">
-        <th scope="row"><label for="pageconnexion"><?php _e('Page Connexion') ?> </label></th>
-        <td><input name="paniers_pageconnexion" type="text" id="pageconnexion"
-          value="<?php echo $paniers_data['pageconnexion']; ?>" class="regular-text"/></td>
+        <th scope="row"><label for="paniers_login"><?php _e('Page de connexion') ?> </label></th>
+        <td><input name="paniers_login" type="text" id="login"
+          value="<?php echo $paniers_data['login']; ?>" class="regular-text"
+        /> <span class="login"><?php _e("Page de connexion (vide pour la page de connexion par défaut).") ?>
+        </span>
+        </td>
       </tr>
       <tr valign="top">
         <th scope="row"><label for="adressegestionnaires"><?php _e('Adresse gestionnaires') ?> </label></th>
@@ -98,11 +91,8 @@ function paniers_plugin_options() {
       <tr valign="top">
         <td colspan="2">
           <h3>
-            <?php _e("Commandes commandes", 'paniers'); ?>
+            <?php _e("Réglages pour les commandes", 'paniers'); ?>
           </h3>
-          <h4>
-            <?php _e("Vérouillage des commandes", 'paniers'); ?>
-          </h4>
         </td>
       </tr>
       <tr valign="top">
@@ -111,13 +101,6 @@ function paniers_plugin_options() {
           value="<?php echo $paniers_data['deltaverrouillage']; ?>" class="regular-text"
         /> <span class="deltaverrouillage"><?php _e('Le nombre de jours avant la date de commande pour verouiller les commandes.') ?>
         </span></td>
-      </tr>
-      <tr valign="top">
-        <td colspan="2">
-          <h4>
-            <?php _e("Configuration bon de commandes", 'paniers'); ?>
-          </h4>
-        </td>
       </tr>
       <tr valign="top">
         <td><label><?php _e("Permanences", 'permanences'); ?> </label></td>
@@ -156,14 +139,10 @@ function paniers_plugin_options() {
           <h3>
             <?php _e("Réglages de notifications", 'paniers'); ?>
           </h3>
-          <h4>
-            <?php _e("Notification de relance", 'paniers'); ?>
-          </h4>
         </td>
       </tr>
       <tr valign="top">
-        <td><label><?php _e("Envoyer un email de relance ?", 'paniers'); ?> </label>
-        </td>
+        <th scope="row"><label><?php _e("Envoyer un email de relance ?", 'paniers'); ?></label></th>
         <td><input style="margin: 0px; padding: 0px; width: auto;" type="checkbox" name="paniers_envoyerrelance"
           value="1" <?php echo $paniers_data["envoyerrelance"] == "1" ? 'checked="checked"' : ''; ?>
         /> <span><?php _e('Le courrier de relance est envoyé avant la date de commande.') ?> </span>

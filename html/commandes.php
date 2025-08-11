@@ -555,7 +555,7 @@ function afficher_liste_bon_commandes_frontend($idclient, $path) {
                        "inner join $base_periodes on $base_periodes.id=$base_bons_cde.idperiode " .
                        "where $base_bons_cde.idclient = '$idclient' " .
                        "order by $base_bons_cde.datemodif desc");
-    if ($rep && mysqli_num_rows($rep) != 0) {
+    if ($rep && mysqli_num_rows($rep) > 0) {
         $chaine .= '<table id="liste-des-commandes" class="table table-bordered mt-5">';
         $chaine .= '  <thead class="table-dark" style="position: sticky; top:0;">';
         $chaine .= '    <tr>';
@@ -607,10 +607,8 @@ HTML;
     $chaine .= '<div class="container-fluid">';
     $chaine .= '<div class="row">';
 
-
     $idpremieredatelivraison = 0;
-    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"],
-        "select id from $base_dates where 1 order by id desc limit 12");
+    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_dates where 1 order by id desc limit 12");
     while(list($iddatebase) = mysqli_fetch_row($rep0)) {
         $idpremieredatelivraison = $iddatebase;
     }
@@ -645,18 +643,21 @@ HTML;
         "inner join $base_commandes on $base_commandes.iddatelivraison=$base_dates.id " .
         "where $base_dates.id>=$idpremieredatelivraison and $base_commandes.idclient=$idclient " .
         "order by $base_dates.id");
-    $nrows = mysqli_num_rows($rep);
-    if ($rep && $nrows > 0) {
+    $nrows = 0;
+    if ($rep) {
+        $nrows = mysqli_num_rows($rep);
+    }
+    if ($nrows > 0) {
         $chaine .= "<div class=\"col-sm\"><select id=\"date\" onchange=\"datechange()\">";
         $datenextlivraisontime = strtotime(date("Y-m-d", strtotime("$jour_commande")));
         $selected = false;
         while(list($iddatebase,$datelivraison) = mysqli_fetch_row($rep)) {
             $chaine .= "<option value=\"" . $iddatebase . "\"";
             $datelivraisontime = strtotime($datelivraison);
-            if(($iddate == 0 && $datelivraisontime >= $datenextlivraisontime && !$selected) || $iddate == $iddatebase) {
+            if((!$iddate && $datelivraisontime >= $datenextlivraisontime && !$selected) || $iddate == $iddatebase) {
                 $selected = true;
                 $chaine .= " selected";
-                if($iddate == 0) {
+                if(!$iddate) {
                     $iddate = $iddatebase;
                 }
             }
@@ -709,7 +710,10 @@ HTML;
                     $total_qte_produit = 0;
 
                     $chaine3 = '<tr>';
-                    $image = wp_get_attachment_image_src($param_produit["image"], array(300, 300))[0];
+                    $image = wp_get_attachment_image_src($param_produit["image"], array(300, 300));
+                    if ($image) {
+                        $image = $image[0];
+                    }
                     $chaine3 .= '  <td><button class="btn btn-lg btn-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $param_produit["description"] . '" title="' . $param_produit["nom"] . '" style="font-size: 14px;">' . $param_produit["nom"] . '</button></td>';
                     $chaine3 .= '  <td style="text-align: center">' .  $quantite . '</td>';
                     $total_qte_produit += $quantite;

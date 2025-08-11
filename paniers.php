@@ -398,11 +398,10 @@ function paniers_check_login($user, $username, $password) {
 
 function paniers_login_url($login_url, $redirect, $force_reauth) {
     global $url_page_connexion;
-    if ($url_page_connexion == "") {
-        return site_url($login_url, $redirect, $force_reauth);
+    if ($url_page_connexion != "") {
+        $login_url = site_url($url_page_connexion);
     }
 
-	$login_url = site_url("$url_page_connexion", "login");
 	if (!empty($redirect)) {
 		$login_url = add_query_arg('redirect_to', urlencode($redirect), $login_url);
 	}
@@ -804,8 +803,7 @@ add_shortcode('paniers-livraisons',  function () {
     global $wp_query;
     $iddate = $wp_query->get("iddate");
     $idclient = $wp_query->get("idclient");
-
-    return afficher_recapitulatif_livraisons_frontend($idclient == 0 ? $userid : $idclient, $iddate);
+    return afficher_recapitulatif_livraisons_frontend(!$idclient ? $userid : $idclient, $iddate);
 });
 
 add_shortcode('paniers-commande-adherent', function($atts) {
@@ -925,16 +923,16 @@ add_shortcode('paniers-commande-adherent', function($atts) {
     }
 });
 
-add_shortcode('paniers-liste-commandes-adherent', function() {
+add_shortcode('paniers-liste-commandes-adherent', function($atts) {
     $userid = paniers_checkIfLoggedIn();
 
     require_once(paniers_dir . "/include/fonctions_include.php");
     require_once(paniers_dir . "/commandes.php");
     error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
-    extract( shortcode_atts( array(
+    extract(shortcode_atts(array(
 		'page_commande' => '/commande/',
-    ), $atts ) );
+    ), $atts));
 
     return afficher_liste_bon_commandes_frontend($userid, $page_commande);
 });

@@ -4,17 +4,20 @@ function afficher_planning_permanences_frontend($idclient) {
     global $base_permanences,$tab_types_permanences;
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id,date,heuredebut,heurefin,nbparticipants,nbinscrits,typepermanence from $base_permanences where date >= curdate() order by date, heuredebut");
     $chaine = "";
-    if(mysqli_num_rows($rep) != 0)
+    if($rep && mysqli_num_rows($rep) > 0)
     {
-        $chaine .= html_debut_tableau("70%","","","");
-        $chaine .= html_debut_ligne("","","","top");
-        $chaine .= html_colonne("","","center","","","","","Date","","thliste");
-        $chaine .= html_colonne("","","center","","","","","Type","","thliste");
-        $chaine .= html_colonne("","","center","","","","","Heure de début","","thliste");
-        $chaine .= html_colonne("","","center","","","","","Heure de fin","","thliste");
-        $chaine .= html_colonne("","","center","","","","","Participants","","thliste");
-        $chaine .= html_colonne("","","center","","","","","Action","","thliste");
-        $chaine .= html_fin_ligne();
+        $chaine .= '<table id="liste-des-permanences" class="table table-bordered mt-5">';
+        $chaine .= '  <thead class="table-dark" style="position: sticky; top:0;">';
+        $chaine .= '    <tr>';
+        $chaine .= '      <th scope="col">Date</th>';
+        $chaine .= '      <th scope="col">Type</th>';
+        $chaine .= '      <th scope="col">Heure de début</th>';
+        $chaine .= '      <th scope="col">Heure de fin</th>';
+        $chaine .= '      <th scope="col">Participants</th>';
+        $chaine .= '      <th scope="col">Action</th>';
+        $chaine .= '    </tr>';
+        $chaine .= '  </thead>';
+        $chaine .= '  <tbody>';
         while (list($id,$date,$heuredebut,$heurefin,$nbparticipants,$nbinscrits,$typepermanence) = mysqli_fetch_row($rep))
         {
             $tab_permanenciers = retrouver_permanenciers($id,false);
@@ -26,26 +29,27 @@ function afficher_planning_permanences_frontend($idclient) {
                     $inscrits .= $val . "<br>";
                 }
             }
-            $chaine .= html_debut_ligne("","","","top");
-            $chaine .= html_colonne("","","center","","","","",dateexterne($date),"","tdliste");
-            $chaine .= html_colonne("","","center","","","","",$tab_types_permanences[$typepermanence],"","tdliste");
-            $chaine .= html_colonne("","","center","","","","",heures_minutes($heuredebut),"","tdliste");
-            $chaine .= html_colonne("","","center","","","","",heures_minutes($heurefin),"","tdliste");
-            $chaine .= html_colonne("","","left","","","","",$inscrits,"","tdliste");
+
+            $chaine .= "    <tr>";
+            $chaine .= "      <td>" . dateexterne($date) . "</td>";
+            $chaine .= "      <td>$tab_types_permanences[$typepermanence]</td>";
+            $chaine .= "      <td>" . heures_minutes($heuredebut) . "</td>";
+            $chaine .= "      <td>" . heures_minutes($heurefin) . "</td>";
+            $chaine .= "      <td>" . $inscrits . "</td>";
             $action = "";
             $pas_deja_inscrit = verifier_non_inscription($id,$idclient);
             if(($nbinscrits < $nbparticipants) && $pas_deja_inscrit)
             {
-                $action = html_lien("?action=inscrire&id=$id","_top","S'inscrire");
+                $chaine .= "      <td><a href='?action=inscrire&id=$id'>S'inscrire</a></td>";
             }
             if(!$pas_deja_inscrit)
             {
-                $action = html_lien("?action=desinscrire&id=$id","_top","Se désinscrire");
+                $chaine .= "      <td><a href='?action=desinscrire&id=$id'>Se désinscrire</a></td>";
             }
-            $chaine .= html_colonne("","","center","","","","",$action,"","tdliste");
-            $chaine .= html_fin_ligne();
+            $chaine .= "    </tr>";
         }
-        $chaine .= html_fin_tableau();
+        $chaine .= "  </tbody>";
+        $chaine .= "</table>";
     }
     else
     {

@@ -4,7 +4,7 @@ function afficher_info($titre="", $message="", $contenu="") {
     ob_start();
     echo '<div>';
     if ($titre != "") {
-        echo "<center><h2>$titre</h2></center>";
+        echo "<center><h4>$titre</h4></center>";
     }
     if ($message != "") {
         echo "<div class=\"alert alert-primary\"><center>$message</center></div>";
@@ -19,7 +19,7 @@ function afficher_info($titre="", $message="", $contenu="") {
 function afficher_erreur($message="", $contenu="") {
     ob_start();
     echo '<div>';
-    echo "<center><h2>Erreur</h2><center>";
+    echo "<center><h4>Erreur</h4><center>";
     if ($message != "") {
         echo "<div class=\"alert alert-danger\"><center>$message</center></div>";
     }

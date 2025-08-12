@@ -208,7 +208,7 @@ function html_media_input($nomvar, $value) {
 
         <input class="imageInput" name="image" type="hidden" value="<?php _e($value); ?>" />
     </div>
-    <?;
+    <?php
     return ob_get_clean();
 }
 

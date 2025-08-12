@@ -54,7 +54,7 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
             <thead class="table" style="position: sticky; top:0;">
                 <tr class="table-dark">
                     <th scope="col">Producteurs</th>
-                    <th scope="col" style="text-align:right;"><a role="button" href="#" onclick="jQuery('#accordionProducteur .collapse').collapse('toggle');" class="btn btn-sm btn-primary">Tout déplier</a></th>
+                    <th scope="col" style="text-align:right;"><a role="button" href="#" onclick="jQuery('#accordionProducteur .collapse').collapse('toggle');" class="btn btn-primary">Tout déplier</a></th>
                 </tr>
             </thead>
             <tbody>
@@ -71,13 +71,10 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
         while(list($idproduit, $nomProduit, $description, $prix, $image, $sincemodif) = mysqli_fetch_row($rep1))
         {
             $total_qte_produit = 0;
-            $image = wp_get_attachment_image_src($image, array(300, 300));
-            if ($image) {
-                $image = $image[0];
-            }
+            $image = wp_get_attachment_image_src($image, array(300, 300))[0];
             $produit = $sincemodif < 24 * 3600 * 30 ? "&#11088; " . $nomProduit : $nomProduit;
             $chaine2 .= '<tr>';
-            $chaine2 .= '  <td><button class="btn text-decoration-popup-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $description . '" title="' . $nomProduit . '">' . $produit . '</button></td>';
+            $chaine2 .= '  <td><button class="btn btn-lg btn-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $description . '" title="' . $nomProduit . '">' . $produit . '</button></td>';
             $chaine2 .= '  <td class="table-light" id="prix" data-value="' . $prix . '" style="text-align: right; white-space:nowrap;">' . sprintf($g_lib_somme,$prix) . '</td>';
             reset($dates);
             foreach($dates as $k => $v)
@@ -140,7 +137,7 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
         $chaine .= <<<HTML
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" id="producteur$idproducteur" data-producteur="$produits - $nom" type="button" data-bs-toggle="collapse" data-bs-target="#collapse$idproducteur" aria-expanded="false" aria-controls="collapse$idproducteur">
+                <button class="accordion-button collapsed" id="producteur$idproducteur" data-producteur="$produits - $nom" style="font-weight: normal; font-size: 1.5rem" type="button" data-bs-toggle="collapse" data-bs-target="#collapse$idproducteur" aria-expanded="false" aria-controls="collapse$idproducteur">
                     $producteur
                 </button>
             </h2>
@@ -235,7 +232,7 @@ function afficher_formulaire_bon_commande_frontend($idcommande, $idclient, $idpe
 
     $chaine .= '<div class="row">';
     $chaine .= '  <div class="col">';
-    $chaine .= '    <input type="submit" class="btn btn-primary" id="save" value="Sauvegarder" formaction="' . $formaction . '">';
+    $chaine .= '    <input type="submit" id="save" value="Sauvegarder" formaction="' . $formaction . '">';
     $chaine .= '  </div>';
     $chaine .= '</div>';
 
@@ -452,7 +449,7 @@ function afficher_recapitulatif_bon_commande_frontend($id, $idperiode) {
 
             $chaine3 = '<tr>';
             $image = wp_get_attachment_image_src($param_produit["image"], array(300, 300))[0];
-            $chaine3 .= '  <td><button class="btn btn-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $param_produit["description"] . '" title="' . $param_produit["nom"] . '">' . $param_produit["nom"] . '</button></td>';
+            $chaine3 .= '  <td><button class="btn btn-lg btn-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $param_produit["description"] . '" title="' . $param_produit["nom"] . '" style="font-size: 14px;">' . $param_produit["nom"] . '</button></td>';
             $chaine3 .= '  <td class="table-light" style="text-align: right; white-space:nowrap;">' . sprintf($g_lib_somme,$qteproduit[$key_producteur][$key_produit]["prix"]) . '</td>';
             reset($dates);
             foreach($dates as $k => $v)
@@ -717,7 +714,7 @@ HTML;
                     if ($image) {
                         $image = $image[0];
                     }
-                    $chaine3 .= '  <td><button class="btn btn-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $param_produit["description"] . '" title="' . $param_produit["nom"] . '">' . $param_produit["nom"] . '</button></td>';
+                    $chaine3 .= '  <td><button class="btn btn-lg btn-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $param_produit["description"] . '" title="' . $param_produit["nom"] . '" style="font-size: 14px;">' . $param_produit["nom"] . '</button></td>';
                     $chaine3 .= '  <td style="text-align: center">' .  $quantite . '</td>';
                     $total_qte_produit += $quantite;
                     $chaine3 .= '</tr>';

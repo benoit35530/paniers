@@ -1,4 +1,5 @@
 <?php
+
 foreach($_POST as $k=>$v) $$k=$v;
 
 require_once("../include/fonctions_include_admin.php");

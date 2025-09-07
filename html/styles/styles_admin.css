@@ -16,12 +16,12 @@ table {
 }
 
 pre {
-	font-family: "Courier New";
+	/* font-family: "Courier New"; */
 	width: 95%;
 }
 
 p {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 }
 
@@ -72,609 +72,11 @@ a:hover {
 	color: #FF0000;
 }
 
-.fond {
-	background-image: url(images/page_1.jpg);
-	background-repeat: no-repeat;
-	background-position: 50% 50%;
-	background-attachment: fixed;
-}
-
 .banniere {
 	border-color: #FF0000;
 	border-style: none none solid none;
 	border-width: 3px;
 	background-color: #33CC33
-}
-
-.menugauche {
-	border-color: #000000;
-	border-style: none solid none none;
-	border-width: 4px;
-}
-
-.corps {
-	border-color: #000000;
-	border-style: none none none solid;
-	border-width: 3px;
-}
-
-.elementtable {
-	padding: 10px;
-	height: 100px;
-	border-color: #FF0000;
-	border-style: none none solid none;
-	border-width: 1px;
-}
-
-.footer {
-	border-color: #000000;
-	border-style: solid none none none;
-	border-width: 1px;
-	font-size: 8pt;
-	color: #CCCCCC;
-}
-
-.textepetit {
-	font-size: 8pt;
-	color: #000000;
-}
-
-.textepetit a:link {
-	font-size: 8pt;
-	color: #000000;
-}
-
-.textepetit a:visited {
-	font-size: 8pt;
-	color: #000000;
-}
-
-.textepetit a:active {
-	font-size: 8pt;
-	color: #000000;
-}
-
-.textepetit a:hover {
-	font-size: 8pt;
-	color: #FF0000;
-}
-
-.textepetitgras {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-}
-
-.textepetitgras a:link {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	text-decoration: none;
-}
-
-.textepetitgras a:visited {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	text-decoration: none;
-}
-
-.textepetitgras a:active {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	text-decoration: none;
-}
-
-.textepetitgras a:hover {
-	font-size: 8pt;
-	color: #FF0000;
-	font-weight: bold;
-	text-decoration: none;
-}
-
-.textepetitinv {
-	font-size: 8pt;
-	color: #000000;
-	background-color: #FF6666;
-}
-
-.textepetitinv a:link {
-	font-size: 8pt;
-	color: #000000;
-	background-color: #FF6666;
-	text-decoration: none;
-}
-
-.textepetitinv a:visited {
-	font-size: 8pt;
-	color: #000000;
-	background-color: #FF6666;
-	text-decoration: none;
-}
-
-.textepetitinv a:active {
-	font-size: 8pt;
-	color: #000000;
-	background-color: #FF6666;
-	text-decoration: none;
-}
-
-.textepetitinv a:hover {
-	font-size: 8pt;
-	color: #666666;
-	background-color: #FF6666;
-	text-decoration: none;
-}
-
-.textenormal {
-	font-size: 10pt;
-	color: #000000;
-}
-
-.textenormal a:link {
-	font-size: 10pt;
-	color: #000000;
-	text-decoration: underline;
-}
-
-.textenormal a:visited {
-	font-size: 10pt;
-	color: #000000;
-	text-decoration: underline;
-}
-
-.textenormal a:active {
-	font-size: 10pt;
-	color: #000000;
-	text-decoration: underline;
-}
-
-.textenormal a:hover {
-	font-size: 10pt;
-	color: #FF0000;
-	text-decoration: underline;
-}
-
-.textenormalgras {
-	font-size: 10pt;
-	color: #000000;
-	font-weight: bold;
-}
-
-.textenormalgras a:link {
-	font-size: 10pt;
-	color: #000000;
-	font-weight: bold;
-	text-decoration: underline;
-}
-
-.textenormalgras a:visited {
-	font-size: 10pt;
-	color: #000000;
-	font-weight: bold;
-	text-decoration: underline;
-}
-
-.textenormalgras a:active {
-	font-size: 10pt;
-	color: #000000;
-	font-weight: bold;
-	text-decoration: underline;
-}
-
-.textenormalgras a:hover {
-	font-size: 10pt;
-	color: #FF0000;
-	font-weight: bold;
-	text-decoration: underline;
-}
-
-.textenormalinv {
-	font-size: 10pt;
-	color: #000000;
-}
-
-.textenormalinv a:link {
-	font-size: 10pt;
-	color: #000000;
-	text-decoration: underline;
-}
-
-.textenormalinv a:active {
-	font-size: 10pt;
-	color: #000000;
-	text-decoration: underline;
-}
-
-.textenormalinv a:visited {
-	font-size: 10pt;
-	color: #000000;
-	text-decoration: underline;
-}
-
-.textenormalinv a:hover {
-	font-size: 10pt;
-	color: #666666;
-	text-decoration: underline;
-}
-
-.textegrand {
-	font-size: 12pt;
-	color: #000000;
-}
-
-.textegrand a:link {
-	font-size: 12pt;
-	color: #000000;
-}
-
-.textegrand a:visited {
-	font-size: 12pt;
-	color: #000000;
-}
-
-.textegrand a:active {
-	font-size: 12pt;
-	color: #000000;
-}
-
-.textegrand a:hover {
-	font-size: 12pt;
-	color: #FF0000;
-}
-
-.textegrandgras {
-	font-size: 12pt;
-	color: #000000;
-	font-weight: bold;
-}
-
-.textegrandgras a:link {
-	font-size: 12pt;
-	color: #000000;
-	font-weight: bold;
-}
-
-.textegrandgras a:visited {
-	font-size: 12pt;
-	color: #000000;
-	font-weight: bold;
-}
-
-.textegrandgras a:active {
-	font-size: 12pt;
-	color: #000000;
-	font-weight: bold;
-}
-
-.textegrandgras a:hover {
-	font-size: 12pt;
-	color: #FF0000;
-	font-weight: bold;
-}
-
-.textebouton {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-}
-
-.textebouton a:link {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	text-decoration: none;
-}
-
-.textebouton a:visited {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	text-decoration: none;
-}
-
-.textebouton a:active {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	text-decoration: none;
-}
-
-.textebouton a:hover {
-	font-size: 8pt;
-	color: #666666;
-	font-weight: bold;
-	text-decoration: none;
-}
-
-.titretrespetit {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-}
-
-.titretrespetit a:link {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-}
-
-.titretrespetit a:visited {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-}
-
-.titretrespetit a:active {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-}
-
-.titretrespetit a:hover {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-}
-
-.titretrespetitinv {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-	background-color: #FF0000;
-}
-
-.titretrespetitinv a:link {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-	background-color: #FF0000;
-}
-
-.titretrespetitinv a:visited {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-	background-color: #FF0000;
-}
-
-.titretrespetitinv a:active {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-	background-color: #FF0000;
-}
-
-.titretrespetitinv a:hover {
-	font-size: 8pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-	background-color: #FF0000;
-}
-
-.titrepetit {
-	font-size: 10pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-}
-
-.titrepetit a:link {
-	font-size: 10pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-}
-
-.titrepetit a:visited {
-	font-size: 10pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-}
-
-.titrepetit a:active {
-	font-size: 10pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-}
-
-.titrepetit a:hover {
-	font-size: 10pt;
-	color: #FF0000;
-	font-weight: bold;
-	margin: 2pt;
-	text-align: center;
-}
-
-.titrenormal {
-	font-size: 12pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 4pt;
-	text-align: center;
-}
-
-.titrenormal a:link {
-	font-size: 12pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 4pt;
-	text-align: center;
-	text-decoration: underline;
-}
-
-.titrenormal a:visited {
-	font-size: 12pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 4pt;
-	text-align: center;
-	text-decoration: underline;
-}
-
-.titrenormal a:active {
-	font-size: 12pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 4pt;
-	text-align: center;
-	text-decoration: underline;
-}
-
-.titrenormal a:hover {
-	font-size: 12pt;
-	color: #FF0000;
-	font-weight: bold;
-	margin: 4pt;
-	text-align: center;
-	text-decoration: underline;
-}
-
-.titregrand {
-	font-size: 13pt;
-	color: #000000;
-	font-weight: bold;
-	padding: 6px;
-	text-align: center;
-}
-
-.titregrand a:link {
-	font-size: 13pt;
-	color: #000000;
-	font-weight: bold;
-	padding: 6px;
-	text-align: center;
-}
-
-.titregrand a:visited {
-	font-size: 13pt;
-	color: #000000;
-	font-weight: bold;
-	padding: 6px;
-	text-align: center;
-}
-
-.titregrand a:active {
-	font-size: 13pt;
-	color: #000000;
-	font-weight: bold;
-	padding: 6px;
-	text-align: center;
-}
-
-.titregrand a:hover {
-	font-size: 13pt;
-	color: #FF0000;
-	font-weight: bold;
-	padding: 6px;
-	text-align: center;
-}
-
-.titregrandinv {
-	font-size: 13pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 6pt;
-	text-align: center;
-}
-
-.titregrandinv a:link {
-	font-size: 13pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 6pt;
-	text-align: center;
-}
-
-.titregrandinv a:visited {
-	font-size: 13pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 6pt;
-	text-align: center;
-}
-
-.titregrandinv a:active {
-	font-size: 13pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 6pt;
-	text-align: center;
-}
-
-.titregrandinv a:hover {
-	font-size: 13pt;
-	color: #666666;
-	font-weight: bold;
-	margin: 6pt;
-	text-align: center;
-}
-
-.titretresgrand {
-	font-size: 25pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 6pt;
-	text-align: center;
-}
-
-.titretresgrand a:link {
-	font-size: 25pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 6pt;
-	text-align: center;
-}
-
-.titretresgrand a:visited {
-	font-size: 25pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 6pt;
-	text-align: center;
-}
-
-.titretresgrand a:active {
-	font-size: 25pt;
-	color: #000000;
-	font-weight: bold;
-	margin: 6pt;
-	text-align: center;
-}
-
-.titretresgrand a:hover {
-	font-size: 25pt;
-	color: #FF0000;
-	font-weight: bold;
-	margin: 6pt;
-	text-align: center;
 }
 
 td.boutonmoyen {
@@ -734,7 +136,7 @@ td.boutonmoyensel a:visited {
 	font-weight: bold;
 	text-decoration: none;
 	background-color: #FF0000;
-}
+}st
 
 td.boutonmoyensel a:active {
 	font-size: 10pt;
@@ -753,42 +155,42 @@ td.boutonmoyensel a:hover {
 }
 
 td.boutonpetit {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 	font-weight: bold;
 	text-decoration: none;
 }
 
 td.boutonpetit a:link {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 	font-weight: bold;
 	text-decoration: none;
 }
 
 td.boutonpetit a:visited {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 	font-weight: bold;
 	text-decoration: none;
 }
 
 td.boutonpetit a:active {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 	font-weight: bold;
 	text-decoration: none;
 }
 
 td.boutonpetit a:hover {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #FF0000;
 	font-weight: bold;
 	text-decoration: none;
 }
 
 td.boutonpetitsel {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 	font-weight: bold;
 	text-decoration: none;
@@ -796,7 +198,7 @@ td.boutonpetitsel {
 }
 
 td.boutonpetitsel a:link {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 	font-weight: bold;
 	text-decoration: none;
@@ -804,7 +206,7 @@ td.boutonpetitsel a:link {
 }
 
 td.boutonpetitsel a:visited {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 	font-weight: bold;
 	text-decoration: none;
@@ -812,7 +214,7 @@ td.boutonpetitsel a:visited {
 }
 
 td.boutonpetitsel a:active {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 	font-weight: bold;
 	text-decoration: none;
@@ -820,7 +222,7 @@ td.boutonpetitsel a:active {
 }
 
 td.boutonpetitsel a:hover {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #666666;
 	font-weight: bold;
 	text-decoration: none;
@@ -962,42 +364,42 @@ td.boutonpetitsel a:hover {
 }
 
 .infobase {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #666666;
 }
 
 .infobase a:link {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #666666;
 	text-decoration: none;
 }
 
 .infobase a:visited {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #666666;
 	text-decoration: none;
 }
 
 .infobase a:active {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #666666;
 	text-decoration: none;
 }
 
 .infobase a:hover {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 	text-decoration: none;
 }
 
 select {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 	background: #CCCCCC;
 }
 
 .champsubmit {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #FFFFFF;
 	font-weight: bold;
 	background-color: #FF0000;
@@ -1011,7 +413,7 @@ select {
 }
 
 .champconsigne {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #666666;
 	font-weight: bold;
 }
@@ -1065,7 +467,7 @@ select {
 }
 
 .champaidetexte {
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #666666;
 }
 
@@ -1169,28 +571,28 @@ select {
 
 .tdliste {
 	border: solid 1px #000000;
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 	background-color: #FFFFFF;
 }
 
 .tdliste-grise {
 	border: solid 1px #000000;
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 	background-color: #444444;
 }
 
 .tdlisteinv {
 	border: solid 1px #000000;
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 	background-color: #999999;
 }
 
 .thliste {
 	border: solid 1px #000000;
-	font-size: 8pt;
+	font-size: 10pt;
 	color: #000000;
 	background-color: #33CC33;
 	font-weight: bold;

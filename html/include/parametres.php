@@ -17,7 +17,8 @@ function get_paniers_option($paniers_data, $key, $default='') {
     }
 }
 
-$url_page_connexion        = get_paniers_option($paniers_data, "pageconnexion");
+$url_page_inscription        = get_paniers_option($paniers_data, "pageinscription");
+
 $email_gestionnaires       = get_paniers_option($paniers_data, "adressegestionnaires");
 
 $g_envoyer_relance         = get_paniers_option($paniers_data, "envoyerrelance") == "1";

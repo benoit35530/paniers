@@ -23,27 +23,24 @@ function listeannee($valeur,$champ) {
 }
 
 function afficher_titre($titre) {
-    global $tab_icones,$choixmenu;
-    $choix = strtolower($choixmenu);
     $chaine = html_debut_tableau("100%","0","0","0");
     $chaine .= html_debut_ligne();
-    $texte = (isset($tab_icones[$choix]) && $tab_icones[$choix] != "" ? html_image($tab_icones[$choix],"0","","50","50") . "&nbsp;" . $titre . "&nbsp;" . html_image($tab_icones[$choix],"0","","50","50") : $titre);
-    $chaine .= html_colonne("","","center","","","","","<h2>$texte</h2>");
+    $chaine .= html_colonne("","","center","","","","","<h2>$titre</h2>");
     $chaine .= html_fin_ligne();
     $chaine .= html_fin_tableau();
     return($chaine);
 }
 
-function afficher_bouton_moyen($libelle,$lien="",$target="_top",$style="boutonmoyen") {
-    global $idxmenu_moyen;
-    $chaine = html_image($idxmenu_moyen) . "&nbsp;" . ($lien == "" ? html_span_class(stripslashes($libelle),"$style") : html_lien("$lien","$target",stripslashes($libelle),"$style"));
-    return("$chaine");
-}
+// function afficher_bouton_moyen($libelle,$lien="",$target="_top",$style="boutonmoyen") {
+//     global $idxmenu_moyen;
+//     $chaine = html_image($idxmenu_moyen) . "&nbsp;" . ($lien == "" ? html_span_class(stripslashes($libelle),"$style") : html_lien("$lien","$target",stripslashes($libelle),"$style"));
+//     return("$chaine");
+// }
 
-function afficher_bouton($libelle,$lien="",$target="_top",$style="boutonpetit") {
-    $chaine = ($lien == "" ? html_span_class(stripslashes($libelle),"$style") : html_lien("$lien","$target",stripslashes($libelle),"$style"));
-    return("$chaine");
-}
+// function afficher_bouton($libelle,$lien="",$target="_top",$style="boutonpetit") {
+//     $chaine = ($lien == "" ? html_span_class(stripslashes($libelle),"$style") : html_lien("$lien","$target",stripslashes($libelle),"$style"));
+//     return("$chaine");
+// }
 
 function afficher_message_info($message) {
     $chaine = html_debut_tableau("","0","5","5","","center","middle");

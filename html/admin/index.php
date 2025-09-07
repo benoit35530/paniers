@@ -1,8 +1,6 @@
 <?php
 require_once("../include/fonctions_include_admin.php");
 
-$titre_page = "Administration des Paniers d'Eden";
-
 echo html_debut_tableau("100%","0","","");
 echo html_debut_ligne("","","","top");
 
@@ -20,7 +18,7 @@ if($rep && mysqli_num_rows($rep) != 0)
     for ($i = 0; $i < count($ses_fonctions); $i++)
     {
         if ($nbitems == 0) $chaine .= html_debut_ligne();
-        $chaine .= html_colonne("","","left","","","","",html_lien("./" . $ses_fonctions[$i] . ".php?","_top",$tab_fonctions[$ses_fonctions[$i]]),"","textegrandgras");
+        $chaine .= html_colonne("","","left","","","","",html_lien("./" . $ses_fonctions[$i] . ".php?","_top",$tab_fonctions[$ses_fonctions[$i]]),"","");
         $nbitems++;
         if ($nbitems > $nbitemsparligne)
         {
@@ -39,7 +37,7 @@ if($rep && mysqli_num_rows($rep) != 0)
     $chaine .= html_fin_tableau();
 }
 
-echo html_colonne("","","center","","","","",$chaine,"","textenormalgras");
+echo html_colonne("","","center","","","","",$chaine,"","");
 echo html_fin_ligne();
 echo html_fin_tableau();
 

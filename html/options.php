@@ -36,10 +36,10 @@ function paniers_plugin_options() {
     <!-- Ajoute 2 champs cachés pour savoir comment rediriger l'utilisateur -->
     <table width="90%">
       <tr valign="top">
-        <th scope="row"><label for="pageconnexion"><?php _e('Page de connexion') ?> </label></th>
-        <td><input name="paniers_pageconnexion" type="text" id="pageconnexion"
-          value="<?php echo $paniers_data['pageconnexion']; ?>" class="regular-text"
-        /> <span class="pageconnexion"><?php _e("Page de connexion (vide pour la page de connexion par défaut).") ?>
+        <th scope="row"><label for="pageinscription"><?php _e('Page d\'inscription') ?> </label></th>
+        <td><input name="paniers_pageinscription" type="text" id="pageinscription"
+          value="<?php echo $paniers_data['pageinscription']; ?>" class="regular-text"
+        /> <span class="pageinscription"><?php _e("Page d'inscription (vide pour la page d'inscription par défaut).") ?>
         </span>
         </td>
       </tr>

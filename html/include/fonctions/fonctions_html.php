@@ -10,10 +10,10 @@ function html_afficher_champ($libelle,$champ,$oblig=false,$aide="",$indent="20")
 
     $indent2 = 100 - $indent;
     $chaine = html_debut_ligne("","","","top");
-    if ($oblig) { $etoile = html_span_class("*","textepetit"); } else { $etoile = ""; }
-    $chaine .= html_colonne("$indent%","","left","","","","",$etoile . html_span_class($libelle,"textenormalgras"));
+    if ($oblig) { $etoile = html_span_class("*",""); } else { $etoile = ""; }
+    $chaine .= html_colonne("$indent%","","left","","","","",$etoile . html_span_class($libelle,""));
     $texte = html_span_class($champ,"textenormal");
-    if ($aide != "") $texte .= "<br>" . html_span_class($aide,"textepetit");
+    if ($aide != "") $texte .= "<br>" . html_span_class($aide,"");
     $chaine .= html_colonne("$indent2%","","left","","","","",$texte);
     $chaine .= html_fin_ligne();
     return("$chaine");
@@ -23,7 +23,7 @@ function html_champ($libelle,$champ,$type,$lg_max,$lg_case,$valeur,$aide="",$obl
 
     $chaine = html_debut_ligne("","","","top");
     $texte = "";
-    if ($oblig) $texte .= html_span_class("*","textepetit");
+    if ($oblig) $texte .= html_span_class("*","");
     $texte .= html_span_class($libelle,"textenormalgras");
     $chaine .= html_colonne("$indent%","","left","","","","",$texte);
 
@@ -52,7 +52,7 @@ function html_champ($libelle,$champ,$type,$lg_max,$lg_case,$valeur,$aide="",$obl
         $texte .= "</textarea>";
     }
 
-    if ($aide != "") $texte .= "<br>" . html_span_class($aide,"textepetit");
+    if ($aide != "") $texte .= "<br>" . html_span_class($aide,"");
     $indent2 = 100 - $indent;
 
     $chaine .= html_colonne("$indent2%","","left","","","","",$texte);

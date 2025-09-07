@@ -49,7 +49,7 @@ function gerer_liste_avoirs($actifsOnly=True) {
     $chaine = "";
     if(mysqli_num_rows($rep) != 0)
     {
-        $chaine .= html_debut_tableau("70%","0","2","0");
+        $chaine .= html_debut_tableau("90%","0","2","0");
         $chaine .= html_debut_ligne("","","","top");
         $chaine .= html_colonne("","","left","","","","","Date","","thliste");
         $chaine .= html_colonne("","","center","","","","","Client","","thliste");

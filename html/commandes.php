@@ -71,10 +71,7 @@ function formulaire_bon_commande_frontend($idclient, $idcommande, $idperiode, $q
         while(list($idproduit, $nomProduit, $description, $prix, $image, $sincemodif) = mysqli_fetch_row($rep1))
         {
             $total_qte_produit = 0;
-            $image = wp_get_attachment_image_src($image, array(300, 300));
-            if ($image) {
-                $image = $image[0];
-            }
+            $image = get_produit_image($image);
             $produit = $sincemodif < 24 * 3600 * 30 ? "&#11088; " . $nomProduit : $nomProduit;
             $chaine2 .= '<tr>';
             $chaine2 .= '  <td><button class="btn text-decoration-popup-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $description . '" title="' . $nomProduit . '">' . $produit . '</button></td>';
@@ -451,8 +448,9 @@ function afficher_recapitulatif_bon_commande_frontend($id, $idperiode) {
             $total_prix_produit = 0.0;
 
             $chaine3 = '<tr>';
-            $image = wp_get_attachment_image_src($param_produit["image"], array(300, 300))[0];
-            $chaine3 .= '  <td><button class="btn btn-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $param_produit["description"] . '" title="' . $param_produit["nom"] . '">' . $param_produit["nom"] . '</button></td>';
+
+            $image = get_produit_image($param_produit["image"]);
+            $chaine3 .= '  <td><button class="btn text-decoration-popup-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $param_produit["description"] . '" title="' . $param_produit["nom"] . '">' . $param_produit["nom"] . '</button></td>';
             $chaine3 .= '  <td class="table-light" style="text-align: right; white-space:nowrap;">' . sprintf($g_lib_somme,$qteproduit[$key_producteur][$key_produit]["prix"]) . '</td>';
             reset($dates);
             foreach($dates as $k => $v)
@@ -546,7 +544,7 @@ function afficher_recapitulatif_bon_commande_frontend($id, $idperiode) {
     return $chaine;
 }
 
-function afficher_liste_bon_commandes_frontend($idclient, $path) {
+function afficher_liste_bon_commandes_frontend($idclient) {
     global $base_bons_cde,$base_periodes,$g_periode_libelle;
     $chaine = "";
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select " .
@@ -571,7 +569,7 @@ function afficher_liste_bon_commandes_frontend($idclient, $path) {
         while(list($id,$idboncde,$datemodif,$periode) = mysqli_fetch_row($rep))
         {
             $chaine .= "    <tr>";
-            $chaine .= "      <td><a href='$path?action=affichercde&id=$id'>$idboncde</a></td>";
+            $chaine .= "      <td><a href='?action=affichercde&id=$id'>$idboncde</a></td>";
             $chaine .= "      <td>$periode</td>";
             $chaine .= "      <td>$datemodif</td>";
             $chaine .= "    </tr>";
@@ -585,183 +583,148 @@ function afficher_liste_bon_commandes_frontend($idclient, $path) {
     return $chaine;
 }
 
-function afficher_recapitulatif_livraisons_frontend($idclient, $iddate = 0) {
-    global $base_bons_cde,$base_commandes, $base_bons_cde, $base_dates, $jour_commande, $base_clients;
-
-    $chaine = "";
-
-    $chaine = <<<HTML
-<script>
-function datechange() {
-const urlParams = new URLSearchParams(window.location.search);
-urlParams.set('iddate', document.getElementById("date").value);
-window.location.search = urlParams;
-}
-
-function clientchange() {
-const urlParams = new URLSearchParams(window.location.search);
-urlParams.set('idclient', document.getElementById("client").value);
-urlParams.delete('iddate');
-window.location.search = urlParams;
-}
-</script>
-HTML;
-
-    $chaine .= '<div class="container-fluid">';
-    $chaine .= '<div class="row">';
-
-    $idpremieredatelivraison = 0;
-    $rep0 = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_dates where 1 order by id desc limit 12");
-    while(list($iddatebase) = mysqli_fetch_row($rep0)) {
-        $idpremieredatelivraison = $iddatebase;
-    }
-    if ($idpremieredatelivraison == 0) {
-        return afficher_info("Livraisons", "Il n'y a aucune livraison à venir");
-    }
-
-    if(current_user_can('gestionnaire')) {
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"],
-            "select distinct $base_clients.id,$base_clients.nom,$base_clients.prenom,$base_clients.codeclient " .
-            "from $base_commandes " .
-            "inner join $base_clients on $base_clients.id=$base_commandes.idclient " .
-            "inner join $base_dates on $base_commandes.iddatelivraison=$base_dates.id " .
-            "where $base_commandes.iddatelivraison>=$idpremieredatelivraison order by $base_clients.nom");
-        if($rep && mysqli_num_rows($rep) > 0) {
-            $chaine .= "<div class=\"col-sm\"><select id=\"client\" onchange=\"clientchange()\">\n";
-            while(list($idclientbase, $nom, $prenom,$codeclient) = mysqli_fetch_row($rep))
-            {
-                $chaine .= "<option value=\"" . $idclientbase . "\"";
-                if ($idclientbase == $idclient) $chaine .= " selected";
-                $chaine .= ">$nom $prenom ($codeclient)</option>\n";
-            }
-            $chaine .= "</select></div>";
-        } else {
-            return afficher_info("Livraisons", "Il n'y a aucune livraison à venir");
-        }
-    }
-
-    $rep = mysqli_query($GLOBALS["___mysqli_ston"],
-        "select distinct $base_dates.id, $base_dates.datelivraison " .
-        "from $base_dates " .
-        "inner join $base_commandes on $base_commandes.iddatelivraison=$base_dates.id " .
-        "where $base_dates.id>=$idpremieredatelivraison and $base_commandes.idclient=$idclient " .
-        "order by $base_dates.id");
-    $nrows = 0;
-    if ($rep) {
-        $nrows = mysqli_num_rows($rep);
-    }
-    if ($nrows > 0) {
-        $chaine .= "<div class=\"col-sm\"><select id=\"date\" onchange=\"datechange()\">";
-        $datenextlivraisontime = strtotime(date("Y-m-d", strtotime("$jour_commande")));
-        $selected = false;
-        while(list($iddatebase,$datelivraison) = mysqli_fetch_row($rep)) {
-            $chaine .= "<option value=\"" . $iddatebase . "\"";
-            $datelivraisontime = strtotime($datelivraison);
-            if((!$iddate && $datelivraisontime >= $datenextlivraisontime && !$selected) || $iddate == $iddatebase) {
-                $selected = true;
-                $chaine .= " selected";
-                if(!$iddate) {
-                    $iddate = $iddatebase;
-                }
-            }
-            if (!$selected && --$nrows == 0) {
-                $chaine .= " selected";
-                $iddate = $iddatebase;
-            }
-            $chaine .= ">" . datelitterale($datelivraison) . "</option>";
-        }
-        $chaine .= "</select></div>";
+add_shortcode('paniers-date-commande', function() {
+    require_once(paniers_dir . "/include/fonctions/fonctions_generales.php");
+    require_once(paniers_dir . "/include/fonctions/fonctions_periodes.php");
+    $txt = afficher_date_prochaine_commande();
+    if($txt == "") {
+        return "&lt;la date n'est pas encore connue&gt;";
     } else {
-        return afficher_info("Livraisons", "Il n'y a aucune livraison à venir");
+        return datelitterale($txt, true);
     }
+});
 
-    $chaine .= "</div>";
-    $chaine .= "</div>";
+add_shortcode('paniers-commande-adherent', function($atts) {
+    $userid = paniers_checkIfLoggedIn();
 
-    if ($iddate > 0) {
-        $qteproduit = array();
-        $rep = mysqli_query($GLOBALS["___mysqli_ston"],
-                            "select quantite,idproducteur,idproduit " .
-                            "from $base_commandes " .
-                            "where iddatelivraison=\"$iddate\" and idclient=\"$idclient\"");
-        if ($rep && mysqli_num_rows($rep) > 0) {
-            while(list($quantite,$idproducteur,$idproduit) = mysqli_fetch_row($rep)) {
-                $qteproduit[$idproducteur][$idproduit] = $quantite;
-            }
+    require_once(paniers_dir . "/include/fonctions_include.php");
+    require_once(paniers_dir . "/commandes.php");
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
-            $chaine .= '<table class="table table-bordered mt-5">';
-            $chaine .= '  <thead class="table-dark" style="position: sticky; top:0;">';
-            $chaine .= '    <tr>';
-            $chaine .= '      <th scope="col"></th>';
-            $chaine .= '      <th scope="col">Quantité</th>';
-            $chaine .= '    </tr>';
-            $chaine .= '  </thead>';
-            $chaine .= '  <tbody>';
+    extract(shortcode_atts(array(
+        'page_commande_non_disponible' => '',
+        'page_commande_verrouille' => ''
+    ), $atts));
 
-            foreach($qteproduit as $key_producteur => $val_producteur)
-            {
-                $param_producteur = retrouver_parametres_producteur($key_producteur);
-                $total_qte_producteur = 0;
-                $chaine2 = "";
-                $chaine2 .= '    <tr class="table-secondary">';
-                $chaine2 .= '      <th colspan="2"><b>' . $param_producteur['produits'] . " (" . $param_producteur['nom'] . ")</b></th>";
-                $chaine2 .= '    </tr>';
+    global $wp_query;
 
-                foreach($val_producteur as $key_produit => $quantite)
-                {
-                    $param_produit = retrouver_parametres_produit($key_produit);
-                    $total_qte_produit = 0;
+    $action = $wp_query->get("action");
+    $id = $wp_query->get("id");
+    $idperiode = $wp_query->get("idperiode");
 
-                    $chaine3 = '<tr>';
-                    $image = wp_get_attachment_image_src($param_produit["image"], array(300, 300));
-                    if ($image) {
-                        $image = $image[0];
-                    }
-                    $chaine3 .= '  <td><button class="btn btn-link" type="button" data-bs-toggle="popover" data-image="' . $image . '" data-description="' . $param_produit["description"] . '" title="' . $param_produit["nom"] . '">' . $param_produit["nom"] . '</button></td>';
-                    $chaine3 .= '  <td style="text-align: center">' .  $quantite . '</td>';
-                    $total_qte_produit += $quantite;
-                    $chaine3 .= '</tr>';
-
-                    $total_qte_producteur += $total_qte_produit;
-
-                    if($total_qte_produit != 0) {
-                        $chaine2 .= $chaine3;
-                    }
-                }
-
-                if ($total_qte_producteur > 0) {
-                    $chaine .= $chaine2;
-                }
-            }
-
-            $chaine .= '  </tbody>';
-            $chaine .= '</table>';
-        } else {
-            $chaine .= afficher_info("Vous n'avez pas de commandes");
+    if ($action == "editercde" || ($action=="" && !str_starts_with($_SERVER['REQUEST_URI'], "/wp-admin"))) {
+        $idperiode = retrouver_periode_courante(true);
+        if ($idperiode == 0) {
+            wp_redirect($page_commande_non_disponible);
+            exit;
+        } else if ($idperiode == -1) {
+            wp_redirect($page_commande_verouille == "" ? $page_commande_non_disponible : $page_commande_verouille);
         }
+
+        if (!isset($id) || $id == "" || $id == 0) {
+            $id = retrouver_commande($userid, $idperiode);
+        }
+
+        if ($id == 0) {
+            $qteproduit = array();
+        } else {
+            $qteproduit = retrouver_quantites_commande($id);
+        }
+
+        ob_start();
+        echo "<div><center><h4>" . afficher_periode($idperiode) . "</h4></center></div>";
+        echo afficher_formulaire_bon_commande_frontend(
+                $id,
+                $userid,
+                $idperiode,
+                $qteproduit,
+                "enregistrercde");
+        return ob_get_clean();
+    } else if ($action == "enregistrercde") {
+        $iddepot = $_POST["iddepot"];
+        $qteproduit = $_POST['qteproduit'];
+        if (!isset($idperiode) || $idperiode == "" || $idperiode == 0) {
+            return afficher_erreur("Pas de période définie");
+        }
+        else if (!isset($iddepot) || $iddepot == "" || $iddepot == 0) {
+            return afficher_erreur("Pas de dépot selectionné");
+        }
+        else if (isset($idclient) && $idclient != $userid) {
+            return afficher_erreur("Identifiant client invalide");
+        }
+
+        $total = 0.0;
+        mysqli_begin_transaction($GLOBALS["___mysqli_ston"], MYSQLI_TRANS_START_READ_WRITE);
+        try {
+            $nouvellecommande = false;
+            if (!isset($id) || $id == "" || $id == 0) {
+                $id = enregistrer_bon_commande($idperiode, $userid, $iddepot);
+                if($id == 0) {
+                    mysqli_rollback($GLOBALS["___mysqli_ston"]);
+                    return afficher_erreur("La commande est déjà enregistrée");
+                }
+                $nouvellecommande = true;
+            }
+
+            $total = enregistrer_commande($idperiode, $qteproduit, $id, $userid);
+
+            if ($total == 0.0) {
+                if ($nouvellecommande) {
+                    mysqli_rollback($GLOBALS["___mysqli_ston"]);
+                    return afficher_info("Commande non sauvegardée", "Votre commande étant vide, elle n'a pas été enregistrée");
+                } else {
+                    $boncde = supprimer_bon_commande($id);
+                    ecrire_log_public("Commande supprimé sous le n° $boncde");
+                    mysqli_commit($GLOBALS["___mysqli_ston"]);
+                    return afficher_info("Commande n° $boncde supprimée", "Votre commande étant vide, elle a été supprimée");
+                }
+            }
+
+            mysqli_commit($GLOBALS["___mysqli_ston"]);
+        } catch (Exception $e) {
+            mysqli_rollback($GLOBALS["___mysqli_ston"]);
+            return afficher_erreur($e->getMessage());;
+        }
+
+        $boncde = "C$userid-$id";
+        ecrire_log_public("Commande n° $boncde entregistrée");
+        $vars = array(
+            "%PERIODE%" => afficher_periode($idperiode),
+            "%DATECOMMANDE%" => datelitterale(afficher_date_prochaine_commande())
+        );
+        return afficher_info(
+            "Commande n° $boncde entregistrée",
+            message_courrier("messagesauvegardecommande", $vars),
+            afficher_recapitulatif_bon_commande_frontend($id, $idperiode));
+    } else {
+        return afficher_erreur("Action invalide");
     }
-    $chaine .= <<<HTML
-    <script type="module">
+});
 
-    jQuery('[data-bs-toggle="popover"]').each(function () {
-        return new bootstrap.Popover(this, {
-            trigger: 'focus hover',
-            content:
-            this.dataset.image == '' ?
-                this.dataset.description :
-                '<div class="container-fluid"' +
-                '  <div class="row">' +
-                '    <div class="col"><img src="' + this.dataset.image + '"></div>' +
-                '    <div class="col">' + this.dataset.description + '</div>' +
-                '  </div>' +
-                '</div>',
-            html: true
-        });
-    });
-    </script>
-    HTML;
+add_shortcode('paniers-liste-commandes-adherent', function($atts) {
+    $userid = paniers_checkIfLoggedIn();
 
-    return $chaine;
-}
+    require_once(paniers_dir . "/include/fonctions_include.php");
+    require_once(paniers_dir . "/commandes.php");
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
+
+    global $wp_query;
+
+    $action = $wp_query->get("action");
+    $id = $wp_query->get("id");
+
+    if ($action == "affichercde" && $id != "" && $id != 0) {
+        $idperiode = retrouver_periode_commande_client($id, $userid);
+        if ($idperiode == 0) {
+            return afficher_erreur("Commande introuvable");
+        }
+
+        return "<div><center><h4>" . afficher_periode($idperiode) . "</h4></center></div>" .
+            afficher_recapitulatif_bon_commande_frontend($id, $idperiode);
+    }
+    else {
+        return afficher_liste_bon_commandes_frontend($userid);
+    }
+});
 
 ?>

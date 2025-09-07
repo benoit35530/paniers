@@ -169,7 +169,7 @@ function gerer_clients($tri=1, $iddepot = -1, $etat = "Actif", $action = "filtre
     $chaine .= html_debut_tableau("95%","0","2","0");
     $chaine .= html_debut_ligne("","","","","","","");
     $chaine .= html_colonne("","","center","","","","","Actions","","thliste");
-    $chaine .= html_colonne("","","center","","","","",html_lien("?tri=0" . $action,"_top","Code client"),"","thliste");
+    $chaine .= html_colonne("","","center","","","","",html_lien("?tri=0" . $action,"_top","Code"),"","thliste");
     $chaine .= html_colonne("","","center","","","","",html_lien("?tri=1" . $action,"_top","Nom"),"","thliste");
     $chaine .= html_colonne("","","center","","","","","Prénom","","thliste");
     $chaine .= html_colonne("","","center","","","","",html_lien("?tri=2" . $action,"_top","Etat"),"","thliste");
@@ -209,7 +209,7 @@ function gerer_clients($tri=1, $iddepot = -1, $etat = "Actif", $action = "filtre
         $chaine .= html_colonne("","","center","","","","",$ville,"","tdliste");
         $chaine .= html_colonne("","","center","","","","",retrouver_depot($iddepot),"","tdliste");
         $chaine .= html_colonne("","","center","","","","",dateheureexterne($derncnx),"","tdliste");
-        $chaine .= html_colonne("","","right","","","","",sprintf("%.02f ",$cotisation),"","tdliste");
+        $chaine .= html_colonne("","","right","","","","",sprintf("%.02f &euro;",$cotisation),"","tdliste");
         $chaine .= html_colonne("","","center","","","","",dateheureexterne($datemodif),"","tdliste");
         $chaine .= html_fin_ligne();
     }
@@ -221,7 +221,7 @@ function gerer_clients($tri=1, $iddepot = -1, $etat = "Actif", $action = "filtre
     }
     $chaine .= html_debut_ligne("","","","","","","");
     $chaine .= html_colonne("","","right","","","","9","Total des cotisations","","thliste");
-    $chaine .= html_colonne("","","right","","","","",sprintf("%.02f ",$total_cotisation),"","thliste");
+    $chaine .= html_colonne("","","right","","","","",sprintf("%.02f &euro;",$total_cotisation),"","thliste");
     $chaine .= html_colonne("","","center","","","","2","","","thliste");
     $chaine .= html_fin_ligne();
     $chaine .= html_fin_tableau();

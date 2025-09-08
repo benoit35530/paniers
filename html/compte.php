@@ -105,7 +105,7 @@ function paniers_check_login($user, $username, $password) {
 
     $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id, nom, prenom, email, codeclient from $base_clients where email='$email' and etat='Actif' limit 1");
     if($rep && mysqli_num_rows($rep) != 0) {
-        list($coadnsommateurId,$nom, $prenom, $email, $codeclient) = mysqli_fetch_row($rep);
+        list($consommateurId,$nom, $prenom, $email, $codeclient) = mysqli_fetch_row($rep);
     }
 
     $userarray['first_name'] = $prenom;
@@ -207,7 +207,10 @@ add_shortcode('paniers-register-form', function() {
     $action = $wp_query->get("action");
     if ($action == "register") {
         $error = new WP_Error();
-        if (email_exists($_POST["email"])) {
+        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+            $error->add(0, "Requête invalide");
+        }
+        else if (email_exists($_POST["email"])) {
             $error->add(0, "Vous avez déjà un compte associé à cette adresse email !");
         }
         else {

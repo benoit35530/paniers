@@ -5,8 +5,9 @@ $url_base = paniers_plugin_url . "/";
 
 global $wpdb;
 global $paniers_dbprefix;
-$paniers_dbprefix = $wpdb->prefix;
+global $paniers_data;
 
+$paniers_dbprefix = $wpdb->prefix;
 $paniers_data = get_option('paniers_data', array());
 
 function get_paniers_option($paniers_data, $key, $default='') {

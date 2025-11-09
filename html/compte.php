@@ -756,4 +756,3 @@ function paniers_password_reset($user, $password) {
 }
 
 ?>
-

@@ -207,6 +207,9 @@ function afficher_liste_dates($nomvariable="iddatelivraison",$defaut=0) {
 
     while (list($id,$datelivraison) = mysqli_fetch_row($rep))
     {
+        if ($defaut == 0) {
+            $defaut = $id;
+        }
         $texte .= "<option value=\"" . $id . "\"";
         if ($id == $defaut) $texte .= " selected";
         $texte .= ">" . dateexterne($datelivraison) . "</option>\n";

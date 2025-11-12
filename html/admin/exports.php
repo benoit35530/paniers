@@ -8,7 +8,7 @@ if(!isset($export))
     $export = $wp_query->get("action");
 }
 
-if(!isset($export) || ($export != "excel" && $export != "impression" && $export != "pdf")) {
+if(!isset($export) || ($export != "impression" && $export != "pdf")) {
     require_once("../include/fonctions_include_admin.php");
     require_once("../include/admin/admin_menu_exports.php");
 }
@@ -29,9 +29,9 @@ if($export == "email") {
 if(!utilisateurIsAdmin()) {
     $idproducteur = obtenir_producteur_utilisateur();
     $iddepot = obtenir_depot_utilisateur();
-    $exporttype = "impression-impression_pdf_excel-Imprimante_Pdf_Excel";
+    $exporttype = "impression-impression_pdf-Imprimante_Pdf";
 } else {
-    $exporttype = "impression-impression_pdf_email_excel-Imprimante_Pdf_Email_Excel";
+    $exporttype = "impression-impression_pdf_email-Imprimante_Pdf_Email";
 }
 
 $depots=array();
@@ -149,6 +149,39 @@ case "recapclients": {
                     $pageBreak = True;
                 }
             }
+            if($export == "email") {
+                $mail_to = retrouver_depot_email($depot);
+                if(send_export_email($mail_to, $mail_cc, $mail_subject, $mail_message, $output)) {
+                    $destsuccess[] = $mail_to . " (dépôt ". retrouver_depot($depot) . ")";
+                } else {
+                    $destfailed[] = $mail_to . " (dépôt ". retrouver_depot($depot) . ")";
+                }
+            }
+        }
+        ecrire_log_admin("Export : recapitulatif des commandes clients ($export)");
+    }
+}
+break;
+
+case "confrecapclients-par-date": {
+    if($export == "email") {
+        $output = export_courrier_form("Confirmation envoie de message aux dépôts",
+                                       "recapclients-par-date", "formconfrecapclients-par-date", "exportrecapcommandessujet",
+                                       "exportrecapcommandesmessage");
+        $export = "";
+        break;
+    }
+}
+
+case "recapclients-par-date": {
+    if (isset($iddate) && $iddate != "" && $iddate != 0) {
+        foreach($depots as $nomdepot => $depot) {
+            if($export == "email") {
+                $output = "";
+            }
+            $rep2 = mysqli_query($GLOBALS["___mysqli_ston"], "select idperiode from $base_dates where id='$iddate'");
+            list($idperiode) = mysqli_fetch_row($rep2);
+            $output = recapitulatif_commandes_clients($idperiode, $iddate, $depot);
             if($export == "email") {
                 $mail_to = retrouver_depot_email($depot);
                 if(send_export_email($mail_to, $mail_cc, $mail_subject, $mail_message, $output)) {
@@ -293,6 +326,17 @@ default: {
         $output .= saisir_enregistrement($champs,"?action=confrecapclients","formrecapclients",50,20,5,5,false,"");
         $output .= "<p>";
 
+        $output .= afficher_titre("Produits commandés par chaque client pour une date (périodes non closes)");
+        $champs["libelle"] = array("Choisissez la période et le dépôt","Date","Dépôt","Format d'export","");
+        $champs["type"] = array("","libre",$depottype,"radio","submit");
+        $champs["lgmax"] = array("","","","","");
+        $champs["taille"] = array("","","","","");
+        $champs["nomvar"] = array("","","","export","");
+        $champs["valeur"] = array("",afficher_liste_dates('iddate'),$depotvalue, $exporttype," Valider ");
+        $champs["aide"] = array("","","","","");
+        $output .= saisir_enregistrement($champs,"?action=confrecapclients-par-date","formrecapclients",50,20,5,5,false,"_blank");
+        $output .= "<p>";
+
         $output .= afficher_titre("Montants des paiements clients pour une période");
         $champs["libelle"] = array("Choisissez la période et le dépôt","Période","Dépôt","Format d'export","");
         $champs["type"] = array("","libre",$depottype, "radio","submit");
@@ -367,7 +411,7 @@ else {
     echo $output;
 }
 
-if (!isset($export) || ($export != "excel" && $export != "impression" && $export != "pdf")) {
+if (!isset($export) || ($export != "impression" && $export != "pdf")) {
     require_once("../include/admin/admin_footer.php");
 }
 else if ($export != "pdf") {

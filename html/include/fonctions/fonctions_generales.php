@@ -5,7 +5,6 @@
 require_once(paniers_dir . "/../vendor/autoload.php");
 
 use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 use Mpdf\Mpdf;
 
@@ -328,9 +327,12 @@ function export_as_pdf($output)
     $out .= file_get_contents(paniers_dir . "/include/admin/admin_footer_exports.php");
 
     try {
+        ob_clean();
+        http_response_code(200);
         $mpdf = new Mpdf();
         $mpdf->WriteHTML($out);
         $mpdf->Output();
+        exit;
     } catch (Exception $e) {
         $formatter = new ExceptionFormatter($e);
         echo $formatter->getHtmlMessage();

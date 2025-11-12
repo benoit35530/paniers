@@ -323,7 +323,7 @@ default: {
         $champs["nomvar"] = array("","","","export","");
         $champs["valeur"] = array("",afficher_liste_periodes(),$depotvalue, $exporttype," Valider ");
         $champs["aide"] = array("","","","","");
-        $output .= saisir_enregistrement($champs,"?action=confrecapclients","formrecapclients",50,20,5,5,false,"");
+        $output .= saisir_enregistrement($champs,"?action=confrecapclients","formrecapclients",50,20,5,5,false,"_blank");
         $output .= "<p>";
 
         $output .= afficher_titre("Produits commandés par chaque client pour une date (périodes non closes)");
@@ -345,7 +345,7 @@ default: {
         $champs["nomvar"] = array("","","","export","");
         $champs["valeur"] = array("",afficher_liste_periodes(),$depotvalue,$exporttype," Valider ");
         $champs["aide"] = array("","","","","");
-        $output .= saisir_enregistrement($champs,"?action=confrecappaiements","formpaiementsclients",50,20,5,5,false,"");
+        $output .= saisir_enregistrement($champs,"?action=confrecappaiements","formpaiementsclients",50,20,5,5,false,"_blank");
         $output .= "<p>";
     }
 
@@ -358,7 +358,7 @@ default: {
         $champs["nomvar"] = array("","","","","export","");
         $champs["valeur"] = array("",$producteurvalue,afficher_liste_periodes(),afficher_liste_depots_et_tous(),$exporttype," Valider ");
         $champs["aide"] = array("","","","","","");
-        $output .= saisir_enregistrement($champs,"?action=confrecapproducteurs","formrecapproducteurs",50,20,5,5,false,"");
+        $output .= saisir_enregistrement($champs,"?action=confrecapproducteurs","formrecapproducteurs",50,20,5,5,false,"_blank");
     }
 
     if(utilisateurIsAdmin() || $idproducteur == -1 || $iddepot > 0) {
@@ -370,7 +370,7 @@ default: {
         $champs["nomvar"] = array("","","export","");
         $champs["valeur"] = array("", $depotvalue, $exporttype," Valider ");
         $champs["aide"] = array("","","","");
-        $output .= saisir_enregistrement($champs,"?action=confclients","formclients",50,20,5,5,false,"");
+        $output .= saisir_enregistrement($champs,"?action=confclients","formclients",50,20,5,5,false,"_blank");
     }
 }
 break;

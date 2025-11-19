@@ -80,9 +80,9 @@ case 'confmodif':
     if(isset($id,$codeclient,$nom,$prenom) && $id != "" && $id != 0 &&
        $codeclient != "" && $nom != "" && $prenom != "") {
         $err = paniers_updateclient();
-        if($err != "") {
-            echo afficher_message_erreur($err);
-            echo saisir_parametres_client($id,"modif");
+        if(is_wp_error($err)) {
+            echo afficher_message_erreur($err->get_error_message());
+            echo saisir_parametres_client("0","ajout");
         } else {
             mysqli_query($GLOBALS["___mysqli_ston"], "update $base_clients set codeclient='$codeclient'" . (isset($motpasse) && $motpasse != "" ? ",motpasse='" . encode_password($motpasse) . "'" : "") . ",nom='$nom',prenom='$prenom',email='$email',telephone='$telephone',ville='$ville',iddepot='$iddepot',etat='$etat',datemodif=now(),cotisation='$cotisation' where id='$id'");
 

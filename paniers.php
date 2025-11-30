@@ -240,7 +240,6 @@ function paniers_queryvars($qvars) {
     return $qvars;
 }
 
-
 function paniers_add_plugin_stylesheet() {
     wp_register_style('paniers_stylesheet', paniers_plugin_url . '/paniers.css');
     wp_enqueue_style('paniers_stylesheet');

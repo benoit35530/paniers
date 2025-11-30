@@ -1,6 +1,6 @@
 <?php
 
-require_once('../../../../../wp-blog-header.php');
+require_once('../../../../../wp-load.php');
 require_once('../../../../../wp-includes/media.php');
 
 require_once("fonctions_include.php");

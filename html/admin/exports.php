@@ -2,7 +2,9 @@
 
 foreach($_POST as $k=>$v) { $$k = $v; }
 
-require_once('../../../../../wp-load.php');
+require_once('../../../../../wp-blog-header.php');
+http_response_code(200);
+
 if(!isset($export))
 {
     $export = $wp_query->get("action");

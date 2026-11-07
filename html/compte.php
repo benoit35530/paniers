@@ -222,7 +222,7 @@ add_shortcode('paniers-register-form', function() {
         return afficher_erreur("Vous êtes connecté et déjà inscrit !");
     }
     if ( !get_option( 'users_can_register' ) ) {
-        return afficher_erreur("L'inscription de nouveaux consommateurs est désactivée. Utilisez la formulaire de contact sur la page d'accueil pour demander la création de votre compte.");
+        return afficher_erreur("Pour vous inscrire et passer une première commande, envoyez-nous un message via le formulaire de contact en précisant vos nom, prénom, commune, téléphone et email.");
     }
 
     global $wp_query;

@@ -6,6 +6,25 @@ add_filter('register_url', 'paniers_register_url', 10, 1);
 add_filter('login_redirect', 'paniers_login_redirect', 10);
 add_action('password_reset', 'paniers_password_reset', 10, 2);
 
+add_action('deleted_user', 'paniers_deleted_user', 10, 3);
+
+function paniers_deleted_user($id, $reassign, $user) {
+    require_once(paniers_dir . "/include/fonctions/fonctions_communes.php");
+    global $base_bons_cde, $base_clients;
+
+    $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_clients where lower(codeclient)=lower('$user->user_login')");
+    if($rep && mysqli_num_rows($rep) != 0) {
+        list($idclient) = mysqli_fetch_row($rep);
+        $rep = mysqli_query($GLOBALS["___mysqli_ston"], "select id from $base_bons_cde where idclient = '$idclient'");
+        if(mysqli_num_rows($rep) == 0)
+        {
+            mysqli_query($GLOBALS["___mysqli_ston"], "delete from $base_clients where id='$idclient' limit 1");
+            ecrire_log_admin("Client n° $id $user->user_login supprimé");
+        }
+    }
+}
+
+
 function paniers_checkIfLoggedIn() {
     if (is_user_logged_in()) {
         $userid = get_user_meta(get_current_user_id(), 'paniers_consommateurId', true);
@@ -201,6 +220,9 @@ add_shortcode('paniers-register-form', function() {
 
     if (is_user_logged_in()) {
         return afficher_erreur("Vous êtes connecté et déjà inscrit !");
+    }
+    if ( !get_option( 'users_can_register' ) ) {
+        return afficher_erreur("L'inscription de nouveaux consommateurs est désactivée. Utilisez la formulaire de contact sur la page d'accueil pour demander la création de votre compte.");
     }
 
     global $wp_query;

@@ -42,7 +42,7 @@ function formulaire_date($cde="ajout",$id=0,$datelivraison="",$idperiode=0) {
     $champs["lgmax"] = array("","10","");
     $champs["taille"] = array("","10","");
     $champs["nomvar"] = array("","datelivraison","idperiode");
-    $champs["valeur"] = array("",$datelivraison,($cde == "modif" || $cde == "ajout" ? afficher_liste_periodes("idperiode",$idperiode, True) : retrouver_periode($idperiode)));
+    $champs["valeur"] = array("",$datelivraison,($cde == "modif" || $cde == "ajout" ? afficher_liste_periodes("idperiode",$idperiode, True) : afficher_periode($idperiode)));
     $champs["aide"] = array("","Date de livraison (jj/mm/aaaa)","Indiquez à quelle période appartient cette date");
 
     $producteurs = "";

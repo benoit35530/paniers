@@ -1,8 +1,7 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/c1290081c/public_html/wp-content/plugins/paniers
-    - /bin/cp -Ruv html $DEPLOYPATH/
-    - /bin/cp -uv autoupdate.php $DEPLOYPATH/
+    - /bin/rsync -avc html/ $DEPLOYPATH/html/
     - /bin/cp -uv paniers.* $DEPLOYPATH/
     - /bin/cp -uv composer.* $DEPLOYPATH/
     - cd $DEPLOYPATH

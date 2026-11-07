@@ -4,5 +4,6 @@ deployment:
     - /bin/rsync -avc html/ $DEPLOYPATH/html/
     - /bin/cp -uv paniers.* $DEPLOYPATH/
     - /bin/cp -uv composer.* $DEPLOYPATH/
+    - /bin/cp -uv placeholder.png $DEPLOYPATH/
     - cd $DEPLOYPATH
     - composer update
